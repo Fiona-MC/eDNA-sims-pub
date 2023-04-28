@@ -225,7 +225,7 @@ for (run in runs) {
           sitetab_data_sampled[i + 2] <- locList[s_index][[1]][1]
           sitetab_data_sampled[i + 3] <- locList[s_index][[1]][2]
           for (cov in 1:params$numCovs){ # add covariate values to sitetab
-              # TODO ADD COV MEASUREMENT NOISE HERE
+              # ADD COV MEASUREMENT NOISE HERE
               sitetab_data_sampled[i + 3 + cov] <- sim_data[[t]]$covs[[cov]][s_index] + rnorm(n = 1, mean = 0, sd = params$covMeasureNoise_sd)
           }
           for (k in 1:params$numSpecies){ # add species presence absence to sitetab
