@@ -5,13 +5,13 @@ export OMP_NUM_THREADS=15
 #do
 #    date
 #    mkdir "$folder/INLA_res/"
-#    Rscript /home/fiona_callahan/INLA_simAnalysis_general.R "$folder/" "$folder/INLA_res/" 
-#    Rscript /home/fiona_callahan/count_INLAmistakes.R "$folder/" "$folder/INLA_res/"
+#    Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_general.R "$folder/" "$folder/INLA_res/" 
+#    Rscript /home/fiona_callahan/eDNA_sims_code/count_INLAmistakes.R "$folder/" "$folder/INLA_res/"
 #done
 
-sim_dir="/space/s1/fiona_callahan/multiSim6"
+sim_dir="/space/s1/fiona_callahan/multiSim7"
 
-Rscript /home/fiona_callahan/filter_sims.R ${sim_dir}/
+Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
 
 # this takes a minute (cp takes awhile -- if we just delete them it will be fast)
@@ -29,12 +29,12 @@ N=8 # N=10 resulted in average usage around 30 cores
 
 for folder in ${sim_dir}/randomRun*; do
     (
-        if test ! -f "$folder/INLA_res_faster/" # if the folder is not already there
+        if test ! -d "${folder}/INLA_res_faster/trial1" # if the folder is not already there NOT WORKING
         then
             mkdir "$folder/INLA_res_faster/" 
             # run INLA sim analysis
-            timeout -k 10 6h Rscript /home/fiona_callahan/INLA_simAnalysis_faster.R ${folder}/ ${folder}/INLA_res_faster/
-            Rscript /home/fiona_callahan/count_INLAmistakes.R ${folder}/ ${folder}/INLA_res_faster/
+            timeout -k 10 6h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_faster.R ${folder}/ ${folder}/INLA_res_faster/
+            Rscript /home/fiona_callahan/eDNA_sims_code/count_INLAmistakes.R ${folder}/ ${folder}/INLA_res_faster/
         fi
         echo "starting task $folder.."
         sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why

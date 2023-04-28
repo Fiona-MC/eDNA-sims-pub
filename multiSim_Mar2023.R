@@ -6,7 +6,7 @@ library(gridExtra)
 #install.packages(c('gapminder','gganimate','gifski'))
 library(gapminder)
 #library(gganimate)
-source("/home/fiona_callahan/multiSimFunctions.R")
+source("/home/fiona_callahan/eDNA_sims_code/multiSimFunctions.R")
 
 # Note to self about a bug you're going to create someday: 
 # count_INLAmistakes is going to fail if there is a constant covariate that is not the last one in the list
