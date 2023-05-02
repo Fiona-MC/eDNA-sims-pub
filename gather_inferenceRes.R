@@ -1,18 +1,35 @@
 # put all of the parameter values and results into a table from a bunch of inla runs
-thisDir <- "/space/s1/fiona_callahan/multiSim2/"
-runs <- 1:1000
-trials <- 1:2
+args <- commandArgs(trailingOnly = TRUE)
+
+if (length(args) < 3) {
+  stop("input folders need to be supplied", call. = FALSE)
+} 
+
+#Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes.R /space/s1/fiona_callahan/multiSim7/ 1000 1
+
+#thisDir <- "/space/s1/fiona_callahan/multiSim5/"
+#runs <- 1:1000
+#trials <- 1:1
+
+thisDir <- args[1]
+numRuns <- args[2]
+numTrials <- args[3]
+
+runs <- 1:numRuns
+trials <- 1:numTrials
 
 infResDF <- data.frame()
 for (run in runs) {
     # note there is already a check for this in the count_INLAmistakes, 
     # so this is just in case I wanna run this on a whole folder that I havent finished yet
     # load parameter values
-    params <- readRDS(paste0(thisDir, "randomRun", run, "/params.Rdata"))
-    parmVals <- unlist(params)
-    # take out functions from parmVals
-    parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
-    parmNames <- names(parmVals)
+    if(file.exists(paste0(thisDir, "randomRun", run))){ # for runs that were sorted into the unrealistic folder
+        params <- readRDS(paste0(thisDir, "randomRun", run, "/params.Rdata"))
+        parmVals <- unlist(params)
+        # take out functions from parmVals
+        parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
+        parmNames <- names(parmVals)
+    }
 
     if (file.exists(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"))) {
         # load number of mistakes

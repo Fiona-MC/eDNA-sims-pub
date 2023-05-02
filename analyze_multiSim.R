@@ -1,11 +1,18 @@
 library(ranger)
 library(dplyr)
+library(pdp)
+library(ggplot2)
 
-thisDir <- "/space/s1/fiona_callahan/multiSim2/"
+thisDir <- "/space/s1/fiona_callahan/multiSim7/"
 multiSimRes <- read.csv(paste0(thisDir, "infResGathered.csv"), header = TRUE)
 
 # put sum of two types of mistakes in a column
 multiSimRes$totalMistakes <- multiSimRes$num_incorrectInferences + multiSimRes$num_missedEffectsL
+
+#multiSimRes %>% 
+#  summarise_if(is.numeric, c(mean, sd), na.rm = TRUE)
+
+summary(multiSimRes)
 
 parmNames <- readRDS(paste0(thisDir, "parmNames.Rdata"))
 # this removes duplicates and makes it so that none of the parm names are not in the actual data set
@@ -16,12 +23,12 @@ parmsVary <- as.vector(sapply(lapply(multiSimRes[, parmNames], unique), length) 
 parmNames <- parmNames[as.vector(parmsVary)]
 #TODO these parm names need to be adjusted because some of them were inside other lists
 #TODO c("mean_fpr", "N_50", "mean_mig_rate") were not in the list of parms because they are fcns of other parms -- calculate if they don't exist in list
-randomParms <- c("num_samples_time", "num_samples_space", "radius", "mean_fpr", "fpr_mode", "covNoise_sd", "covMeasureNoise_sd", "r", "sigma", "N_50", "mean_mig_rate")
+randomParms <- c("num_samples_time", "num_samples_space", "radius", "fpr.mean_fpr", "fpr.mode", "covNoise_sd", "covMeasureNoise_sd", "r", "sigma", "N_50", "mean_mig_rate")
 emergentParms <- c("Sp1PercentPresence", "Sp2PercentPresence", "Sp3PercentPresence")
 # make formula from these parms
 indep_var <- "totalMistakes"
-indep_var <- "finished_INLA"
-fmla <- as.formula(paste(indep_var, " ~ ", paste(randomParms, collapse = "+")))
+#indep_var <- "finished_INLA"
+fmla <- as.formula(paste(indep_var, " ~ ", paste(c(randomParms,emergentParms), collapse = "+")))
 
 multiSimRes_na.rm <- multiSimRes[!is.na(multiSimRes[indep_var]), ]
 
@@ -31,9 +38,44 @@ lm_res <- lm(data = multiSimRes, formula = fmla)
 summary(lm_res)
 
 # random forest res
-rf_res <- ranger(data = multiSimRes, formula = fmla, importance = "impurity") 
+rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "impurity") 
 summary(rf_res)
 sort(importance(rf_res))
+
+# pdp plotting
+pdp_res <- pdp::partial(object = rf_res, pred.var = "num_samples_time", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "num_samples_space", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "N_50", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "r", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "Sp3PercentPresence", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "Sp2PercentPresence", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "Sp1PercentPresence", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "sigma", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "covMeasureNoise_sd", grid.resolution = 50, plot = TRUE)
+
+
+#plot(multiSimRes$N_50, multiSimRes$totalMistakes)
+multiSimRes_na.rm$totalMistakes.factor <- as.factor(multiSimRes_na.rm$totalMistakes)
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = N_50)) +
+  geom_violin(position = position_nudge()) +
+  geom_point(aes(color = as.factor(num_incorrectInferences)))+
+  coord_flip() 
+
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = N_50)) +
+  geom_boxplot(position = position_nudge()) +
+  geom_point(aes(color = as.factor(num_incorrectInferences)))+
+  coord_flip() +
+  theme(legend.position = "none")
+
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = sigma)) +
+  geom_violin(position = position_nudge()) +
+  geom_point(aes(color = as.factor(num_incorrectInferences)))+
+  coord_flip() 
+
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = num_samples_space)) +
+  geom_violin(position = position_nudge()) +
+  geom_point(aes(color = as.factor(num_incorrectInferences)))+
+  coord_flip() 
 
 hist(multiSimRes$num_samples_space)
 hist(multiSimRes$num_samples_space[!multiSimRes$finished_INLA])
@@ -43,8 +85,8 @@ hist(total_samples)
 total_samples_notFinished <- multiSimRes$num_samples_space[!multiSimRes$finished_INLA] * multiSimRes$num_samples_time[!multiSimRes$finished_INLA]
 hist(total_samples_notFinished)
 
-killed_runNums <- c(447, 254, 487, 169, 426, 143, 102, 385, 373, 335)
-multiSimRes$killed <- multiSimRes$RunNum %in% killed_runNums
+#killed_runNums <- c(447, 254, 487, 169, 426, 143, 102, 385, 373, 335)
+#multiSimRes$killed <- multiSimRes$RunNum %in% killed_runNums
 #multiSimRes[multiSimRes$killed, ]
 
 multiSimResMeans <- multiSimRes %>%

@@ -16,7 +16,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-#Rscript /home/fiona_callahan/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim6/ 1 250
+#Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim8/ 1 1000
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 thisdir <- args[1]
 dir.create(thisdir)

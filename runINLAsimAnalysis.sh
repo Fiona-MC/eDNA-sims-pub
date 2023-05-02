@@ -9,7 +9,9 @@ export OMP_NUM_THREADS=15
 #    Rscript /home/fiona_callahan/eDNA_sims_code/count_INLAmistakes.R "$folder/" "$folder/INLA_res/"
 #done
 
-sim_dir="/space/s1/fiona_callahan/multiSim7"
+sim_dir="/space/s1/fiona_callahan/multiSim6"
+numRuns=1000
+numTrials=1
 
 Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
@@ -52,5 +54,7 @@ done
 # no more jobs to be started but wait for pending jobs
 # (all need to be finished)
 wait
+
+Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes.R ${sim_dir}/ ${numRuns} ${numTrials}
 
 echo "all done"
