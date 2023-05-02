@@ -9,7 +9,7 @@ export OMP_NUM_THREADS=15
 #    Rscript /home/fiona_callahan/eDNA_sims_code/count_INLAmistakes.R "$folder/" "$folder/INLA_res/"
 #done
 
-sim_dir="/space/s1/fiona_callahan/multiSim6"
+sim_dir="/space/s1/fiona_callahan/multiSim8"
 numRuns=1000
 numTrials=1
 

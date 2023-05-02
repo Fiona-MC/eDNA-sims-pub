@@ -9,6 +9,9 @@ multiSimRes <- read.csv(paste0(thisDir, "infResGathered.csv"), header = TRUE)
 # put sum of two types of mistakes in a column
 multiSimRes$totalMistakes <- multiSimRes$num_incorrectInferences + multiSimRes$num_missedEffectsL
 
+lowMistakes_res_lt2 <- multiSimRes[multiSimRes$totalMistakes < 2 & !is.na(multiSimRes$totalMistakes), ]
+lowMistakes_res_eq2 <- multiSimRes[multiSimRes$totalMistakes == 2 & !is.na(multiSimRes$totalMistakes), ]
+
 #multiSimRes %>% 
 #  summarise_if(is.numeric, c(mean, sd), na.rm = TRUE)
 
