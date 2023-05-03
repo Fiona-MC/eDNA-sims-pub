@@ -1,14 +1,6 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-#for folder in /space/s1/fiona_callahan/multiSim1/*
-#do
-#    date
-#    mkdir "$folder/INLA_res/"
-#    Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_general.R "$folder/" "$folder/INLA_res/" 
-#    Rscript /home/fiona_callahan/eDNA_sims_code/count_INLAmistakes.R "$folder/" "$folder/INLA_res/"
-#done
-
 sim_dir="/space/s1/fiona_callahan/multiSim8"
 numRuns=1000
 numTrials=1
@@ -31,6 +23,7 @@ N=8 # N=10 resulted in average usage around 30 cores
 
 for folder in ${sim_dir}/randomRun*; do
     (
+        echo "starting task $folder.."
         if test ! -d "${folder}/INLA_res_faster/trial1" # if the folder is not already there NOT WORKING
         then
             mkdir "$folder/INLA_res_faster/" 
@@ -38,7 +31,6 @@ for folder in ${sim_dir}/randomRun*; do
             timeout -k 10 6h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_faster.R ${folder}/ ${folder}/INLA_res_faster/
             Rscript /home/fiona_callahan/eDNA_sims_code/count_INLAmistakes.R ${folder}/ ${folder}/INLA_res_faster/
         fi
-        echo "starting task $folder.."
         sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
     ) &
 

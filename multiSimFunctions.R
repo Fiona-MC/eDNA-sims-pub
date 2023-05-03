@@ -22,6 +22,9 @@ getParms <- function(random = TRUE) {
 
         N_50 <- sample(x = 1:1000, size = 1) # number of animals for which detection prob is 50%
 
+        #species effect
+        c2 <- runif(n = 1, min = 25, max = 150)
+        
         #a12 <- sample(x = c(-1, 0, 1), size = 1)
         #a13 <- sample(x = c(-1, 0, 1), size = 1)
         #a21 <- sample(x = c(-1, 0, 1), size = 1)
@@ -104,8 +107,6 @@ getParms <- function(random = TRUE) {
     det_prob_add <- N_50^det_prob_exp # vary this 
 
     #alpha and beta numbers respectively (for scaling purposes)
-    #species effect
-    c2 <- 50
     #cov effect
     c3 <- 200
 
