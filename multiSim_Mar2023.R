@@ -62,6 +62,8 @@ for (run in runs) {
   for (t in 1:params$num_gens){
     sim_data[[t]] <- list()
     thisK <- list()
+    thisK_cov <- list()
+    thisK_sp <- list()
     thisN <- list()
     thisY <- list()
     
@@ -84,7 +86,7 @@ for (run in runs) {
         covL_norm[[covNum]] <- (cov - mean(cov)) / sd(cov)
         # add noise (NOTE THIS IS PROCESS NOISE NOT MEASUREMENT NOISE)
         covL_norm[[covNum]] <- covL_norm[[covNum]] + rnorm(n = num_locations, mean = 0, sd = params$covNoise_sd)
-      }else {
+      } else {
         covL_norm[[covNum]] <- cov
       }
     }
@@ -94,16 +96,20 @@ for (run in runs) {
       covList[[s_index]] <- unlist(lapply(X = covL_norm, FUN = function(covNorm) {covNorm[s_index]}))
     }
     
-    #start space loop
+    # start space loop
     for (s in seq_along(locList)){
       if (t == 1) {
         lastN <- N0[[s]]
       } else {
         lastN <- sim_data[[t - 1]]$N[[s]]
       }
-      # calculate carrying capacities
-      thisK[[s]] <- params$beta %*% covList[[s]] + params$alpha %*% abundanceEffectTransform(lastN, type = params$abundanceEffectType)
+      # calculate carrying capacities -- divide into covariate and species effects for later analysis
+      thisK_cov[[s]] <- params$beta %*% covList[[s]]
+      thisK_sp[[s]] <- params$alpha %*% abundanceEffectTransform(lastN, type = params$abundanceEffectType)
+      thisK[[s]] <- thisK_cov[[s]] + thisK_sp[[s]]
       thisK[[s]] <- apply(thisK[[s]], FUN = function(x) {max(x, 0.001)}, MARGIN = 1) # truncate at 0-ish
+
+
       # calculate new abundances
       # calculate noise
       dWt <- rnorm(n = params$numSpecies, mean = 0, sd = 1)
@@ -142,16 +148,16 @@ for (run in runs) {
       if (fpr_mode == "none") {
         # no false positives (ie rate is 0)
         fpr <- rep(0, params$numSpecies)
-      }else if (fpr_mode == "constant") {
+      } else if (fpr_mode == "constant") {
         # fpr is a set constant  -- this is basically just for experimenting
         fpr <- rep(params$fpr$constant_fpr, params$numSpecies)
-      }else if (fpr_mode == "independent") {
+      } else if (fpr_mode == "independent") {
         # draw separate fpr for each species
         fpr <- rbeta(n = params$numSpecies, shape1 = params$fpr$alpha_fpr, shape2 = params$fpr$beta_fpr)
-      }else if (fpr_mode == "dependent_sp") {
+      } else if (fpr_mode == "dependent_sp") {
         # draw one fpr for this location and time and apply to all species
         fpr <- rep(rbeta(n = 1, shape1 = params$fpr$alpha_fpr, shape2 = params$fpr$beta_fpr), params$numSpecies)
-      }else {
+      } else {
         print("your fpr_mode is not implemented")
       }
       # apply this fpr to all species (bernoulli trials)
@@ -166,6 +172,8 @@ for (run in runs) {
       }
     } # end location loop
     sim_data[[t]]$K <- thisK
+    sim_data[[t]]$K_cov <- thisK_cov
+    sim_data[[t]]$K_sp <- thisK_sp
     sim_data[[t]]$N <- thisN
     sim_data[[t]]$y <- thisY
     sim_data[[t]]$covs <- covL_norm
