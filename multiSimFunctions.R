@@ -24,7 +24,7 @@ getParms <- function(random = TRUE) {
 
         #species effect
         c2 <- runif(n = 1, min = 25, max = 150)
-        
+
         #a12 <- sample(x = c(-1, 0, 1), size = 1)
         #a13 <- sample(x = c(-1, 0, 1), size = 1)
         #a21 <- sample(x = c(-1, 0, 1), size = 1)
@@ -107,6 +107,8 @@ getParms <- function(random = TRUE) {
     det_prob_add <- N_50^det_prob_exp # vary this 
 
     #alpha and beta numbers respectively (for scaling purposes)
+    # species effect
+    #c2 <- 50 #changed to be varied
     #cov effect
     c3 <- 200
 
@@ -199,7 +201,7 @@ get_cov <- function(location, type = "peaks", coef1func = NA, coef2func = NA, t 
     # x minus some number between 0 and 1 that changes with time (cycles every ~400)
     temp1 <- x / params$xdim - abs(sin((1 / 123) * t))  
     temp2 <- y / params$ydim - abs(cos((1 / 123) * t))
-    return(sin(temp1*3 * temp2*3)) # the times 3 is just to get the function to behave
+    return(sin(temp1 * 3 * temp2 * 3)) # the times 3 is just to get the function to behave
   } else {
     print("type invalid in function get_cov")
   }

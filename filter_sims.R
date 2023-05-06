@@ -2,14 +2,14 @@ library(dplyr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) < 1) {
+if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
-# Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim5/
+# Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim5/ 1000
 #thisDir <- "/space/s1/fiona_callahan/multiSimTest/"
 thisDir <- args[1]
-numRuns <- 1000
+numRuns <- args[2]
 
 
 badRuns <- c()

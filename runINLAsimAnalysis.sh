@@ -5,7 +5,7 @@ sim_dir="/space/s1/fiona_callahan/multiSim8"
 numRuns=1000
 numTrials=1
 
-Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/
+Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
 
 # this takes a minute (cp takes awhile -- if we just delete them it will be fast)
