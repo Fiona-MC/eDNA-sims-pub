@@ -2,9 +2,15 @@ library(ranger)
 library(dplyr)
 library(pdp)
 library(ggplot2)
+library(plyr)
 
-thisDir <- "/space/s1/fiona_callahan/multiSim7/"
-multiSimRes <- read.csv(paste0(thisDir, "infResGathered.csv"), header = TRUE)
+dirNums<-c(7, 8, 10)
+multiSimRes <- data.frame()
+
+for(dirNum in dirNums) {
+  thisDir <- paste0("/space/s1/fiona_callahan/multiSim", dirNum, "/")
+  multiSimRes <- plyr::rbind.fill(multiSimRes, read.csv(paste0(thisDir, "infResGathered.csv"), header = TRUE))
+}
 
 # put sum of two types of mistakes in a column
 multiSimRes$totalMistakes <- multiSimRes$num_incorrectInferences + multiSimRes$num_missedEffectsL
@@ -26,7 +32,7 @@ parmsVary <- as.vector(sapply(lapply(multiSimRes[, parmNames], unique), length) 
 parmNames <- parmNames[as.vector(parmsVary)]
 #TODO these parm names need to be adjusted because some of them were inside other lists
 #TODO c("mean_fpr", "N_50", "mean_mig_rate") were not in the list of parms because they are fcns of other parms -- calculate if they don't exist in list
-randomParms <- c("num_samples_time", "num_samples_space", "radius", "fpr.mean_fpr", "fpr.mode", "covNoise_sd", "covMeasureNoise_sd", "r", "sigma", "N_50", "mean_mig_rate")
+randomParms <- c("num_samples_time", "num_samples_space", "radius", "fpr.mean_fpr", "fpr.mode", "covNoise_sd", "covMeasureNoise_sd", "r", "sigma", "N_50", "mean_mig_rate", "c2")
 emergentParms <- c("Sp1PercentPresence", "Sp2PercentPresence", "Sp3PercentPresence")
 # make formula from these parms
 indep_var <- "totalMistakes"
@@ -55,6 +61,7 @@ pdp_res <- pdp::partial(object = rf_res, pred.var = "Sp2PercentPresence", grid.r
 pdp_res <- pdp::partial(object = rf_res, pred.var = "Sp1PercentPresence", grid.resolution = 50, plot = TRUE)
 pdp_res <- pdp::partial(object = rf_res, pred.var = "sigma", grid.resolution = 50, plot = TRUE)
 pdp_res <- pdp::partial(object = rf_res, pred.var = "covMeasureNoise_sd", grid.resolution = 50, plot = TRUE)
+pdp_res <- pdp::partial(object = rf_res, pred.var = "c2", grid.resolution = 50, plot = TRUE)
 
 
 #plot(multiSimRes$N_50, multiSimRes$totalMistakes)
@@ -76,6 +83,11 @@ ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = sigma)) +
   coord_flip() 
 
 ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = num_samples_space)) +
+  geom_violin(position = position_nudge()) +
+  geom_point(aes(color = as.factor(num_incorrectInferences)))+
+  coord_flip() 
+
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = c2)) +
   geom_violin(position = position_nudge()) +
   geom_point(aes(color = as.factor(num_incorrectInferences)))+
   coord_flip() 

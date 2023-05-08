@@ -305,7 +305,7 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     aesNamesString <- lapply(1:params$numSpecies, FUN = function(sp) {paste0("species", sp, "AverageAbundance")})
     #plot average abundance of each species across space
     avgAbdPlotsL <- lapply(aesNamesString, FUN = function(varName) {
-      p <- ggplot(abd_av_df, aes_string(x = "x", y = "y", label = "s_index", color = varName)) +
+      p <- ggplot(abd_av_df, aes_string(x = "x", y = "y", label = "s_index", color = varName)) + # nolint: object_usage_linter.
         geom_text() +
         scale_color_gradient(low = "blue", high = "green")
       #return(p)
