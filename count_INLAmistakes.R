@@ -23,26 +23,26 @@ inla_dir <- args[2]
 numRuns <- 1 # runs per folder (1 is correct)
 numTrials <- 1
 
-runL <- c()
-trialL <- c()
-num_correctInferencesL <- c() # true pos
-num_incorrect_alphaL <- c() # species interaction incorrectInference
-num_incorrect_betaL <- c() # covariate interaction incorrectInference
-num_incorrectInferencesL <- c() # false pos (or wrong direction)
-num_actualEffectsL <- c() # total actual effects
-num_possibleEffectsL <- c() # n^2 + n*p -n (minus n because of the diagonal of alpha)
-num_missedEffects_alphaL <- c()
-num_missedEffects_betaL <- c()
-num_missedEffectsL <- c() # false negatives
-INLA_timeL <- c()
-finished_INLA_trL <- c() # T or F whether this trial finished the INLA part
+runL <- rep(NA, times = numRuns * numTrials)
+trialL <- rep(NA, times = numRuns * numTrials)
+num_correctInferencesL <- rep(NA, times = numRuns * numTrials) # true pos
+num_incorrect_alphaL <- rep(NA, times = numRuns * numTrials) # species interaction incorrectInference
+num_incorrect_betaL <- rep(NA, times = numRuns * numTrials) # covariate interaction incorrectInference
+num_incorrectInferencesL <- rep(NA, times = numRuns * numTrials) # false pos (or wrong direction)
+num_actualEffectsL <- rep(NA, times = numRuns * numTrials) # total actual effects
+num_possibleEffectsL <- rep(NA, times = numRuns * numTrials) # n^2 + n*p -n (minus n because of the diagonal of alpha)
+num_missedEffects_alphaL <- rep(NA, times = numRuns * numTrials)
+num_missedEffects_betaL <- rep(NA, times = numRuns * numTrials)
+num_missedEffectsL <- rep(NA, times = numRuns * numTrials)# false negatives
+INLA_timeL <- rep(NA, times = numRuns * numTrials)
+finished_INLA_trL <- rep(NA, times = numRuns * numTrials) # T or F whether this trial finished the INLA part
 
 i <- 1
 for (run in 1:numRuns) {
     for (trial in 1:numTrials) {
         # store run and trial info
-        runL <- c(runL, run)
-        trialL <- c(trialL, trial)
+        runL[i] <- run
+        trialL[i] <- trial
 
         simParms <- readRDS(paste0(data_dir, "/params.Rdata"))
         # figure out which beta column to remove based on just being an intercept variable
@@ -55,7 +55,7 @@ for (run in 1:numRuns) {
 
         # check if the inference for this trial finished and store info
         finished_INLA_tr <- file.exists(paste0(inla_dir, "trial", trial, "/inferenceRes.Rdata"))
-        finished_INLA_trL <- c(finished_INLA_trL, finished_INLA_tr)
+        finished_INLA_trL[i] <- finished_INLA_tr
 
         if (finished_INLA_tr) {
           inferredParms <- readRDS(paste0(inla_dir, "trial", trial, "/inferenceRes.Rdata"))
@@ -78,35 +78,24 @@ for (run in 1:numRuns) {
           num_missedEffects <- num_missedEffects_alpha + num_missedEffects_beta
 
           # add to running lists
-          num_incorrect_alphaL <- c(num_incorrect_alphaL, count_incorrectT1_alpha)
-          num_incorrect_betaL <- c(num_incorrect_betaL, count_incorrectT1_beta)
-          num_correctInferencesL <- c(num_correctInferencesL, num_correct)
-          num_incorrectInferencesL <- c(num_incorrectInferencesL, count_incorrectT1)
-          num_missedEffects_alphaL <- c(num_missedEffects_alphaL, num_missedEffects_alpha)
-          num_missedEffects_betaL <- c(num_missedEffects_betaL, num_missedEffects_beta)
-          num_missedEffectsL <- c(num_missedEffectsL, num_missedEffects)
+          num_incorrect_alphaL[i] <- count_incorrectT1_alpha
+          num_incorrect_betaL[i] <- count_incorrectT1_beta
+          num_correctInferencesL[i] <- num_correct
+          num_incorrectInferencesL[i] <- count_incorrectT1
+          num_missedEffects_alphaL[i] <- num_missedEffects_alpha
+          num_missedEffects_betaL[i] <- num_missedEffects_beta
+          num_missedEffectsL[i] <- num_missedEffects
           # note this "if" is just because I changed this during a run -- can be taken out later (or not)
           if ("time" %in% names(inferredParms)) {
-            INLA_timeL <- c(INLA_timeL, inferredParms$time)
-          } else {
-            INLA_timeL <- c(INLA_timeL, NA)
-          }
-        } else {
-          num_correctInferencesL <- c(num_correctInferencesL, NA)
-          num_incorrectInferencesL <- c(num_incorrectInferencesL, NA)
-          num_incorrect_alphaL <- c(num_incorrect_alphaL, NA)
-          num_incorrect_betaL <- c(num_incorrect_betaL, NA)
-          num_missedEffects_alphaL <- c(num_missedEffects_alphaL, NA)
-          num_missedEffects_betaL <- c(num_missedEffects_betaL, NA)
-          num_missedEffectsL <- c(num_missedEffectsL, NA)
-          INLA_timeL <- c(INLA_timeL, NA)
-        }
-
+            INLA_timeL[i] <- inferredParms$time
+          } 
+        } 
+        
         # count total number of actual effects in the model
         num_actualEffects <- sum(abs(actualAlpha), abs(actualBeta))
 
-        num_actualEffectsL <- c(num_actualEffectsL, num_actualEffects)
-        num_possibleEffectsL <- c(num_possibleEffectsL, dim(actualBeta)[1] * dim(actualBeta)[2] + dim(actualAlpha)[1]^2 - dim(actualAlpha)[1])
+        num_actualEffectsL[i] <- num_actualEffects
+        num_possibleEffectsL[i] <- dim(actualBeta)[1] * dim(actualBeta)[2] + dim(actualAlpha)[1]^2 - dim(actualAlpha)[1]
 
         i <- i + 1
     }
