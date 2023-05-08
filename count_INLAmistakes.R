@@ -20,19 +20,24 @@ if (length(args) < 2) {
 data_dir <- args[1]
 inla_dir <- args[2]
 
-numRuns <- 1
-numTrials <- 2
+numRuns <- 1 # runs per folder (1 is correct)
+numTrials <- 1
 
 runL <- c()
 trialL <- c()
 num_correctInferencesL <- c() # true pos
+num_incorrect_alphaL <- c() # species interaction incorrectInference
+num_incorrect_betaL <- c() # covariate interaction incorrectInference
 num_incorrectInferencesL <- c() # false pos (or wrong direction)
 num_actualEffectsL <- c() # total actual effects
 num_possibleEffectsL <- c() # n^2 + n*p -n (minus n because of the diagonal of alpha)
+num_missedEffects_alphaL <- c()
+num_missedEffects_betaL <- c()
 num_missedEffectsL <- c() # false negatives
 INLA_timeL <- c()
 finished_INLA_trL <- c() # T or F whether this trial finished the INLA part
 
+i <- 1
 for (run in 1:numRuns) {
     for (trial in 1:numTrials) {
         # store run and trial info
@@ -62,15 +67,23 @@ for (run in 1:numRuns) {
           num_correct <- sum(betaInferred * actualBeta == 1) + sum(inferredParms$alphaInferred * actualAlpha == 1)
 
           # Note: here we want to add together inferrence in the wrong direction with saying there is an effect when it's actually 0
-          count_incorrectT1 <- sum(betaInferred * actualBeta == -1) + sum(inferredParms$alphaInferred * actualAlpha == -1) 
-          count_incorrectT2 <- sum(actualBeta == 0 & betaInferred != 0) + sum(actualAlpha == 0 & inferredParms$alphaInferred != 0)
-          num_incorrect <- count_incorrectT1 + count_incorrectT2
+          # type 1 error -- inferring an effect where there is none or wrong direction of effect
+          count_incorrectT1_beta <- sum(betaInferred * actualBeta == -1) + sum(actualBeta == 0 & betaInferred != 0)
+          count_incorrectT1_alpha <- sum(inferredParms$alphaInferred * actualAlpha == -1) + sum(actualAlpha == 0 & inferredParms$alphaInferred != 0)
+          count_incorrectT1 <- count_incorrectT1_beta + count_incorrectT1_alpha
+          # type 2 error
           # count missed effects (number of times that actual effect is 1 or -1 and inferred effect is 0)
-          num_missedEffects <- sum(actualBeta != 0 & betaInferred == 0) + sum(actualAlpha != 0 & inferredParms$alphaInferred == 0)
-          
+          num_missedEffects_alpha <- sum(actualAlpha != 0 & inferredParms$alphaInferred == 0)
+          num_missedEffects_beta <- sum(actualBeta != 0 & betaInferred == 0) 
+          num_missedEffects <- num_missedEffects_alpha + num_missedEffects_beta
+
           # add to running lists
+          num_incorrect_alphaL <- c(num_incorrect_alphaL, count_incorrectT1_alpha)
+          num_incorrect_betaL <- c(num_incorrect_betaL, count_incorrectT1_beta)
           num_correctInferencesL <- c(num_correctInferencesL, num_correct)
-          num_incorrectInferencesL <- c(num_incorrectInferencesL, num_incorrect)
+          num_incorrectInferencesL <- c(num_incorrectInferencesL, count_incorrectT1)
+          num_missedEffects_alphaL <- c(num_missedEffects_alphaL, num_missedEffects_alpha)
+          num_missedEffects_betaL <- c(num_missedEffects_betaL, num_missedEffects_beta)
           num_missedEffectsL <- c(num_missedEffectsL, num_missedEffects)
           # note this "if" is just because I changed this during a run -- can be taken out later (or not)
           if ("time" %in% names(inferredParms)) {
@@ -81,6 +94,10 @@ for (run in 1:numRuns) {
         } else {
           num_correctInferencesL <- c(num_correctInferencesL, NA)
           num_incorrectInferencesL <- c(num_incorrectInferencesL, NA)
+          num_incorrect_alphaL <- c(num_incorrect_alphaL, NA)
+          num_incorrect_betaL <- c(num_incorrect_betaL, NA)
+          num_missedEffects_alphaL <- c(num_missedEffects_alphaL, NA)
+          num_missedEffects_betaL <- c(num_missedEffects_betaL, NA)
           num_missedEffectsL <- c(num_missedEffectsL, NA)
           INLA_timeL <- c(INLA_timeL, NA)
         }
@@ -90,6 +107,8 @@ for (run in 1:numRuns) {
 
         num_actualEffectsL <- c(num_actualEffectsL, num_actualEffects)
         num_possibleEffectsL <- c(num_possibleEffectsL, dim(actualBeta)[1] * dim(actualBeta)[2] + dim(actualAlpha)[1]^2 - dim(actualAlpha)[1])
+
+        i <- i + 1
     }
 }
 
@@ -97,6 +116,8 @@ df <- data.frame(sim_run = runL,
             trial = trialL, 
             finished_INLA = finished_INLA_trL,
             INLA_runtime = INLA_timeL,
+            num_incorrect_alpha = num_incorrect_alphaL,
+            num_incorrect_beta = num_incorrect_betaL,
             num_correctInferences = num_correctInferencesL, 
             num_incorrectInferences = num_incorrectInferencesL, 
             num_actualEffects = num_actualEffectsL,
