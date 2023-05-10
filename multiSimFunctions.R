@@ -6,8 +6,8 @@ getParms <- function(random = TRUE) {
     if (random == TRUE) {
         num_samples_time <- sample(x = 5:500, size = 1) # sample times per location
         num_samples_space <- sample(5:64, size = 1) # sample locations per time
-        radius <- 16
-        # radius <- runif(n = 1, min = 12, max = 50) # for neighborhoods: a little more the 
+        #radius <- 16
+        radius <- runif(n = 1, min = 12, max = 50) # for neighborhoods: a little more the 
         # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
         mean_fpr <- runif(n = 1, min = 0, max = 0.2)
         fpr_mode <- sample(x = c("none", "dependent_sp", "constant"), size = 1)

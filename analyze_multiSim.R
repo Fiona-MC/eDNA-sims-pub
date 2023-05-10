@@ -3,14 +3,20 @@ library(dplyr)
 library(pdp)
 library(ggplot2)
 library(plyr)
+library(gridExtra)
 
 dirNums<-c(7, 8, 10)
 multiSimRes <- data.frame()
 
+dirNumL <- c()
 for(dirNum in dirNums) {
   thisDir <- paste0("/space/s1/fiona_callahan/multiSim", dirNum, "/")
-  multiSimRes <- plyr::rbind.fill(multiSimRes, read.csv(paste0(thisDir, "infResGathered.csv"), header = TRUE))
+  thisMultiSimRes <- read.csv(paste0(thisDir, "infResGathered.csv"), header = TRUE)
+  dirNumL <- c(dirNumL, rep(dirNum, times = length(thisMultiSimRes$RunNum)))
+  multiSimRes <- plyr::rbind.fill(multiSimRes, thisMultiSimRes)
 }
+
+multiSimRes$dirNum <- dirNumL
 
 # put sum of two types of mistakes in a column
 multiSimRes$totalMistakes <- multiSimRes$num_incorrectInferences + multiSimRes$num_missedEffectsL
@@ -33,11 +39,15 @@ parmNames <- parmNames[as.vector(parmsVary)]
 #TODO these parm names need to be adjusted because some of them were inside other lists
 #TODO c("mean_fpr", "N_50", "mean_mig_rate") were not in the list of parms because they are fcns of other parms -- calculate if they don't exist in list
 randomParms <- c("num_samples_time", "num_samples_space", "radius", "fpr.mean_fpr", "fpr.mode", "covNoise_sd", "covMeasureNoise_sd", "r", "sigma", "N_50", "mean_mig_rate", "c2")
+randomParmsVary <- as.vector(sapply(lapply(multiSimRes[, randomParms], unique), length) > 1)
+randomParms <- randomParms[as.vector(randomParmsVary)] # take out any that I've changed to not be random
+
 emergentParms <- c("Sp1PercentPresence", "Sp2PercentPresence", "Sp3PercentPresence")
 # make formula from these parms
 indep_var <- "totalMistakes"
 #indep_var <- "finished_INLA"
-fmla <- as.formula(paste(indep_var, " ~ ", paste(c(randomParms,emergentParms), collapse = "+")))
+fmlaParms<-c(randomParms,emergentParms)
+fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
 
 multiSimRes_na.rm <- multiSimRes[!is.na(multiSimRes[indep_var]), ]
 
@@ -50,22 +60,38 @@ summary(lm_res)
 rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "impurity") 
 summary(rf_res)
 sort(importance(rf_res))
+importanceDF<-as.data.frame(sort(importance(rf_res)))
+importanceDF$Variable<-row.names(importanceDF)
+names(importanceDF) <- c("RF_Importance", "Parameter")
+
+rf_importance_plot <- ggplot(importanceDF, aes(x = reorder(Parameter, RF_Importance), y=RF_Importance)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme(axis.text.y = element_text(hjust = 1, size = 16), axis.title.x = element_text(size = 16), axis.title.y = element_blank()) +
+  coord_flip()
+ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance.png")
 
 # pdp plotting
-pdp_res <- pdp::partial(object = rf_res, pred.var = "num_samples_time", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "num_samples_space", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "N_50", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "r", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "Sp3PercentPresence", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "Sp2PercentPresence", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "Sp1PercentPresence", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "sigma", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "covMeasureNoise_sd", grid.resolution = 50, plot = TRUE)
-pdp_res <- pdp::partial(object = rf_res, pred.var = "c2", grid.resolution = 50, plot = TRUE)
-
+plotL<-list()
+for(parm in parms){
+#for(parm in fmlaParms){
+  pdp_res <- pdp::partial(object = rf_res, pred.var = parm, plot = FALSE)
+  p <- ggplot(pdp_res, aes(!!sym(parm), yhat)) +
+    geom_point(size = 3) +
+    geom_line() +
+    labs( x = parm, y = paste0("Predicted ", indep_var))
+  plotL[parm] <- list(p)
+}
+rf_marginal <- grid.arrange(grobs = plotL)
+ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal.png")
 
 #plot(multiSimRes$N_50, multiSimRes$totalMistakes)
 multiSimRes_na.rm$totalMistakes.factor <- as.factor(multiSimRes_na.rm$totalMistakes)
+
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = num_samples_time)) +
+  geom_violin(position = position_nudge()) +
+  geom_point(aes(color = as.factor(num_missedEffects_alpha)))+
+  coord_flip() 
+ 
 ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = N_50)) +
   geom_violin(position = position_nudge()) +
   geom_point(aes(color = as.factor(num_incorrectInferences)))+

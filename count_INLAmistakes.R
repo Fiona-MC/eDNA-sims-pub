@@ -110,6 +110,8 @@ df <- data.frame(sim_run = runL,
             num_correctInferences = num_correctInferencesL, 
             num_incorrectInferences = num_incorrectInferencesL, 
             num_actualEffects = num_actualEffectsL,
+            num_missedEffects_alpha = num_missedEffects_alphaL,
+            num_missedEffects_beta = num_missedEffects_betaL,
             num_missedEffectsL = num_missedEffectsL,
             num_possibleEffectsL = num_possibleEffectsL)
 
