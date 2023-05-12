@@ -84,40 +84,62 @@ for(parm in parms){
 rf_marginal <- grid.arrange(grobs = plotL)
 ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal.png")
 
-#plot(multiSimRes$N_50, multiSimRes$totalMistakes)
-multiSimRes_na.rm$totalMistakes.factor <- as.factor(multiSimRes_na.rm$totalMistakes)
 
-ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = num_samples_time)) +
+
+
+
+#plot(multiSimRes$N_50, multiSimRes$totalMistakes)
+multiSimRes_na.rm$totalMistakes.factor <- factor(multiSimRes_na.rm$totalMistakes, levels = 11:0)
+multiSimRes_na.rm$total_samples <- multiSimRes_na.rm$num_samples_space * multiSimRes_na.rm$num_samples_time
+
+fmlaParms
+parm = "total_samples"
+#violin
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = !!sym(parm))) +
   geom_violin(position = position_nudge()) +
   geom_point(aes(color = as.factor(num_missedEffects_alpha)))+
   coord_flip() 
- 
-ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = N_50)) +
+
+# vertically aligned hists
+#colored by total missed effects
+ggplot(multiSimRes_na.rm, aes(x = !!sym(parm), fill = as.factor(num_missedEffectsL))) + 
+  geom_histogram() +
+  facet_grid(rows = vars(totalMistakes.factor)) +
+  scale_fill_viridis_d(name = "Missed effects") +
+  labs(y = "Number of simulations") +
+  scale_y_continuous(sec.axis = sec_axis(~ ., breaks = NULL, name = "Number of Mistakes in Inference (Type 1 and 2)")) 
+
+# colored by alpha missed effects
+ggplot(multiSimRes_na.rm, aes(x = !!sym(parm), fill = as.factor(num_missedEffects_alpha))) + 
+  geom_histogram() +
+  facet_grid(rows = vars(totalMistakes.factor)) +
+  scale_fill_viridis_d(name = "Missed effects Alpha") +
+  labs(y = "Number of simulations") +
+  scale_y_continuous(sec.axis = sec_axis(~ ., breaks = NULL, name = "Number of Mistakes in Inference (Type 1 and 2)")) 
+
+# ONLY false inferences (type 1 errors)
+ggplot(multiSimRes_na.rm, aes(x = !!sym(parm), fill = as.factor(num_missedEffectsL))) + 
+  geom_histogram() +
+  facet_grid(rows = vars(factor(num_incorrectInferences, levels = 10:0))) +
+  scale_fill_viridis_d(name = "Missed effects") +
+  labs(y = "Number of simulations") +
+  scale_y_continuous(sec.axis = sec_axis(~ ., breaks = NULL, name = "Number of Mistakes in Inference (Type 1)")) 
+
+
+# violin with points
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = !!sym(parm))) +
   geom_violin(position = position_nudge()) +
   geom_point(aes(color = as.factor(num_incorrectInferences)))+
   coord_flip() 
 
-ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = N_50)) +
+# box plots with points
+ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = !!sym(parm))) +
   geom_boxplot(position = position_nudge()) +
   geom_point(aes(color = as.factor(num_incorrectInferences)))+
-  coord_flip() +
-  theme(legend.position = "none")
-
-ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = sigma)) +
-  geom_violin(position = position_nudge()) +
-  geom_point(aes(color = as.factor(num_incorrectInferences)))+
   coord_flip() 
 
-ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = num_samples_space)) +
-  geom_violin(position = position_nudge()) +
-  geom_point(aes(color = as.factor(num_incorrectInferences)))+
-  coord_flip() 
 
-ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = c2)) +
-  geom_violin(position = position_nudge()) +
-  geom_point(aes(color = as.factor(num_incorrectInferences)))+
-  coord_flip() 
-
+# histograms of variables
 hist(multiSimRes$num_samples_space)
 hist(multiSimRes$num_samples_space[!multiSimRes$finished_INLA])
 
