@@ -7,12 +7,13 @@ if (length(args) < 2) {
 } 
 
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim5/ 1000
-#thisDir <- "/space/s1/fiona_callahan/multiSimTest/"
+#thisDir <- "/space/s1/fiona_callahan/multiSim11/"
 thisDir <- args[1]
 numRuns <- args[2]
 
 
 badRuns <- c()
+reasons <- c()
 
 runL <- c()
 speciesL <- c()
@@ -25,7 +26,7 @@ for(run in 1:numRuns) {
     keepRun = TRUE
     sim_sitetab_sampled <- read.csv(paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
     params <- readRDS(paste0(thisDir, "randomRun", run, "/params.Rdata"))
-    sim_data <- readRDS(paste0(subdir, "sim_data.Rdata"))
+    sim_data <- readRDS(paste0(thisDir, "randomRun", run, "/sim_data.Rdata"))
 
     percent_presence <- list()
     for(species in params$names_species) {
@@ -37,8 +38,12 @@ for(run in 1:numRuns) {
         select(Age, params$names_species) %>%
         group_by(Age) %>%
         summarise(across(everything(), list(max)))
-    last_presence_index <- apply(X = sp_presence_time, MARGIN = 2, FUN = function(col){tail(which(col == 1), 1)})
-    extinct_time <- sapply(last_presence_index, FUN = function(i){sp_presence_time$Age[i]})[-1]
+    last_presence_index <- apply(X = sp_presence_time, MARGIN = 2, FUN = function(col){if(sum(col)==0){return(0)} # presence is always false
+                                                                                        else{return(tail(which(col == 1), 1))}})[-1]
+    extinct_time <- sapply(last_presence_index, FUN = function(i){if(i!=0){return(sp_presence_time$Age[i])}
+                                                        else{return(0)}})
+    #extinct_time <- sapply(last_presence_index, FUN = function(i){if(i==0){return(0)}
+    #                                                    else{return(sp_presence_time$Age[i])}})[-1]
     
     # balance of species effect and cov effect
     k_cov_sum <- rep(0, times = params$numSpecies)
@@ -54,10 +59,32 @@ for(run in 1:numRuns) {
     K_cov_avg <- k_cov_sum / total_n
     K_sp_avg <- k_sp_sum / total_n
 
+    #debugging
+    if (params$numSpecies != length(params$names_species)){
+        print("help#1")
+        print(run)
+    }
+    if (params$numSpecies != length(unlist(percent_presence))){
+        print("help#2")
+        print(run)
+    }
+    if (params$numSpecies != length(unlist(extinct_time))){
+        print("help#3")
+        print(run)
+    }
+    if (params$numSpecies != length(K_cov_avg)){
+        print("help#4")
+        print(run)
+    }
+    if (params$numSpecies != length(K_sp_avg)){
+        print("help#5")
+        print(run)
+    }
+    
     runL <- c(runL, rep(run, times = params$numSpecies))
     speciesL <- c(speciesL, params$names_species)
     percent_presenceL <- c(percent_presenceL, unlist(percent_presence))
-    extinct_timeL <- c(extinct_timeL ,unlist(extinct_time))
+    extinct_timeL <- c(extinct_timeL, unlist(extinct_time))
     K_cov_avgL <- c(K_cov_avgL, K_cov_avg)
     K_sp_avgL <- c(K_sp_avgL, K_sp_avg)
 

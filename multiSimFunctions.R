@@ -23,7 +23,7 @@ getParms <- function(random = TRUE) {
         N_50 <- sample(x = 1:1000, size = 1) # number of animals for which detection prob is 50%
 
         #species effect
-        c2 <- runif(n = 1, min = 25, max = 150)
+        c2 <- runif(n = 1, min = 100, max = 200)
 
         #a12 <- sample(x = c(-1, 0, 1), size = 1)
         #a13 <- sample(x = c(-1, 0, 1), size = 1)

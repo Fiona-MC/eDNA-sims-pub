@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-sim_dir="/space/s1/fiona_callahan/multiSim8"
+sim_dir="/space/s1/fiona_callahan/multiSim11"
 numRuns=1000
 numTrials=1
 
@@ -10,7 +10,7 @@ Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 
 # this takes a minute (cp takes awhile -- if we just delete them it will be fast)
 mkdir ${sim_dir}/unrealisticRuns
-while IFS=',' read -r lineNum runNum; do
+while IFS=',' read -r lineNum runNum reason; do
     if [ -e "${sim_dir}/randomRun${runNum}" ]; then
         cp -pR "${sim_dir}/randomRun${runNum}" "${sim_dir}/unrealisticRuns/randomRun${runNum}"
         rm -r "${sim_dir}/randomRun${runNum}"
@@ -30,8 +30,8 @@ for folder in ${sim_dir}/randomRun*; do
             # run INLA sim analysis
             timeout -k 10 2h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_faster.R ${folder}/ ${folder}/INLA_res_faster/
             Rscript /home/fiona_callahan/eDNA_sims_code/count_INLAmistakes.R ${folder}/ ${folder}/INLA_res_faster/
+            sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
         fi
-        sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
     ) &
 
     # allow to execute up to $N jobs in parallel

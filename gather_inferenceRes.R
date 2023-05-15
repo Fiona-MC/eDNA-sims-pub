@@ -5,11 +5,11 @@ if (length(args) < 3) {
   stop("input folders need to be supplied", call. = FALSE)
 } 
 
-#Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes.R /space/s1/fiona_callahan/multiSim7/ 1000 1
+#Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes.R /space/s1/fiona_callahan/multiSim11/ 1000 1
 
-#thisDir <- "/space/s1/fiona_callahan/multiSim5/"
-#runs <- 1:1000
-#trials <- 1:1
+thisDir <- "/space/s1/fiona_callahan/multiSim11/"
+numRuns <- 1000
+numTrials <- 1
 
 thisDir <- args[1]
 numRuns <- args[2]
@@ -31,7 +31,9 @@ for (run in runs) {
         parmNames <- names(parmVals)
     }
 
-    if (file.exists(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"))) {
+    if (file.exists(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv")) 
+                & file.exists(paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv"))
+                & file.info(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"))$size > 0) {
         # load number of mistakes
         INLA_mistakes <- read.csv(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"), header = TRUE)
         sim_sitetab_sampled <- read.csv(paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
