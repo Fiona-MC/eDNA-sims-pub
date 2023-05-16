@@ -1,8 +1,8 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-sim_dir="/space/s1/fiona_callahan/multiSim11"
-numRuns=1000
+sim_dir="/space/s1/fiona_callahan/multiSim11a"
+numRuns=500
 numTrials=1
 
 Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
