@@ -87,7 +87,7 @@ for (parm in fmlaParms) {
   pdp_resL[[parm]] <- pdp_res
 }
 
-####### plot ##########
+####### plot marginal rf ##########
 plotL <- list()
 orderImportances <- c()
 for(parm in fmlaParms){
@@ -105,14 +105,14 @@ ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal.png", width = 4
 
 
 
-
+############ plot marginal data ##############
 
 #plot(multiSimRes$N_50, multiSimRes$totalMistakes)
 multiSimRes_na.rm$totalMistakes.factor <- factor(multiSimRes_na.rm$totalMistakes, levels = 11:0)
 multiSimRes_na.rm$total_samples <- multiSimRes_na.rm$num_samples_space * multiSimRes_na.rm$num_samples_time
 
 fmlaParms
-parm = "total_samples"
+parm = "fpr.mean_fpr"
 #violin
 ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = !!sym(parm))) +
   geom_violin(position = position_nudge()) +
@@ -122,15 +122,24 @@ ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = !!sym(parm))) +
 # vertically aligned hists
 #colored by total missed effects
 ggplot(multiSimRes_na.rm, aes(x = !!sym(parm), fill = as.factor(num_missedEffectsL))) + 
-  geom_histogram() +
+  geom_histogram(bins=10) +
   facet_grid(rows = vars(totalMistakes.factor)) +
   scale_fill_viridis_d(name = "Missed effects") +
   labs(y = "Number of simulations") +
   scale_y_continuous(sec.axis = sec_axis(~ ., breaks = NULL, name = "Number of Mistakes in Inference (Type 1 and 2)")) 
 
+#as frequencies
+ggplot(multiSimRes_na.rm, aes(x = !!sym(parm), y = ..density.., fill = as.factor(num_missedEffectsL))) + 
+  geom_histogram(bins=10) +
+  facet_grid(rows = vars(totalMistakes.factor)) +
+  scale_fill_viridis_d(name = "Missed effects") +
+  labs(y = "Number of simulations") +
+  scale_y_continuous(sec.axis = sec_axis(~ ., breaks = NULL, name = "Number of Mistakes in Inference (Type 1 and 2)")) 
+
+
 # colored by alpha missed effects
 ggplot(multiSimRes_na.rm, aes(x = !!sym(parm), fill = as.factor(num_missedEffects_alpha))) + 
-  geom_histogram() +
+  geom_histogram(bins=15) +
   facet_grid(rows = vars(totalMistakes.factor)) +
   scale_fill_viridis_d(name = "Missed effects Alpha") +
   labs(y = "Number of simulations") +
@@ -156,6 +165,71 @@ ggplot(multiSimRes_na.rm, aes(x = totalMistakes.factor, y = !!sym(parm))) +
   geom_boxplot(position = position_nudge()) +
   geom_point(aes(color = as.factor(num_incorrectInferences)))+
   coord_flip() 
+
+
+plotL <- list()
+orderImportances <- c()
+for(parm in fmlaParms){
+  # hist of num_incorrectInferences
+  if(class(multiSimRes_na.rm[[parm]]) == "character"){
+    multiSimRes_na.rm$quantiles <- multiSimRes_na.rm[[parm]]
+  }else{
+    multiSimRes_na.rm$quantiles <- cut(multiSimRes_na.rm[[parm]], breaks = 2, labels = FALSE)
+  }
+  p <- ggplot(multiSimRes_na.rm, aes(x = num_incorrectInferences, fill = as.factor(quantiles))) + 
+    geom_histogram(bins=11, position = "dodge") +
+    scale_fill_viridis_d(name = paste("Quantiles of", parm)) +
+    labs(y = "Number of simulations", x= "Number of incorrect inferences (Type 1)") 
+
+  plotL[parm] <- list(p)
+  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+}
+hist_2q <- grid.arrange(grobs = plotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
+ggsave(hist_2q, file = "/space/s1/fiona_callahan/hist_2q.png", width = 40, height = 8)
+
+#density
+plotL <- list()
+orderImportances <- c()
+for(parm in fmlaParms){
+  # hist of num_incorrectInferences
+  if(class(multiSimRes_na.rm[[parm]]) == "character"){
+    multiSimRes_na.rm$quantiles <- multiSimRes_na.rm[[parm]]
+  }else{
+    multiSimRes_na.rm$quantiles <- cut(multiSimRes_na.rm[[parm]], breaks = 3, labels = FALSE)
+  }
+  p <- ggplot(multiSimRes_na.rm, aes(x = num_incorrectInferences, y = ..density.., fill = as.factor(quantiles))) + 
+    geom_histogram(bins=11, position = "dodge") +
+    scale_fill_viridis_d(name = paste("Quantiles of", parm)) +
+    labs(x= "Number of incorrect inferences (Type 1)") 
+
+  plotL[parm] <- list(p)
+  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+}
+hist_3qd <- grid.arrange(grobs = plotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
+ggsave(hist_3qd, file = "/space/s1/fiona_callahan/hist_3qd.png", width = 40, height = 8)
+
+
+#density for total mistakes
+plotL <- list()
+orderImportances <- c()
+for(parm in fmlaParms){
+  # hist of num_incorrectInferences
+  if(class(multiSimRes_na.rm[[parm]]) == "character"){
+    multiSimRes_na.rm$quantiles <- multiSimRes_na.rm[[parm]]
+  }else{
+    multiSimRes_na.rm$quantiles <- cut(multiSimRes_na.rm[[parm]], breaks = 3, labels = FALSE)
+  }
+
+  p <- ggplot(multiSimRes_na.rm, aes(x = totalMistakes, y = ..density.., fill = as.factor(quantiles))) + 
+    geom_histogram(bins=11, position = "dodge") +
+    scale_fill_viridis_d(name = paste("Quantiles of", parm)) +
+    labs(x= "Number of Total mistakes (Type 1 and 2)") 
+
+  plotL[parm] <- list(p)
+  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+}
+hist_3qd_totalmistakes <- grid.arrange(grobs = plotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
+ggsave(hist_3qd_totalmistakes, file = "/space/s1/fiona_callahan/hist_3qd_totalmistakes.png", width = 40, height = 8)
 
 
 # histograms of variables
