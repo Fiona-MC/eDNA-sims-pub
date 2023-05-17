@@ -59,7 +59,7 @@ emergentParms <- c("Sp1PercentPresence", "Sp2PercentPresence", "Sp3PercentPresen
 # make formula from these parms
 indep_var <- "totalMistakes"
 #indep_var <- "finished_INLA"
-fmlaParms<-c(randomParms,emergentParms)
+fmlaParms<-c(randomParms)
 fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
 
 multiSimRes_na.rm <- multiSimRes[!is.na(multiSimRes[[indep_var]]), ]
@@ -79,8 +79,8 @@ names(importanceDF) <- c("RF_Importance", "Parameter")
 
 better_parmNames <- data.frame(Parameter = fmlaParms, Parameter_name = c("n_time", "n_space", "neighborhood radius", "false detection rate", "false detect correlation", 
                     "covariate process noise", "covariate measurement noise", "r", "sigma", 
-                    "false absence fcn parm", "migration rate", "inter-species affect scaling", 
-                    "Sp1 Percent Presence", "Sp2 Percent Presence", "Sp3 Percent Presence"))
+                    "false absence parameter", "migration rate", "inter-species affect scaling"))#, 
+                    #"Sp1 Percent Presence", "Sp2 Percent Presence", "Sp3 Percent Presence"))
 
 importanceDF <- merge(x = importanceDF, y = better_parmNames, by = "Parameter")
 
@@ -89,7 +89,7 @@ rf_importance_plot <- ggplot(importanceDF, aes(x = reorder(Parameter_name, RF_Im
   theme(axis.text.y = element_text(hjust = 1, size = 24), axis.title.x = element_text(size = 24), axis.title.y = element_blank()) +
   coord_flip() +
   labs(y = "Random Forest Importance") 
-ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance.png", height = 10, width = 10)
+ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_noemergent.png", height = 10, width = 10)
 
 # pdp plotting
 pdp_resL <- list()
@@ -108,13 +108,14 @@ for(parm in fmlaParms){
   p <- ggplot(pdp_res, aes(!!sym(parm), yhat)) +
     geom_point(size = 3) +
     geom_line() +
+    coord_cartesian(ylim = c(3.5, 4.75)) +
     labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
     theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
   plotL[parm] <- list(p)
   orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
 }
 rf_marginal <- grid.arrange(grobs = plotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
-ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal.png", width = 40, height = 8)
+ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal_noemergent.png", width = 40, height = 12)
 
 
 
