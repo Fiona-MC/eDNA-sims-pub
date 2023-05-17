@@ -1,12 +1,13 @@
 library(ggplot2) # plotting
 
-configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "N", num_samples=num_samples) {
+configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "N", timePts = timePts, locIndices = locIndices) {
   #timePts<-1:params$numGens #time points to "collect"
   #timePts <- seq(from = 1, to = params$numGens, by = 1000/num_samples)
-
+  
   
   # Wrangle data
-  locDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = T))
+  locList.asDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = TRUE))
+  locDF <- locList.asDF[locIndices,]
   distMx <- dist(locDF, diag = T, upper = T)
   
   Y <- list()
@@ -16,30 +17,36 @@ configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "
     if (mode == "X") { # configure data differently for extended mode
       # Y: list containing t items where each item is also a list of length n, 
       # each of which is a matrix with S columns and J_(i,j) rows. The values are the ordinal abundance scores for each replicate at location i and time j for species i (column i). 
-      Y[[t_index]]=lapply(X=sim_data_raw[[t]]$y, FUN=function(y_s){return(matrix(y_s, ncol=params$numSpecies, nrow = 1))})
-    }else{
+      Y[[t_index]] <- lapply(X = sim_data_raw[[t]]$y[locIndices], FUN = function(y_s){return(matrix(y_s, ncol = params$numSpecies, nrow = 1))})
+    } else {
       #dataSchliep$Y=Y #list containing t items where each item is an n x S matrix of ordinal responses 
-      Y[[t_index]]<-matrix(as.double(unlist(sim_data_raw[[t]]$y)), nrow=length(locList), ncol=params$numSpecies, byrow=T)
+      Y[[t_index]] <- matrix(as.double(unlist(sim_data_raw[[t]]$y[locIndices])), nrow = length(locIndices), ncol = params$numSpecies, byrow = TRUE)
     }
-    cov1<-sim_data_raw[[t]]$covs[[1]]
-    cov2<-sim_data_raw[[t]]$covs[[2]]
+
+    sampledCovs <- list()
+    for (covNum in 1:length(sim_data_raw[[t]]$covs)){
+        if(paste0("Cov", covNum) %in% params$names_cov){
+            sampledCovs[[covNum]] <- sim_data_raw[[t]]$covs[[covNum]][locIndices]
+        }
+    }
     #cov3<-sim_data_raw[[t]]$covs[[3]]
-    X[[t_index]]<-matrix(c(rep(1,times=length(cov1)),cov1,cov2), nrow=length(locList), ncol=params$numCovs+1, byrow=F)
+    X[[t_index]] <- matrix(c(rep(1, times = length(locIndices)), unlist(sampledCovs)), nrow = length(locIndices), ncol = length(params$names_cov) + 1, byrow=FALSE)
   }
   
-  dataSchliep=list()
-  dataSchliep$t=length(timePts) #number of survey times
-  dataSchliep$L=2 #number of ordinal categories (2= binary)
-  dataSchliep$S=params$numSpecies #number of species (2 or more)
-  dataSchliep$p=params$numCovs+1 #number of covariates
-  dataSchliep$n=length(locList) #number of locations
-  dataSchliep$dist=as.matrix(distMx) #distance matrix between locations
-  dataSchliep$Y=Y #list containing t items where each item is an n x S matrix of ordinal responses 
-  dataSchliep$X=X #list containing t items where each item is an n x p matrix of covariates
+  dataSchliep = list()
+  dataSchliep$t = length(timePts) # number of survey times
+  dataSchliep$L = 2 # number of ordinal categories (2 = binary)
+  dataSchliep$S = params$numSpecies # number of species (2 or more)
+  dataSchliep$p = length(params$names_cov) + 1 # number of covariates in model
+  dataSchliep$n = length(locIndices) # number of locations
+  dataSchliep$dist = as.matrix(distMx) # distance matrix between locations
+  dataSchliep$Y = Y # list containing t items where each item is an n x S matrix of ordinal responses 
+  dataSchliep$X = X # list containing t items where each item is an n x p matrix of covariates
+  
   if(mode == "X"){
     #J is matrix with n rows and t columns. Each J_(i,j) is the number of replicate observations for plot i and year j. Even if no replicates, this matrix needs to be provided with 1 (when the location is observed that year) or 0 (when the location is not observed that year)
-    J = matrix(rep(x = as.integer(1), times = length(locList)*length(timePts)), nrow = length(locList), ncol = length(timePts))
-    dataSchliep$J=J
+    J = matrix(rep(x = as.integer(1), times = length(locIndices) * length(timePts)), nrow = length(locIndices), ncol = length(timePts))
+    dataSchliep$J = J
   }
   
   # dataSchliep is list of the format of HWAdataM.Rdata (from paper supplement)
@@ -52,7 +59,7 @@ configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "
 #pars=get.startingValues(HWAdataMBinary,temporalRE=T) 
 #run=Multivariate.Ordinal.Spatial.Model(HWAdataMBinary,pars,priors,temporalRE=T,iters=1000,print.out=100)
 
-testData<-function(data, mode="N"){
+testData <- function(data, mode = "N") {
   
   # Y: list containing t items where each item is also a list of length n, 
   # each of which is a matrix with S columns and J_(i,j) rows. The values are the ordinal abundance scores for each replicate at location i and time j for species i (column i). 
@@ -143,18 +150,18 @@ testData<-function(data, mode="N"){
 #############
 # plot #
 #############
-plotPosteriorTable<-function(schliepOutput, ci_percent=0.95, mode = "N", burn_in=500){
-  p=schliepOutput$data$p #number of covariates
-  S=schliepOutput$data$S #number of species
-  t=schliepOutput$data$t #number of time points
-  n=schliepOutput$data$n #number of sites
-  iter<-dim(schliepOutput$A)[3]
+plotPosteriorTable <- function(schliepOutput, ci_percent = 0.95, mode = "N", burn_in = 500) {
+  p <- schliepOutput$data$p #number of covariates
+  S <- schliepOutput$data$S #number of species
+  t <- schliepOutput$data$t #number of time points
+  n <- schliepOutput$data$n #number of sites
+  iter <- dim(schliepOutput$A)[3]
   
-  credibleIntervalsL<-list()
+  credibleIntervalsL <- list()
   
-  A=schliepOutput$A[,,burn_in:iter]
-  for(species1 in 1:S){
-    for(species2 in 1:S){
+  A <- schliepOutput$A[, , burn_in:iter]
+  for (species1 in 1:S) {
+    for (species2 in 1:S) {
       varName = paste0("A",species1,species2)
       mean = mean(A[species1, species2, ])
       quants = quantile(x = A[species1, species2, ], probs = c((1-ci_percent)/2,(1+ci_percent)/2))
@@ -162,10 +169,10 @@ plotPosteriorTable<-function(schliepOutput, ci_percent=0.95, mode = "N", burn_in
     }
   }
   
-  beta<-schliepOutput$beta
+  beta <- schliepOutput$beta
   if(mode == "X"){
-    beta<-beta[burn_in:iter,]
-    i=1
+    beta <- beta[burn_in:iter,]
+    i = 1
     for(species in 1:S){
       for(cov in 0:(p-1)){
         varName<-paste0("beta_cov",cov,"_sp",species)
@@ -200,8 +207,8 @@ plotPosteriorTable<-function(schliepOutput, ci_percent=0.95, mode = "N", burn_in
     }
   }
   
-  credibleIntervals<-data.frame(t(data.frame(credibleIntervalsL)))
-  names(credibleIntervals)<-c("mean", "lowBound", "highBound")
+  credibleIntervals <- data.frame(t(data.frame(credibleIntervalsL)))
+  names(credibleIntervals) <- c("mean", "lowBound", "highBound")
   credibleIntervals$varName = row.names(credibleIntervals)
   return(credibleIntervals)
 }

@@ -31,7 +31,17 @@ INLA_sitetab <- read.csv(paste0(dataDir, "sim_sitetab_sampled.csv"), header = TR
 locList <- readRDS(paste0(dataDir, "locList.Rdata"))
 params <- readRDS(paste0(dataDir, "params.Rdata"))
 
-timePts <- unique(INLA_sitetab$Age)
+timePts <- sort(unique(INLA_sitetab$Age))
+
+locDF <- unique(INLA_sitetab[, c("Lat", "Long")])
+locList.asDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = TRUE))
+locIndices <- unname(apply(locDF, MARGIN = 1, FUN = function(latLon) {
+                                              return(which(apply(locList.asDF, 1, function(row) {all(round(row, 2) == round(latLon, 2))} )))
+                                              }))
+# testing that above works
+#locations <- locList.asDF[locIndices,]
+#round(locations, 4)==round(locDF, 4)
+
 #put random 0s and 1s into a matrix to test Y
 #testY<-list()
 #for(time in 1:dataSchliepSim[["t"]]){
@@ -39,7 +49,7 @@ timePts <- unique(INLA_sitetab$Age)
 #    testY[[time]]<-matrix(data=rbern(n=dataSchliepSim[["n"]]*dataSchliepSim[["S"]], prob = .3), nrow = dataSchliepSim[["n"]], ncol = dataSchliepSim[["S"]])
 #}
 
-dataSchliepSim <- configureDataSchliep(outdir, sim_data_raw, locList, params, mode = mode, timePts = timePts)
+dataSchliepSim <- configureDataSchliep(outdir, sim_data_raw, locList, params, mode = mode, timePts = timePts, locIndices = locIndices)
 testData(dataSchliepSim, mode = mode)
 
 saveRDS(dataSchliepSim, paste0(outdir,"dataSchliep.Rdata"))
