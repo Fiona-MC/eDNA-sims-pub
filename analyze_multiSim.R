@@ -62,20 +62,65 @@ indep_var <- "totalMistakes"
 fmlaParms<-c(randomParms)
 fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
 
+#remove NA's in response (run didnt finish or whatever)
 multiSimRes_na.rm <- multiSimRes[!is.na(multiSimRes[[indep_var]]), ]
+
+############ REMOVE fpr.mode = "constant" and "none" --correlation issues
+### vvvvv this made no difference to the order of the "permutation" variable importances
+#multiSimRes_na.rm <- multiSimRes_na.rm[multiSimRes_na.rm$fpr.mode != "none" & multiSimRes_na.rm$fpr.mode != "constant", ]
 
 #linear model just to look at
 print(fmla)
-lm_res <- lm(data = multiSimRes, formula = fmla)
-summary(lm_res)
+lm_res <- lm(data = multiSimRes_na.rm, formula = fmla)
+lmSum <- summary(lm_res)
+# order by pvalue
+lmSum$coefficients[order(lmSum$coefficients[,4]), ]
+
+######## lm normalized ############
+multiSimRes_na.rm.columnsNormalized <- multiSimRes_na.rm
+for(colNum in 1:dim(multiSimRes_na.rm)[2]){
+  if(names(multiSimRes_na.rm)[colNum] %in% fmlaParms & is.numeric(multiSimRes_na.rm[,colNum])) {
+    var <- multiSimRes_na.rm.columnsNormalized[,colNum]
+    var_normalized <- (var - mean(var)) / sd(var)
+    multiSimRes_na.rm.columnsNormalized[ ,names(multiSimRes_na.rm)[colNum]] <- var_normalized
+  }
+}
+
+lm_res_norm <- lm(data = multiSimRes_na.rm.columnsNormalized, formula = fmla)
+lmSum <- summary(lm_res_norm)
+# order by pvalue
+lmSum$coefficients[order(lmSum$coefficients[,4]), ]
+
+# Extract coefficient estimates and standard errors
+coef_data <- data.frame(
+  coefficient = names(coef(lm_res_norm)),
+  estimate = coef(lm_res_norm),
+  std_error = summary(lm_res_norm)$coef[, "Std. Error"]
+)
+coef_data <- coef_data[coef_data$coefficient != "(Intercept)",]
+
+# Plot betas with error bars
+lm_betaPlot<-ggplot(coef_data, aes(x = coefficient, y = estimate, ymin = estimate - 1.96 * std_error, ymax = estimate + 1.96 * std_error)) +
+  geom_point() +
+  geom_errorbar(width = 0.2) +
+  labs(x = "Coefficient", y = "Estimate") +
+  coord_flip() +
+  geom_hline(yintercept = 0, color = "red") +
+  theme(text = element_text(size = 36))  
+
+ggsave(lm_betaPlot, file = "/space/s1/fiona_callahan/lm_betaPlot.png", height = 12, width = 12)
+
+
 
 # random forest res
-rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "impurity") 
+#rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "impurity") 
+rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "permutation") 
 summary(rf_res)
 sort(importance(rf_res))
 importanceDF<-as.data.frame(sort(importance(rf_res)))
 importanceDF$Variable<-row.names(importanceDF)
 names(importanceDF) <- c("RF_Importance", "Parameter")
+
 
 better_parmNames <- data.frame(Parameter = fmlaParms, Parameter_name = c("n_time", "n_space", "neighborhood radius", "false detection rate", "false detect correlation", 
                     "covariate process noise", "covariate measurement noise", "r", "sigma", 
@@ -89,16 +134,61 @@ rf_importance_plot <- ggplot(importanceDF, aes(x = reorder(Parameter_name, RF_Im
   theme(axis.text.y = element_text(hjust = 1, size = 24), axis.title.x = element_text(size = 24), axis.title.y = element_blank()) +
   coord_flip() +
   labs(y = "Random Forest Importance") 
-ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_noemergent.png", height = 10, width = 10)
+ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_noemergent_perm_fprRM.png", height = 10, width = 10)
 
 # pdp plotting
 pdp_resL <- list()
+ice_permL <- list()
+cice_permL <- list()
 
 #for(parm in parms){
 for (parm in fmlaParms) {
   pdp_res <- pdp::partial(object = rf_res, pred.var = parm, plot = FALSE)
   pdp_resL[[parm]] <- pdp_res
+  # ice plots
+  ice_perm <- partial(object = rf_res, ice = TRUE, pred.var = parm, plot = FALSE)
+  ice_permL[[parm]] <- ice_perm
+  #cice plots
+  cice_perm <- partial(object = rf_res, ice = TRUE, center = TRUE, pred.var = parm, plot = FALSE)
+  cice_permL[[parm]] <- cice_perm
 }
+
+#ICE plots
+ICEplotL <- list()
+orderImportances <- c()
+for(parm in fmlaParms){
+  ice_perm <- ice_permL[[parm]]
+  ice_perm_subset <- ice_perm[ice_perm$yhat.id %% 30 == 1, ]
+  p <- ggplot(ice_perm_subset, aes(x = !!sym(parm), y = yhat, group = yhat.id)) +
+      geom_line() +
+      coord_cartesian(ylim = c(2, 8)) +
+      labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
+      theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
+
+  ICEplotL[parm] <- list(p)
+  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+}
+rf_marginal_ice <- grid.arrange(grobs = ICEplotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
+ggsave(rf_marginal_ice, file = "/space/s1/fiona_callahan/rf_marginal_ice.png", width = 40, height = 12)
+
+#cice
+ICEplotL <- list()
+orderImportances <- c()
+for(parm in fmlaParms){
+  ice_perm <- cice_permL[[parm]]
+  ice_perm_subset <- ice_perm[ice_perm$yhat.id %% 30 == 1, ]
+  p <- ggplot(ice_perm_subset, aes(x = !!sym(parm), y = yhat, group = yhat.id)) +
+      geom_line() +
+      coord_cartesian(ylim = c(-2, 3)) +
+      labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var, "(centered)")) +
+      theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
+
+  ICEplotL[parm] <- list(p)
+  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+}
+rf_marginal_cice <- grid.arrange(grobs = ICEplotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
+ggsave(rf_marginal_cice, file = "/space/s1/fiona_callahan/rf_marginal_cice.png", width = 40, height = 12)
+
 
 ####### plot marginal rf ##########
 plotL <- list()
@@ -115,7 +205,7 @@ for(parm in fmlaParms){
   orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
 }
 rf_marginal <- grid.arrange(grobs = plotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
-ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal_noemergent.png", width = 40, height = 12)
+ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal_noemergent_perm.png", width = 40, height = 12)
 
 
 
