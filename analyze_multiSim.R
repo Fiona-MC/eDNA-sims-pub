@@ -134,7 +134,7 @@ rf_importance_plot <- ggplot(importanceDF, aes(x = reorder(Parameter_name, RF_Im
   theme(axis.text.y = element_text(hjust = 1, size = 24), axis.title.x = element_text(size = 24), axis.title.y = element_blank()) +
   coord_flip() +
   labs(y = "Random Forest Importance") 
-ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_noemergent_perm_fprRM.png", height = 10, width = 10)
+ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_noemergent_perm.png", height = 10, width = 10)
 
 # pdp plotting
 pdp_resL <- list()
@@ -201,6 +201,14 @@ for(parm in fmlaParms){
     coord_cartesian(ylim = c(3.5, 4.75)) +
     labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
     theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
+  if (parm == "fpr.mode"){ # fix angle
+    p <- ggplot(pdp_res, aes(!!sym(parm), yhat)) +
+      geom_point(size = 3) +
+      #geom_line() +
+      coord_cartesian(ylim = c(3.5, 4.75)) +
+      labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
+      theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18, angle = 10))
+  }
   plotL[parm] <- list(p)
   orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
 }
