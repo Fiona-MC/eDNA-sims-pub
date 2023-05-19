@@ -5,7 +5,7 @@ library(ggplot2)
 library(plyr)
 library(gridExtra)
 
-dirNums<-c(7, 8, 10, 11)
+dirNums<-c(7, 8, 10, 11, "11a")
 multiSimRes <- data.frame()
 
 dirNumL <- c()
