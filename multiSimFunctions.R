@@ -10,9 +10,9 @@ getParms <- function(random = TRUE) {
         radius <- runif(n = 1, min = 12, max = 50) # for neighborhoods: a little more the 
         # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
         mean_fpr <- runif(n = 1, min = 0, max = 0.2)
-        fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
+        #fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
 
-        #fpr_mode <- sample(x = c("none", "independent", "dependent_sp", "constant"), size = 1)
+        fpr_mode <- sample(x = c("none", "independent", "dependent_sp", "constant"), size = 1)
         #fpr_mode <- "independent"
         covNoise_sd <- runif(n = 1, min = 0, max = 0.1) # process noise
         covMeasureNoise_sd <- runif(n = 1, min = 0, max = 0.2) # measurement noise

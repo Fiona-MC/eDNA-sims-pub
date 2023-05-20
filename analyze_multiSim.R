@@ -37,6 +37,8 @@ for(row in 1:dim(multiSimRes)[1]) {
 }
 multiSimRes$actual_mean_fpr <- actual_mean_fpr
 
+multiSimRes$fp_fp_tp <- multiSimRes$num_incorrectInferences / (multiSimRes$num_correctInferences + multiSimRes$num_incorrectInferences)
+
 #multiSimRes %>% 
 #  summarise_if(is.numeric, c(mean, sd), na.rm = TRUE)
 
@@ -58,12 +60,14 @@ randomParms <- randomParms[as.vector(randomParmsVary)] # take out any that I've 
 emergentParms <- c("Sp1PercentPresence", "Sp2PercentPresence", "Sp3PercentPresence")
 # make formula from these parms
 indep_var <- "totalMistakes"
+#indep_var <- "fp_fp_tp"
 #indep_var <- "finished_INLA"
 fmlaParms<-c(randomParms)
 fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
 
 #remove NA's in response (run didnt finish or whatever)
 multiSimRes_na.rm <- multiSimRes[!is.na(multiSimRes[[indep_var]]), ]
+
 
 ############ REMOVE fpr.mode = "constant" and "none" --correlation issues
 ### vvvvv this made no difference to the order of the "permutation" variable importances
@@ -133,7 +137,7 @@ rf_importance_plot <- ggplot(importanceDF, aes(x = reorder(Parameter_name, RF_Im
   geom_bar(stat = "identity", fill = "steelblue") +
   theme(axis.text.y = element_text(hjust = 1, size = 24), axis.title.x = element_text(size = 24), axis.title.y = element_blank()) +
   coord_flip() +
-  labs(y = "Random Forest Importance") 
+  labs(y = "Random Forest Importance", title = paste("Random Forest Predictor Importance for", indep_var)) 
 ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_noemergent_perm.png", height = 10, width = 10)
 
 # pdp plotting
@@ -162,6 +166,7 @@ for(parm in fmlaParms){
   p <- ggplot(ice_perm_subset, aes(x = !!sym(parm), y = yhat, group = yhat.id)) +
       geom_line() +
       coord_cartesian(ylim = c(2, 8)) +
+      #coord_cartesian(ylim = c(.2, .6)) +
       labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
       theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
 
@@ -179,6 +184,7 @@ for(parm in fmlaParms){
   ice_perm_subset <- ice_perm[ice_perm$yhat.id %% 30 == 1, ]
   p <- ggplot(ice_perm_subset, aes(x = !!sym(parm), y = yhat, group = yhat.id)) +
       geom_line() +
+      #coord_cartesian(ylim = c(-.2, .3)) +
       coord_cartesian(ylim = c(-2, 3)) +
       labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var, "(centered)")) +
       theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
@@ -199,15 +205,17 @@ for(parm in fmlaParms){
     geom_point(size = 3) +
     geom_line() +
     coord_cartesian(ylim = c(3.5, 4.75)) +
+    #coord_cartesian(ylim = c(.3, .5)) +
     labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
-    theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
+    theme(axis.text.y = element_text(size = 20), axis.title.x = element_text(size =36), axis.text.x = element_text(size = 20))
   if (parm == "fpr.mode"){ # fix angle
     p <- ggplot(pdp_res, aes(!!sym(parm), yhat)) +
       geom_point(size = 3) +
       #geom_line() +
       coord_cartesian(ylim = c(3.5, 4.75)) +
+      #coord_cartesian(ylim = c(.3, .5)) +
       labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
-      theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18, angle = 10))
+      theme(axis.text.y = element_text(size = 20), axis.title.x = element_text(size = 36), axis.text.x = element_text(size = 20, angle = 10))
   }
   plotL[parm] <- list(p)
   orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
