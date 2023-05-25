@@ -15,8 +15,26 @@ for (dirNum in dirNums) {
   dirNumL <- c(dirNumL, rep(dirNum, times = length(thisMultiSimRes$RunNum)))
   multiSimRes <- plyr::rbind.fill(multiSimRes, thisMultiSimRes)
 }
-
 multiSimRes$dirNum <- dirNumL
+
+multiSimLogistic <- data.frame()
+dirNumL <- c()
+for (dirNum in dirNums) {
+  thisDir <- paste0("/space/s1/fiona_callahan/multiSim", dirNum, "/")
+  thisMultiSimLogistic <- read.csv(paste0(thisDir, "logistic_mistakes.csv"), header = TRUE)
+  thisMultiSimLogistic <- thisMultiSimLogistic[!is.na(thisMultiSimLogistic$sim_run), ]
+  dirNumL <- c(dirNumL, rep(dirNum, times = length(thisMultiSimLogistic$sim_run)))
+  multiSimLogistic <- plyr::rbind.fill(multiSimLogistic, thisMultiSimLogistic)
+}
+multiSimLogistic$dirNum <- dirNumL
+multiSimLogistic$totalMistakes <- multiSimLogistic$num_incorrectInferences + multiSimLogistic$num_missedEffectsL
+multiSimLogistic$fp_fp_tp <- multiSimLogistic$num_incorrectInferences / 
+                              (multiSimLogistic$num_correctInferences + multiSimLogistic$num_incorrectInferences)
+
+summary(multiSimLogistic)
+mean(multiSimLogistic$fp_fp_tp, na.rm = TRUE)
+quantile(multiSimLogistic$fp_fp_tp, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+quantile(multiSimLogistic$totalMistakes, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
 
 # put sum of two types of mistakes in a column
 multiSimRes$totalMistakes <- multiSimRes$num_incorrectInferences + multiSimRes$num_missedEffectsL

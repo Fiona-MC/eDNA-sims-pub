@@ -23,7 +23,7 @@ for (run in runs) {
     # note there is already a check for this in the count_INLAmistakes, 
     # so this is just in case I wanna run this on a whole folder that I havent finished yet
     # load parameter values
-    if(file.exists(paste0(thisDir, "randomRun", run))){ # for runs that were sorted into the unrealistic folder
+    if(file.exists(paste0(thisDir, "randomRun", run))) { # for runs that were sorted into the unrealistic folder
         params <- readRDS(paste0(thisDir, "randomRun", run, "/params.Rdata"))
         parmVals <- unlist(params)
         # take out functions from parmVals
@@ -32,8 +32,8 @@ for (run in runs) {
     }
 
     if (file.exists(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv")) 
-                & file.exists(paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv"))
-                & file.info(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"))$size > 0) {
+                && file.exists(paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv"))
+                && file.info(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"))$size > 0) {
         # load number of mistakes
         INLA_mistakes <- read.csv(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"), header = TRUE)
         sim_sitetab_sampled <- read.csv(paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)

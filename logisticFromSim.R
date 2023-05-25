@@ -11,16 +11,17 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
+#data_dir <- "/space/s1/fiona_callahan/multiSim7/"
+#numRuns <- 10
+
 data_dir <- args[1]
-numRuns <- args[2]
+numRuns <- as.numeric(args[2])
 
 # to run
-# Rscript logisticFromSim.R /space/s1/fiona_callahan/multiSimNumber/ 1000 1
-
-data_dir <- "/space/s1/fiona_callahan/multiSim7/"
-numRuns <- 1000
+# Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim.R /space/s1/fiona_callahan/multiSim8/ 1000
 
 runs <- 1:numRuns
+numTrials <- 1
 trials <- 1:1
 
 runL <- rep(NA, times = numRuns * numTrials)
@@ -35,6 +36,16 @@ num_missedEffects_alphaL <- rep(NA, times = numRuns * numTrials)
 num_missedEffects_betaL <- rep(NA, times = numRuns * numTrials)
 num_missedEffectsL <- rep(NA, times = numRuns * numTrials)# false negatives
 
+# this is a hacky way to get the number of parms
+simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
+parmVals <- unlist(simParms)
+# take out functions from parmVals
+parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
+parmNames <- names(parmVals)
+# initialize place to store parm values
+parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
+names(parmsDF) <- parmNames
+
 i <- 1
 for (run in runs) {
     for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
@@ -45,6 +56,13 @@ for (run in runs) {
 
             ############### LOAD ACTUAL PARAMS ######################
             simParms <- readRDS(paste0(data_dir, "randomRun", run, "/params.Rdata"))
+            
+            parmVals <- unlist(simParms)
+            # take out functions from parmVals
+            parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
+            parmNames <- names(parmVals)
+            parmsDF[i, ] <- parmVals
+
             # figure out which beta column to remove based on just being an intercept variable
             covVars <- simParms$covVars
             const_covs <- unlist(lapply(covVars, FUN = function(covVar) {covVar$type != "constant"}))
@@ -100,7 +118,7 @@ for (run in runs) {
             ############### COMPARE INFERRECE RESULTS TO ACTUAL ALPHA AND BETA ######################
 
             # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
-            num_correct <- sum(betaInferred * actualBeta == 1) + sum(inferredParms$alphaInferred * actualAlpha == 1)
+            num_correct <- sum(betaInferred * actualBeta == 1) + sum(alphaInferred * actualAlpha == 1)
 
             # Note: here we want to add together inferrence in the wrong direction with saying there is an effect when it's actually 0
             # type 1 error -- inferring an effect where there is none or wrong direction of effect
@@ -144,6 +162,13 @@ df <- data.frame(sim_run = runL,
             num_missedEffectsL = num_missedEffectsL,
             num_possibleEffectsL = num_possibleEffectsL)
 
-print(df)
+#print(df)
 
-write.csv(df, paste0(data_dir, "randomRun", run, "/logistic_mistakes.csv"))
+parmsDF$sim_run <- runL
+parmsDF$trial <- trialL
+#print(parmsDF)
+
+fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
+
+#print(fulldf)
+write.csv(fulldf, paste0(data_dir, "/logistic_mistakes.csv"))
