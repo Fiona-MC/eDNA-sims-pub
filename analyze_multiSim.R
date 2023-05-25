@@ -31,11 +31,6 @@ multiSimLogistic$totalMistakes <- multiSimLogistic$num_incorrectInferences + mul
 multiSimLogistic$fp_fp_tp <- multiSimLogistic$num_incorrectInferences / 
                               (multiSimLogistic$num_correctInferences + multiSimLogistic$num_incorrectInferences)
 
-summary(multiSimLogistic)
-mean(multiSimLogistic$fp_fp_tp, na.rm = TRUE)
-quantile(multiSimLogistic$fp_fp_tp, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
-quantile(multiSimLogistic$totalMistakes, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
-
 # put sum of two types of mistakes in a column
 multiSimRes$totalMistakes <- multiSimRes$num_incorrectInferences + multiSimRes$num_missedEffectsL
 
@@ -89,9 +84,29 @@ fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
 #remove NA's in response (run didnt finish or whatever)
 multiSimRes_na.rm <- multiSimRes[!is.na(multiSimRes[[indep_var]]), ]
 
+# inla average success
 mean(multiSimRes_na.rm$fp_fp_tp, na.rm = TRUE)
 quantile(multiSimRes_na.rm$fp_fp_tp, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
 quantile(multiSimRes_na.rm$totalMistakes, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+mean(multiSimRes_na.rm$num_correctInferences + multiSimRes_na.rm$num_incorrectInferences, na.rm = TRUE)
+mean(multiSimRes_na.rm$num_incorrectInferences, na.rm = TRUE)
+
+# compare INLA to logistic
+mean(multiSimLogistic$fp_fp_tp, na.rm = TRUE)
+quantile(multiSimLogistic$fp_fp_tp, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+quantile(multiSimLogistic$totalMistakes, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+mean(multiSimLogistic$num_correctInferences + multiSimLogistic$num_incorrectInferences, na.rm = TRUE)
+mean(multiSimLogistic$num_incorrectInferences, na.rm = TRUE)
+
+multiSimResMerged <- merge(x = multiSimLogistic, y = multiSimRes_na.rm, 
+                    by.x = c("sim_run", "dirNum", "trial"), by.y = c("RunNum", "dirNum", "trial"), suffixes = c("_logistic", "_INLA"))
+mean(multiSimResMerged$num_incorrectInferences_logistic - multiSimResMerged$num_incorrectInferences_INLA, na.rm = TRUE)
+mean(multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_INLA, na.rm = TRUE)
+mean(multiSimResMerged$fp_fp_tp_logistic - multiSimResMerged$fp_fp_tp_INLA, na.rm = TRUE)
+
+t.test(x = multiSimResMerged$num_incorrectInferences_logistic, y = multiSimResMerged$num_incorrectInferences_INLA, paired = TRUE, na.rm = TRUE)
+t.test(x = multiSimResMerged$totalMistakes_logistic, y = multiSimResMerged$totalMistakes_INLA, paired = TRUE, na.rm = TRUE)
+t.test(x = multiSimResMerged$fp_fp_tp_logistic, y = multiSimResMerged$fp_fp_tp_INLA, paired = TRUE, na.rm = TRUE)
 
 ############ REMOVE fpr.mode = "constant" and "none" --correlation issues
 ### vvvvv this made no difference to the order of the "permutation" variable importances
