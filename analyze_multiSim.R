@@ -71,6 +71,9 @@ fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
 #remove NA's in response (run didnt finish or whatever)
 multiSimRes_na.rm <- multiSimRes[!is.na(multiSimRes[[indep_var]]), ]
 
+mean(multiSimRes_na.rm$fp_fp_tp, na.rm = TRUE)
+quantile(multiSimRes_na.rm$fp_fp_tp, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+quantile(multiSimRes_na.rm$totalMistakes, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
 
 ############ REMOVE fpr.mode = "constant" and "none" --correlation issues
 ### vvvvv this made no difference to the order of the "permutation" variable importances
