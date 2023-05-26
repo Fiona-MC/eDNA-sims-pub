@@ -1,11 +1,13 @@
 #!/bin/bash
-export OMP_NUM_THREADS=5
+export OMP_NUM_THREADS=5 # threads per job
+
+# /home/fiona_callahan/eDNA_sims_code/runSchliepSimAnalysis.sh
 
 sim_dir="/space/s1/fiona_callahan/multiSim11"
-N=2
+N=10 # number of jobs at a time
 
 while IFS=',' read -r runNum; do
-    (
+   (
         folder=${sim_dir}/randomRun${runNum}/
         echo "starting task $folder.."
         Rscript /home/fiona_callahan/eDNA_sims_code/schliep_sims.R ${folder} 10000 2000 

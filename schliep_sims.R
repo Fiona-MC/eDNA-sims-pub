@@ -4,6 +4,8 @@ library(stats)
 library(ggplot2) # plotting
 library(coda) # mcmc diagnostics
 
+#Rscript /home/fiona_callahan/eDNA_sims_code/schliep_sims.R /space/s1/fiona_callahan/multiSim11/randomRun8/ 50 10
+
 #MCMC Algorithms for model with extensions 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -16,13 +18,13 @@ source("/home/fiona_callahan/schliep_code/MultivariateExtensionsRcppCode.R")
 source("/home/fiona_callahan/eDNA_sims_code/Schliep_sims_fcns.R")
 
 
-numIters <- 100
-burn <- 20
-dataDir <- "/space/s1/fiona_callahan/multiSim11/randomRun10/"
+#numIters <- 100
+#burn <- 20
+#dataDir <- "/space/s1/fiona_callahan/multiSim11/randomRun11/"
 
 dataDir <- args[1]
-numIters <- args[2]
-burn <- args[3]
+numIters <- as.numeric(args[2])
+burn <- as.numeric(args[3])
 
 numTrials <- 2
 mode <- "X"
@@ -40,6 +42,7 @@ params <- readRDS(paste0(dataDir, "params.Rdata"))
 
 timePts <- sort(params$num_gens - unique(INLA_sitetab$Age))[-1] # take out first time point because N_0 is 10 and that is too low for detection in most cases
 
+# get just the sampled locations (indices)
 locDF <- unique(INLA_sitetab[, c("Lat", "Long")])
 locList.asDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = TRUE))
 locIndices <- unname(apply(locDF, MARGIN = 1, FUN = function(latLon) {
