@@ -31,6 +31,9 @@ multiSimLogistic$totalMistakes <- multiSimLogistic$num_incorrectInferences + mul
 multiSimLogistic$fp_fp_tp <- multiSimLogistic$num_incorrectInferences / 
                               (multiSimLogistic$num_correctInferences + multiSimLogistic$num_incorrectInferences)
 
+
+#multiSimRes<-multiSimLogistic
+
 # put sum of two types of mistakes in a column
 multiSimRes$totalMistakes <- multiSimRes$num_incorrectInferences + multiSimRes$num_missedEffectsL
 
@@ -103,6 +106,7 @@ multiSimResMerged <- merge(x = multiSimLogistic, y = multiSimRes_na.rm,
 mean(multiSimResMerged$num_incorrectInferences_logistic - multiSimResMerged$num_incorrectInferences_INLA, na.rm = TRUE)
 mean(multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_INLA, na.rm = TRUE)
 mean(multiSimResMerged$fp_fp_tp_logistic - multiSimResMerged$fp_fp_tp_INLA, na.rm = TRUE)
+hist(multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_INLA)
 
 t.test(x = multiSimResMerged$num_incorrectInferences_logistic, y = multiSimResMerged$num_incorrectInferences_INLA, paired = TRUE, na.rm = TRUE)
 t.test(x = multiSimResMerged$totalMistakes_logistic, y = multiSimResMerged$totalMistakes_INLA, paired = TRUE, na.rm = TRUE)
@@ -178,15 +182,17 @@ rf_importance_plot <- ggplot(importanceDF, aes(x = reorder(Parameter_name, RF_Im
   theme(axis.text.y = element_text(hjust = 1, size = 24), axis.title.x = element_text(size = 24), axis.title.y = element_blank()) +
   coord_flip() +
   labs(y = "Random Forest Importance", title = paste("Random Forest Predictor Importance for", indep_var)) 
-ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_noemergent_perm.png", height = 10, width = 10)
+ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance.png", height = 10, width = 10)
 
 ########### test set ###############
 ########### test set ###############
 ########### test set ###############
 thisDir <- paste0("/space/s1/fiona_callahan/multiSim11_testSet/")
 multiSimRes_testData <-  read.csv(paste0(thisDir, "infResGathered.csv"), header = TRUE)
-# put sum of two types of mistakes in a column
-multiSimRes_testData$totalMistakes <- multiSimRes_testData$num_incorrectInferences + multiSimRes_testData$num_missedEffectsL
+
+#thisDir <- paste0("/space/s1/fiona_callahan/multiSim11_testSet/")
+#multiSimRes_testData <- read.csv(paste0(thisDir, "logistic_mistakes.csv"), header = TRUE)
+#multiSimRes_testData <- multiSimRes_testData[!is.na(multiSimRes_testData$sim_run), ]
 
 actual_mean_fpr <- rep(NA, times = dim(multiSimRes_testData)[1])
 for(row in seq_len(dim(multiSimRes_testData)[1])) { #1:dim(multiSimRes_testData)[1]
@@ -203,11 +209,12 @@ multiSimRes_testData$actual_mean_fpr <- actual_mean_fpr
 
 multiSimRes_testData$fp_fp_tp <- multiSimRes_testData$num_incorrectInferences / 
                                 (multiSimRes_testData$num_correctInferences + multiSimRes_testData$num_incorrectInferences)
+multiSimRes_testData$totalMistakes <- multiSimRes_testData$num_incorrectInferences + multiSimRes_testData$num_missedEffectsL
 #remove NA's in response (run didnt finish or whatever)
 multiSimRes_testData_na.rm <- multiSimRes_testData[!is.na(multiSimRes_testData[[indep_var]]), ]
 
-
-naive_rmse <- sqrt(sum((4 - multiSimRes_testData_na.rm$totalMistakes)^2) / length(multiSimRes_testData_na.rm$totalMistakes))
+med_totalmistakes <- median(multiSimRes_testData_na.rm$totalMistakes)
+naive_rmse <- sqrt(sum((med_totalmistakes - multiSimRes_testData_na.rm$totalMistakes)^2) / length(multiSimRes_testData_na.rm$totalMistakes))
 
 lm_predictions <- predict(object = lm_res, newdata = multiSimRes_testData_na.rm)
 lm_rmse <- sqrt(sum((lm_predictions - multiSimRes_testData_na.rm$totalMistakes)^2) / length(multiSimRes_testData_na.rm$totalMistakes))

@@ -18,7 +18,7 @@ data_dir <- args[1]
 numRuns <- as.numeric(args[2])
 
 # to run
-# Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim.R /space/s1/fiona_callahan/multiSim8/ 1000
+# Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim.R /space/s1/fiona_callahan/multiSim11_testSet/ 200
 
 runs <- 1:numRuns
 numTrials <- 1
