@@ -137,6 +137,7 @@ for (numMistakes in unique(multiSimRes_na.rm11$totalMistakes)) {
 }
 schliep_runNums <- sort(schliep_runNums)
 write.table(schliep_runNums, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums.csv"), row.names = FALSE, col.names = FALSE)
+
 ############ REMOVE fpr.mode = "constant" and "none" --correlation issues
 ### vvvvv this made no difference to the order of the "permutation" variable importances
 #multiSimRes_na.rm <- multiSimRes_na.rm[multiSimRes_na.rm$fpr.mode != "none" & multiSimRes_na.rm$fpr.mode != "constant", ]
