@@ -12,7 +12,7 @@ while IFS=',' read -r runNum; do
    (
         folder=${sim_dir}/randomRun${runNum}/
         echo "starting task $folder.."
-        Rscript /home/fiona_callahan/eDNA_sims_code/schliep_sims.R ${folder} 10000 2000 
+        timeout -k 10 168h Rscript /home/fiona_callahan/eDNA_sims_code/schliep_sims.R ${folder} 50000 10000 
         sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
     )&
 
@@ -22,7 +22,7 @@ while IFS=',' read -r runNum; do
         # to be finished so there is a place to start next one.
         wait -n
     fi
-done < ${sim_dir}/schliep_runNums.csv
+done < ${sim_dir}/schliep_runNums2.csv
 
 wait
 

@@ -346,7 +346,6 @@ numMistakes <- function(plotPosteriorTableOut, simParms, trial, simRun) {
                 num_possibleEffects = num_possibleEffects)
 
     # print(df)
-
     return(df)
 }
 

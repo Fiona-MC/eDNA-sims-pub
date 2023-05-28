@@ -133,12 +133,17 @@ multiSimRes_na.rm11 <- multiSimRes_na.rm[multiSimRes_na.rm$dirNum == 11 & multiS
 #multiSimRes_na.rm11 <- multiSimRes_na.rm11[order(multiSimRes_na.rm11$totalMistakes), ]
 nSelect <- 2
 schliep_runNums <- c()
+schliep_runNums2 <- c()
 for (numMistakes in sort(unique(multiSimRes_na.rm11$totalMistakes))) {
   thisNumMistakes <- multiSimRes_na.rm11[multiSimRes_na.rm11$totalMistakes == numMistakes, ]
   thisRunNums <- thisNumMistakes$RunNum[1:nSelect]
+  thisRunNums2 <- thisNumMistakes$RunNum[3:4]
   schliep_runNums <- c(schliep_runNums, thisRunNums)
+  schliep_runNums2 <- c(schliep_runNums2, thisRunNums2)
 }
-schliep_runNums 
+schliep_runNums
+schliep_runNums2 <- schliep_runNums2[!(schliep_runNums2 %in% schliep_runNums)]
+write.table(schliep_runNums2, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums2.csv"), row.names = FALSE, col.names = FALSE)
 #write.table(schliep_runNums, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums.csv"), row.names = FALSE, col.names = FALSE)
 
 ############ REMOVE fpr.mode = "constant" and "none" --correlation issues
