@@ -282,7 +282,7 @@ plotPosteriorTable <- function(schliepOutput, ci_percent = 0.95, mode = "N", bur
 
 
 ######## count mistakes ##########
-numMistakes <- function(plotPosteriorTableOut, simParms, trial, simRum) {
+numMistakes <- function(plotPosteriorTableOut, simParms, trial, simRun) {
 
     # simParms <- readRDS(paste0(dataDir, "/params.Rdata"))
     # figure out which beta column to remove based on just being an intercept variable
@@ -347,7 +347,6 @@ numMistakes <- function(plotPosteriorTableOut, simParms, trial, simRum) {
 
     # print(df)
 
-    write.csv(df, paste0(dataDir, "/SchliepRes/trial", trial, "/schliep_mistakes.csv"))
     return(df)
 }
 

@@ -83,6 +83,8 @@ indep_var <- "totalMistakes"
 #indep_var <- "fp_fp_tp"
 #indep_var <- "finished_INLA"
 fmlaParms <- c(randomParms)
+#fmlaParms <- c(randomParms[randomParms!="r"])
+
 fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
 
 #remove NA's in response (run didnt finish or whatever)
@@ -116,27 +118,28 @@ t.test(x = multiSimResMerged$fp_fp_tp_logistic, y = multiSimResMerged$fp_fp_tp_I
 # Convert the data to long format
 multiSimResMerged_long <- multiSimResMerged %>%
     select(fp_fp_tp_logistic, fp_fp_tp_INLA) %>%
-    pivot_longer(everything(), names_to = "Inference Type", values_to = "False inference rate (FP/(FP+TP))")
+    pivot_longer(everything(), names_to = "Inference Type", values_to = "False Discovery Rate")
 # Create the histogram with side-by-side bars
-FPR_plot <- ggplot(multiSimResMerged_long, aes(x = `False inference rate (FP/(FP+TP))`, fill = `Inference Type`)) +
+FPR_plot <- ggplot(multiSimResMerged_long, aes(x = `False Discovery Rate`, fill = `Inference Type`)) +
   geom_histogram(binwidth = 0.2, position = "dodge") +
   scale_fill_manual(values = c("darkblue", "lightblue"), labels = c("INLA", "Logistic regression")) +
   #theme_minimal() +
-  theme(text = element_text(size = 24))
+  theme(text = element_text(size = 24)) +
+  labs(y= "Count (simulations)")
 ggsave(FPR_plot, file = "/space/s1/fiona_callahan/false_inference_hist.png", height = 5, width = 8)
 
 # pick run nums for schliep -- two runs per number of mistakes in INLA results
-multiSimRes_na.rm11 <- multiSimRes_na.rm[multiSimRes_na.rm$dirNum == 11 && INLA_trial == 1, ]
+multiSimRes_na.rm11 <- multiSimRes_na.rm[multiSimRes_na.rm$dirNum == 11 & multiSimRes_na.rm$INLA_trial == 1, ]
 #multiSimRes_na.rm11 <- multiSimRes_na.rm11[order(multiSimRes_na.rm11$totalMistakes), ]
 nSelect <- 2
 schliep_runNums <- c()
-for (numMistakes in unique(multiSimRes_na.rm11$totalMistakes)) {
+for (numMistakes in sort(unique(multiSimRes_na.rm11$totalMistakes))) {
   thisNumMistakes <- multiSimRes_na.rm11[multiSimRes_na.rm11$totalMistakes == numMistakes, ]
   thisRunNums <- thisNumMistakes$RunNum[1:nSelect]
   schliep_runNums <- c(schliep_runNums, thisRunNums)
 }
-schliep_runNums <- sort(schliep_runNums)
-write.table(schliep_runNums, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums.csv"), row.names = FALSE, col.names = FALSE)
+schliep_runNums 
+#write.table(schliep_runNums, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums.csv"), row.names = FALSE, col.names = FALSE)
 
 ############ REMOVE fpr.mode = "constant" and "none" --correlation issues
 ### vvvvv this made no difference to the order of the "permutation" variable importances
