@@ -18,7 +18,7 @@ for (dirNum in dirNums) {
 }
 multiSimRes$dirNum <- dirNumL
 
-write.csv(multiSimRes, file = "/home/fiona_callahan/eDNA_sims_code/multiSimRes_7_8_10_11_11a.csv")
+#write.csv(multiSimRes, file = "/home/fiona_callahan/eDNA_sims_code/multiSimRes_7_8_10_11_11a.csv")
 
 multiSimLogistic <- data.frame()
 dirNumL <- c()
@@ -33,6 +33,8 @@ multiSimLogistic$dirNum <- dirNumL
 multiSimLogistic$totalMistakes <- multiSimLogistic$num_incorrectInferences + multiSimLogistic$num_missedEffectsL
 multiSimLogistic$fp_fp_tp <- multiSimLogistic$num_incorrectInferences / 
                               (multiSimLogistic$num_correctInferences + multiSimLogistic$num_incorrectInferences)
+
+#write.csv(multiSimLogistic, file = "/home/fiona_callahan/eDNA_sims_code/multiSimLogistic_7_8_10_11_11a.csv")
 
 actual_mean_fpr <- rep(NA, times = dim(multiSimLogistic)[1])
 for (row in seq_len(dim(multiSimLogistic)[1])) { #1:dim(multiSimRes)[1]
@@ -128,7 +130,7 @@ hist(multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_
 # run ranger on the difference between the totalmistakes in INLA vs logistic -- what is causing this difference
 # higher means INLA did better (fewer total mistakes)
 # meaning if an lm_beta is positive, that means that the variable going up correlates with INLA doing better
-# lm_beta pos + var up bad: var is worse for logistic (num_samples)
+# lm_beta pos + var up bad: var is worse for logistic (num_samples, migrationRadius?)
 # lm_beta neg + var down bad: var is worse for logistic (r)
 # lm_beta pos + var down bad: var is worse for INLA ()
 # lm_beta neg + var up bad: var is worse for INLA (actual_FPR, N_50, c2?)
@@ -146,6 +148,21 @@ names(importanceDF_diff) <- c("RF_Importance", "Parameter")
 diff_logistic_INLA_lm <- lm(data = multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ], formula = fmla_diff) 
 summary(diff_logistic_INLA_lm)
 
+data<-multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ]
+naive_rmse <- sqrt(sum((median(data$totalMistakesDiff) - data$totalMistakesDiff)^2, na.rm = TRUE) / length(data$totalMistakesDiff))
+rf_predictions <- predict(object = diff_logistic_INLA_rf, data = data)
+rf_rmse <- sqrt(sum((rf_predictions$predictions - data$totalMistakesDiff)^2) / length(data$totalMistakesDiff))
+(rf_rmse - naive_rmse) / naive_rmse
+
+
+rf_importance_plot <- ggplot(importanceDF_diff, aes(x = reorder(Parameter, RF_Importance), y = RF_Importance)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme(axis.text.y = element_text(hjust = 1, size = 24), axis.title.x = element_text(size = 24), axis.title.y = element_blank()) +
+  coord_flip() +
+  labs(y = "Random Forest Importance", title = paste("Var: Difference in Logistic and INLA mistakes")) 
+ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_diff_logis_INLA.png", height = 10, width = 10)
+
+
 multiSimResMerged$fpDiff <- multiSimResMerged$fp_fp_tp_logistic - multiSimResMerged$fp_fp_tp_INLA
 fmlaParms_diff <- sapply(fmlaParms, FUN = function(parm){paste0(parm,"_INLA")})
 fmla_diff <- as.formula(paste("fpDiff", " ~ ", paste(fmlaParms_diff, collapse = "+")))
@@ -156,16 +173,18 @@ importanceDF_diff <- as.data.frame(sort(importance(diff_logistic_INLA_rf)))
 importanceDF_diff$Variable <- row.names(importanceDF_diff)
 names(importanceDF_diff) <- c("RF_Importance", "Parameter")
 #lm
-diff_logistic_INLA_lm <- lm(data = multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ], formula = fmla_diff) 
+diff_logistic_INLA_lm <- lm(data = multiSimResMerged[!is.na(multiSimResMerged$fpDiff), ], formula = fmla_diff) 
 summary(diff_logistic_INLA_lm)
+
 
 
 t.test(x = multiSimResMerged$num_incorrectInferences_logistic, y = multiSimResMerged$num_incorrectInferences_INLA, paired = TRUE, na.rm = TRUE)
 t.test(x = multiSimResMerged$totalMistakes_logistic, y = multiSimResMerged$totalMistakes_INLA, paired = TRUE, na.rm = TRUE)
 t.test(x = multiSimResMerged$fp_fp_tp_logistic, y = multiSimResMerged$fp_fp_tp_INLA, paired = TRUE, na.rm = TRUE)
 
-
+png("/space/s1/fiona_callahan/totalMistakesINLAvsLogistic.png")
 plot(jitter(multiSimResMerged$totalMistakes_logistic), jitter(multiSimResMerged$totalMistakes_INLA), )
+dev.off()
 plot(jitter(multiSimResMerged$fp_fp_tp_logistic, amount =.01), jitter(multiSimResMerged$fp_fp_tp_INLA, amount =.01), col = (multiSimResMerged$num_incorrect_beta_logistic +1))
 legend("topleft", legend = unique(multiSimResMerged$num_incorrect_beta_logistic), col = unique(multiSimResMerged$num_incorrect_beta_logistic +1), pch = 16, title = "num_incorrect_beta_logistic")
 # Convert the data to long format
@@ -287,7 +306,7 @@ multiSimRes_testData <-  read.csv(paste0(thisDir, "infResGathered.csv"), header 
 #thisDir <- paste0("/space/s1/fiona_callahan/multiSim11_testSet/")
 #multiSimRes_testData <- read.csv(paste0(thisDir, "logistic_mistakes.csv"), header = TRUE)
 #multiSimRes_testData <- multiSimRes_testData[!is.na(multiSimRes_testData$sim_run), ]
-
+#
 actual_mean_fpr <- rep(NA, times = dim(multiSimRes_testData)[1])
 for(row in seq_len(dim(multiSimRes_testData)[1])) { #1:dim(multiSimRes_testData)[1]
     if(multiSimRes_testData$fpr.mode[row] == "constant") {
@@ -404,7 +423,7 @@ for(parm in fmlaParms){
   orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
 }
 rf_marginal <- grid.arrange(grobs = plotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
-ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal_noemergent_perm.png", width = 40, height = 12)
+ggsave(rf_marginal, file = "/space/s1/fiona_callahan/rf_marginal.png", width = 40, height = 12)
 
 
 
