@@ -18,6 +18,8 @@ for (dirNum in dirNums) {
 }
 multiSimRes$dirNum <- dirNumL
 
+write.csv(multiSimRes, file = "/home/fiona_callahan/eDNA_sims_code/multiSimRes_7_8_10_11_11a.csv")
+
 multiSimLogistic <- data.frame()
 dirNumL <- c()
 for (dirNum in dirNums) {
@@ -32,13 +34,25 @@ multiSimLogistic$totalMistakes <- multiSimLogistic$num_incorrectInferences + mul
 multiSimLogistic$fp_fp_tp <- multiSimLogistic$num_incorrectInferences / 
                               (multiSimLogistic$num_correctInferences + multiSimLogistic$num_incorrectInferences)
 
-
+actual_mean_fpr <- rep(NA, times = dim(multiSimLogistic)[1])
+for (row in seq_len(dim(multiSimLogistic)[1])) { #1:dim(multiSimRes)[1]
+    if(multiSimLogistic$fpr.mode[row] == "constant") {
+      thisFPR <- multiSimLogistic$fpr.constant_fpr[row]
+    } else if (multiSimLogistic$fpr.mode[row] == "none") {
+      thisFPR <- 0
+    } else if (multiSimLogistic$fpr.mode[row] == "dependent_sp") {
+      thisFPR <- multiSimLogistic$fpr.mean_fpr[row]
+    }
+    actual_mean_fpr[row] <- thisFPR
+}
+multiSimLogistic$actual_mean_fpr <- actual_mean_fpr
+#hacky way to make the plots and stuff for the logistic model
 #multiSimRes<-multiSimLogistic
 
 # put sum of two types of mistakes in a column
 multiSimRes$totalMistakes <- multiSimRes$num_incorrectInferences + multiSimRes$num_missedEffectsL
 
-lowMistakes_res_lt2 <- multiSimRes[multiSimRes$totalMistakes < 2 & !is.na(multiSimRes$totalMistakes), ]
+lowMistakes_res_lt4 <- multiSimRes[multiSimRes$totalMistakes < 4 & !is.na(multiSimRes$totalMistakes), ]
 lowMistakes_res_eq2 <- multiSimRes[multiSimRes$totalMistakes == 2 & !is.na(multiSimRes$totalMistakes), ]
 
 actual_mean_fpr <- rep(NA, times = dim(multiSimRes)[1])
@@ -111,10 +125,49 @@ mean(multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_
 mean(multiSimResMerged$fp_fp_tp_logistic - multiSimResMerged$fp_fp_tp_INLA, na.rm = TRUE)
 hist(multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_INLA)
 
+# run ranger on the difference between the totalmistakes in INLA vs logistic -- what is causing this difference
+# higher means INLA did better (fewer total mistakes)
+# meaning if an lm_beta is positive, that means that the variable going up correlates with INLA doing better
+# lm_beta pos + var up bad: var is worse for logistic (num_samples)
+# lm_beta neg + var down bad: var is worse for logistic (r)
+# lm_beta pos + var down bad: var is worse for INLA ()
+# lm_beta neg + var up bad: var is worse for INLA (actual_FPR, N_50, c2?)
+
+multiSimResMerged$totalMistakesDiff <- multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_INLA
+fmlaParms_diff <- sapply(fmlaParms, FUN = function(parm){paste0(parm,"_INLA")})
+fmla_diff <- as.formula(paste("totalMistakesDiff", " ~ ", paste(fmlaParms_diff, collapse = "+")))
+#rf
+diff_logistic_INLA_rf <- ranger(data = multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ], formula = fmla_diff, importance = "permutation") 
+sort(importance(diff_logistic_INLA_rf))
+importanceDF_diff <- as.data.frame(sort(importance(diff_logistic_INLA_rf)))
+importanceDF_diff$Variable <- row.names(importanceDF_diff)
+names(importanceDF_diff) <- c("RF_Importance", "Parameter")
+#lm
+diff_logistic_INLA_lm <- lm(data = multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ], formula = fmla_diff) 
+summary(diff_logistic_INLA_lm)
+
+multiSimResMerged$fpDiff <- multiSimResMerged$fp_fp_tp_logistic - multiSimResMerged$fp_fp_tp_INLA
+fmlaParms_diff <- sapply(fmlaParms, FUN = function(parm){paste0(parm,"_INLA")})
+fmla_diff <- as.formula(paste("fpDiff", " ~ ", paste(fmlaParms_diff, collapse = "+")))
+#rf
+diff_logistic_INLA_rf <- ranger(data = multiSimResMerged[!is.na(multiSimResMerged$fpDiff), ], formula = fmla_diff, importance = "permutation") 
+sort(importance(diff_logistic_INLA_rf))
+importanceDF_diff <- as.data.frame(sort(importance(diff_logistic_INLA_rf)))
+importanceDF_diff$Variable <- row.names(importanceDF_diff)
+names(importanceDF_diff) <- c("RF_Importance", "Parameter")
+#lm
+diff_logistic_INLA_lm <- lm(data = multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ], formula = fmla_diff) 
+summary(diff_logistic_INLA_lm)
+
+
 t.test(x = multiSimResMerged$num_incorrectInferences_logistic, y = multiSimResMerged$num_incorrectInferences_INLA, paired = TRUE, na.rm = TRUE)
 t.test(x = multiSimResMerged$totalMistakes_logistic, y = multiSimResMerged$totalMistakes_INLA, paired = TRUE, na.rm = TRUE)
 t.test(x = multiSimResMerged$fp_fp_tp_logistic, y = multiSimResMerged$fp_fp_tp_INLA, paired = TRUE, na.rm = TRUE)
 
+
+plot(jitter(multiSimResMerged$totalMistakes_logistic), jitter(multiSimResMerged$totalMistakes_INLA), )
+plot(jitter(multiSimResMerged$fp_fp_tp_logistic, amount =.01), jitter(multiSimResMerged$fp_fp_tp_INLA, amount =.01), col = (multiSimResMerged$num_incorrect_beta_logistic +1))
+legend("topleft", legend = unique(multiSimResMerged$num_incorrect_beta_logistic), col = unique(multiSimResMerged$num_incorrect_beta_logistic +1), pch = 16, title = "num_incorrect_beta_logistic")
 # Convert the data to long format
 multiSimResMerged_long <- multiSimResMerged %>%
     select(fp_fp_tp_logistic, fp_fp_tp_INLA) %>%
@@ -145,6 +198,13 @@ schliep_runNums
 schliep_runNums2 <- schliep_runNums2[!(schliep_runNums2 %in% schliep_runNums)]
 write.table(schliep_runNums2, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums2.csv"), row.names = FALSE, col.names = FALSE)
 #write.table(schliep_runNums, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums.csv"), row.names = FALSE, col.names = FALSE)
+
+#get the best performing subset of multiSim11
+multiSimRes_na.rm11 <- multiSimRes_na.rm11[!is.na(multiSimRes_na.rm11$fp_fp_tp), ]
+best_multiSim11 <- multiSimRes_na.rm11[multiSimRes_na.rm11$totalMistakes <= 3 & multiSimRes_na.rm11$fp_fp_tp <= 0.2, ]
+summary(multiSimRes_na.rm11)
+summary(best_multiSim11)
+#write.table(best_multiSim11$RunNum, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/best_multiSim11_runNums.csv"), row.names = FALSE, col.names = FALSE)
 
 ############ REMOVE fpr.mode = "constant" and "none" --correlation issues
 ### vvvvv this made no difference to the order of the "permutation" variable importances

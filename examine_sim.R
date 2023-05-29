@@ -14,6 +14,7 @@ thisDir <- "/space/s1/fiona_callahan/multiSim11/"
 #runNums <- c(175, 178, 203, 448, 668, 958, 988) # this is the ones that did VERY well in multiSim7
 #runNums<-c(1:10)
 runNums <- read.csv(paste0(thisDir, "schliep_runNums.csv"))[,1]
+runNums <- read.csv(paste0(thisDir, "best_multiSim11_runNums.csv"))[,1]
 #locPlots <- c(14, 15, 23, 36, 55, 61)
 locPlots <- c(19, 8, 6, 37, 64, 46)
 
