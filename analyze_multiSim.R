@@ -136,10 +136,11 @@ hist(multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_
 # lm_beta neg + var up bad: var is worse for INLA (actual_FPR, N_50, c2?)
 
 multiSimResMerged$totalMistakesDiff <- multiSimResMerged$totalMistakes_logistic - multiSimResMerged$totalMistakes_INLA
-fmlaParms_diff <- sapply(fmlaParms, FUN = function(parm){paste0(parm,"_INLA")})
+fmlaParms_diff <- sapply(fmlaParms, FUN = function(parm) {paste0(parm, "_INLA")})
 fmla_diff <- as.formula(paste("totalMistakesDiff", " ~ ", paste(fmlaParms_diff, collapse = "+")))
 #rf
-diff_logistic_INLA_rf <- ranger(data = multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ], formula = fmla_diff, importance = "permutation") 
+diff_logistic_INLA_rf <- ranger(data = multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ], 
+                                  formula = fmla_diff, importance = "permutation") 
 sort(importance(diff_logistic_INLA_rf))
 importanceDF_diff <- as.data.frame(sort(importance(diff_logistic_INLA_rf)))
 importanceDF_diff$Variable <- row.names(importanceDF_diff)
@@ -148,7 +149,7 @@ names(importanceDF_diff) <- c("RF_Importance", "Parameter")
 diff_logistic_INLA_lm <- lm(data = multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ], formula = fmla_diff) 
 summary(diff_logistic_INLA_lm)
 
-data<-multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ]
+data <- multiSimResMerged[!is.na(multiSimResMerged$totalMistakesDiff), ]
 naive_rmse <- sqrt(sum((median(data$totalMistakesDiff) - data$totalMistakesDiff)^2, na.rm = TRUE) / length(data$totalMistakesDiff))
 rf_predictions <- predict(object = diff_logistic_INLA_rf, data = data)
 rf_rmse <- sqrt(sum((rf_predictions$predictions - data$totalMistakesDiff)^2) / length(data$totalMistakesDiff))
@@ -164,7 +165,7 @@ ggsave(rf_importance_plot, file = "/space/s1/fiona_callahan/rf_importance_diff_l
 
 
 multiSimResMerged$fpDiff <- multiSimResMerged$fp_fp_tp_logistic - multiSimResMerged$fp_fp_tp_INLA
-fmlaParms_diff <- sapply(fmlaParms, FUN = function(parm){paste0(parm,"_INLA")})
+fmlaParms_diff <- sapply(fmlaParms, FUN = function(parm) {paste0(parm, "_INLA")})
 fmla_diff <- as.formula(paste("fpDiff", " ~ ", paste(fmlaParms_diff, collapse = "+")))
 #rf
 diff_logistic_INLA_rf <- ranger(data = multiSimResMerged[!is.na(multiSimResMerged$fpDiff), ], formula = fmla_diff, importance = "permutation") 
@@ -185,8 +186,10 @@ t.test(x = multiSimResMerged$fp_fp_tp_logistic, y = multiSimResMerged$fp_fp_tp_I
 png("/space/s1/fiona_callahan/totalMistakesINLAvsLogistic.png")
 plot(jitter(multiSimResMerged$totalMistakes_logistic), jitter(multiSimResMerged$totalMistakes_INLA), )
 dev.off()
-plot(jitter(multiSimResMerged$fp_fp_tp_logistic, amount =.01), jitter(multiSimResMerged$fp_fp_tp_INLA, amount =.01), col = (multiSimResMerged$num_incorrect_beta_logistic +1))
-legend("topleft", legend = unique(multiSimResMerged$num_incorrect_beta_logistic), col = unique(multiSimResMerged$num_incorrect_beta_logistic +1), pch = 16, title = "num_incorrect_beta_logistic")
+plot(jitter(multiSimResMerged$fp_fp_tp_logistic, amount = 0.01), jitter(multiSimResMerged$fp_fp_tp_INLA, amount = 0.01), 
+                    col = (multiSimResMerged$num_incorrect_beta_logistic + 1))
+legend("topleft", legend = unique(multiSimResMerged$num_incorrect_beta_logistic), 
+                    col = unique(multiSimResMerged$num_incorrect_beta_logistic + 1), pch = 16, title = "num_incorrect_beta_logistic")
 # Convert the data to long format
 multiSimResMerged_long <- multiSimResMerged %>%
     select(fp_fp_tp_logistic, fp_fp_tp_INLA) %>%
@@ -197,7 +200,7 @@ FPR_plot <- ggplot(multiSimResMerged_long, aes(x = `False Discovery Rate`, fill 
   scale_fill_manual(values = c("darkblue", "lightblue"), labels = c("INLA", "Logistic regression")) +
   #theme_minimal() +
   theme(text = element_text(size = 24)) +
-  labs(y= "Count (simulations)")
+  labs(y = "Count (simulations)")
 ggsave(FPR_plot, file = "/space/s1/fiona_callahan/false_inference_hist.png", height = 5, width = 8)
 
 # pick run nums for schliep -- two runs per number of mistakes in INLA results
@@ -215,15 +218,18 @@ for (numMistakes in sort(unique(multiSimRes_na.rm11$totalMistakes))) {
 }
 schliep_runNums
 schliep_runNums2 <- schliep_runNums2[!(schliep_runNums2 %in% schliep_runNums)]
-write.table(schliep_runNums2, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums2.csv"), row.names = FALSE, col.names = FALSE)
-#write.table(schliep_runNums, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums.csv"), row.names = FALSE, col.names = FALSE)
+#write.table(schliep_runNums2, sep = ",", 
+            #file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums2.csv"), row.names = FALSE, col.names = FALSE)
+#write.table(schliep_runNums, sep = ",", 
+            #file = paste0("/space/s1/fiona_callahan/multiSim11/schliep_runNums.csv"), row.names = FALSE, col.names = FALSE)
 
 #get the best performing subset of multiSim11
 multiSimRes_na.rm11 <- multiSimRes_na.rm11[!is.na(multiSimRes_na.rm11$fp_fp_tp), ]
 best_multiSim11 <- multiSimRes_na.rm11[multiSimRes_na.rm11$totalMistakes <= 3 & multiSimRes_na.rm11$fp_fp_tp <= 0.2, ]
 summary(multiSimRes_na.rm11)
 summary(best_multiSim11)
-#write.table(best_multiSim11$RunNum, sep = ",", file = paste0("/space/s1/fiona_callahan/multiSim11/best_multiSim11_runNums.csv"), row.names = FALSE, col.names = FALSE)
+#write.table(best_multiSim11$RunNum, sep = ",", 
+              #file = paste0("/space/s1/fiona_callahan/multiSim11/best_multiSim11_runNums.csv"), row.names = FALSE, col.names = FALSE)
 
 ############ REMOVE fpr.mode = "constant" and "none" --correlation issues
 ### vvvvv this made no difference to the order of the "permutation" variable importances

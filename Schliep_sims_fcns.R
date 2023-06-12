@@ -9,17 +9,18 @@ configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "
   
   # Wrangle data
   locList.asDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = TRUE))
-  locDF <- locList.asDF[locIndices,]
-  distMx <- dist(locDF, diag = T, upper = T)
+  locDF <- locList.asDF[locIndices, ]
+  distMx <- dist(locDF, diag = TRUE, upper = TRUE)
   
   Y <- list()
   X <- list()
-  for (t_index in 1:length(timePts)) {
+  for (t_index in seq_along(timePts)) {
     t <- timePts[t_index]
     if (mode == "X") { # configure data differently for extended mode
       # Y: list containing t items where each item is also a list of length n, 
-      # each of which is a matrix with S columns and J_(i,j) rows. The values are the ordinal abundance scores for each replicate at location i and time j for species i (column i). 
-      Y[[t_index]] <- lapply(X = sim_data_raw[[t]]$y[locIndices], FUN = function(y_s){return(matrix(y_s, ncol = params$numSpecies, nrow = 1))})
+      # each of which is a matrix with S columns and J_(i,j) rows. 
+      # The values are the ordinal abundance scores for each replicate at location i and time j for species i (column i). 
+      Y[[t_index]] <- lapply(X = sim_data_raw[[t]]$y[locIndices], FUN = function(y_s) {return(matrix(y_s, ncol = params$numSpecies, nrow = 1))})
     } else {
       #dataSchliep$Y=Y #list containing t items where each item is an n x S matrix of ordinal responses 
       Y[[t_index]] <- matrix(as.double(unlist(sim_data_raw[[t]]$y[locIndices])), nrow = length(locIndices), ncol = params$numSpecies, byrow = TRUE)
@@ -27,28 +28,31 @@ configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "
 
     sampledCovs <- list()
     for (covNum in 1:length(sim_data_raw[[t]]$covs)){
-        if(paste0("Cov", covNum) %in% params$names_cov){
+        if(paste0("Cov", covNum) %in% params$names_cov) {
             sampledCovs[[covNum]] <- sim_data_raw[[t]]$covs[[covNum]][locIndices]
         }
     }
     #cov3<-sim_data_raw[[t]]$covs[[3]]
-    X[[t_index]] <- matrix(c(rep(1, times = length(locIndices)), unlist(sampledCovs)), nrow = length(locIndices), ncol = length(params$names_cov) + 1, byrow=FALSE)
+    X[[t_index]] <- matrix(c(rep(1, times = length(locIndices)), unlist(sampledCovs)), 
+                    nrow = length(locIndices), ncol = length(params$names_cov) + 1, byrow = FALSE)
   }
   
-  dataSchliep = list()
-  dataSchliep$t = length(timePts) # number of survey times
-  dataSchliep$L = 2 # number of ordinal categories (2 = binary)
-  dataSchliep$S = params$numSpecies # number of species (2 or more)
-  dataSchliep$p = length(params$names_cov) + 1 # number of covariates in model
-  dataSchliep$n = length(locIndices) # number of locations
-  dataSchliep$dist = as.matrix(distMx) # distance matrix between locations
-  dataSchliep$Y = Y # list containing t items where each item is an n x S matrix of ordinal responses 
-  dataSchliep$X = X # list containing t items where each item is an n x p matrix of covariates
+  dataSchliep <- list()
+  dataSchliep$t <- length(timePts) # number of survey times
+  dataSchliep$L <- 2 # number of ordinal categories (2 = binary)
+  dataSchliep$S <- params$numSpecies # number of species (2 or more)
+  dataSchliep$p <- length(params$names_cov) + 1 # number of covariates in model
+  dataSchliep$n <- length(locIndices) # number of locations
+  dataSchliep$dist <- as.matrix(distMx) # distance matrix between locations
+  dataSchliep$Y <- Y # list containing t items where each item is an n x S matrix of ordinal responses 
+  dataSchliep$X <- X # list containing t items where each item is an n x p matrix of covariates
   
-  if(mode == "X"){
-    #J is matrix with n rows and t columns. Each J_(i,j) is the number of replicate observations for plot i and year j. Even if no replicates, this matrix needs to be provided with 1 (when the location is observed that year) or 0 (when the location is not observed that year)
-    J = matrix(rep(x = as.integer(1), times = length(locIndices) * length(timePts)), nrow = length(locIndices), ncol = length(timePts))
-    dataSchliep$J = J
+  if(mode == "X") {
+    #J is matrix with n rows and t columns. Each J_(i,j) is the number of replicate observations for plot i and year j. 
+    # Even if no replicates, this matrix needs to be provided with 1 
+    # (when the location is observed that year) or 0 (when the location is not observed that year)
+    J <- matrix(rep(x = as.integer(1), times = length(locIndices) * length(timePts)), nrow = length(locIndices), ncol = length(timePts))
+    dataSchliep$J <- J
   }
   
   # dataSchliep is list of the format of HWAdataM.Rdata (from paper supplement)
@@ -62,115 +66,116 @@ configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "
 #run=Multivariate.Ordinal.Spatial.Model(HWAdataMBinary,pars,priors,temporalRE=T,iters=1000,print.out=100)
 
 testData <- function(data, mode = "N") {
-  goodData = TRUE
+  goodData <- TRUE
   # Y: list containing t items where each item is also a list of length n, 
-  # each of which is a matrix with S columns and J_(i,j) rows. The values are the ordinal abundance scores for each replicate at location i and time j for species i (column i). 
+  # each of which is a matrix with S columns and J_(i,j) rows. 
+  # The values are the ordinal abundance scores for each replicate at location i and time j for species i (column i). 
   
-  if(length(data[["Y"]])!=data[["t"]]){
+  if(length(data[["Y"]]) != data[["t"]]) {
     print("t does not match length of Y")
-    goodData = FALSE
+    goodData <- FALSE
   }
-  if(length(data[["X"]])!=data[["t"]]){
+  if(length(data[["X"]]) != data[["t"]]) {
     print("t does not match length of X")
-    goodData = FALSE
+    goodData <- FALSE
   }
   for(time in 1:data[["t"]]){
-    if(mode == "X"){
-      if(length(unique(unlist(as.vector(data[["Y"]][[time]]))))!=data[["L"]]){
+    if(mode == "X") {
+      if(length(unique(unlist(as.vector(data[["Y"]][[time]])))) != data[["L"]]) {
         print(paste("number of ordinal categories (L) doesnt match values in Y at time", time))
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(dim(data[["Y"]][[time]][[1]])[1]!=data[["J"]][1,time]){
+      if(dim(data[["Y"]][[time]][[1]])[1] != data[["J"]][1, time]) {
         print("dimension of Y not matched to J_ij")
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(dim(data[["Y"]][[time]][[1]])[2]!=data[["S"]]){
+      if(dim(data[["Y"]][[time]][[1]])[2] != data[["S"]]) {
         print("dimension of Y not matched to S")
-        goodData = FALSE
+        goodData <- FALSE
       }
 
-      if(length(data[["Y"]][[time]])!=data[["n"]]){
+      if(length(data[["Y"]][[time]]) != data[["n"]]) {
         print("length of Y not matched to n")
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(typeof(data[["Y"]][[time]][[1]])!="integer"){
+      if(typeof(data[["Y"]][[time]][[1]]) != "integer") {
         print("type of Y[[t]] wrong")
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(dim(data[["J"]])[1] != data[["n"]]){
+      if(dim(data[["J"]])[1] != data[["n"]]) {
         print("J dimension wrong")
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(dim(data[["J"]])[2] != data[["t"]]){
+      if(dim(data[["J"]])[2] != data[["t"]]) {
         print("J dimension wrong")
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(typeof(data[["J"]])!="integer"){
-        print("check typeof J" )
-        goodData = FALSE
+      if(typeof(data[["J"]]) != "integer") {
+        print("check typeof J")
+        goodData <- FALSE
       }
-      if(class(data[["J"]])[1]!="matrix"){
-        print("check typeof J" )
-        goodData = FALSE
+      if(class(data[["J"]])[1] != "matrix") {
+        print("check typeof J")
+        goodData <- FALSE
       }
     } else {
-      if(length(unique(as.vector(data[["Y"]][[time]])))!=data[["L"]]){
+      if(length(unique(as.vector(data[["Y"]][[time]]))) != data[["L"]]) {
         print("number of ordinal categories (L) doesnt match values in Y")
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(dim(data[["Y"]][[time]])[1]!=data[["n"]]){
+      if(dim(data[["Y"]][[time]])[1] != data[["n"]]) {
         print("dimension of Y not matched to n")
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(dim(data[["Y"]][[time]])[2]!=data[["S"]]){
+      if(dim(data[["Y"]][[time]])[2] != data[["S"]]) {
         print("dimension of Y not matched to S")
-        goodData = FALSE
+        goodData <- FALSE
       }
-      if(typeof(data[["Y"]][[time]])!="double"){
+      if(typeof(data[["Y"]][[time]]) != "double") {
         print("type of Y[[t]] wrong")
-        goodData = FALSE
+        goodData <- FALSE
       }
     }
-    if(dim(data[["X"]][[time]])[1]!=data[["n"]]){
+    if(dim(data[["X"]][[time]])[1] != data[["n"]]) {
       print("dimension of X not matched to n")
-      goodData = FALSE
+      goodData <-  FALSE
     } 
-    if(dim(data[["X"]][[time]])[2]!=data[["p"]]){
+    if(dim(data[["X"]][[time]])[2] != data[["p"]]) {
       print("dimension of X not matched to p")
-      goodData = FALSE
+      goodData <- FALSE
     } 
-    if(typeof(data[["X"]][[time]])!="double"){
+    if(typeof(data[["X"]][[time]]) != "double") {
       print("type of X[[t]] wrong")
-      goodData = FALSE
+      goodData <- FALSE
     }
   }
-  if(typeof(data[["X"]])!="list"){
+  if(typeof(data[["X"]]) != "list") {
     print("X type wrong")
-    goodData = FALSE
+    goodData <- FALSE
   }
-  if(typeof(data[["Y"]])!="list"){
+  if(typeof(data[["Y"]]) != "list") {
     print("Y type wrong")
-    goodData = FALSE
+    goodData <- FALSE
   }
-  if(typeof(data$dist)!="double"){
+  if(typeof(data$dist) != "double") {
     print("dist type wrong")
-    goodData = FALSE
+    goodData <- FALSE
   }
-  if(!(all.equal(data[["dist"]],t(data[["dist"]])))){
+  if(!(all.equal(data[["dist"]], t(data[["dist"]])))) {
     print("distance mx not symmetric")
-    goodData = FALSE
+    goodData <- FALSE
   }
-  if(dim(data[["dist"]])[1] != data[["n"]]){
+  if(dim(data[["dist"]])[1] != data[["n"]]) {
     print("dist mx not the right dimensions")
-    goodData = FALSE
+    goodData <- FALSE
   }
-  if(dim(data[["dist"]])[2] != data[["n"]]){
+  if(dim(data[["dist"]])[2] != data[["n"]]) {
     print("dist mx not the right dimensions")
-    goodData = FALSE
+    goodData <- FALSE
   }
-  if(class(data$dist)[1]!="matrix"){
+  if(class(data$dist)[1] != "matrix") {
     print("class of dist wrong")
-    goodData = FALSE
+    goodData <- FALSE
   }
   
   return(goodData)
@@ -189,12 +194,12 @@ plotPosteriorTable <- function(schliepOutput, ci_percent = 0.95, mode = "N", bur
   credibleIntervalsL <- list()
   
   A <- schliepOutput$A[, , burn_in:iter]
-  alphamx <- matrix(rep(0, times = S*S), nrow = S, ncol = S)
+  alphamx <- matrix(rep(0, times = S * S), nrow = S, ncol = S)
   for (species1 in 1:S) {
     for (species2 in 1:S) {
-      varName = paste0("A",species1,species2)
-      mean = mean(A[species1, species2, ])
-      quants = quantile(x = A[species1, species2, ], probs = c((1-ci_percent)/2,(1+ci_percent)/2))
+      varName <- paste0("A", species1, species2)
+      mean <- mean(A[species1, species2, ])
+      quants <- quantile(x = A[species1, species2, ], probs = c((1 - ci_percent) / 2, (1 + ci_percent) / 2))
       if (species1 == species2) {
         alphamx[species1, species2] <- 0
       } else if (as.numeric(quants[1]) > 0) {
@@ -204,21 +209,21 @@ plotPosteriorTable <- function(schliepOutput, ci_percent = 0.95, mode = "N", bur
         alphamx[species1, species2] <- -1
         alphamx[species2, species1] <- -1
       } 
-      credibleIntervalsL[[varName]]<-c(as.numeric(mean), as.numeric(quants[1]), as.numeric(quants[2]))
+      credibleIntervalsL[[varName]] <- c(as.numeric(mean), as.numeric(quants[1]), as.numeric(quants[2]))
     }
   }
   
   beta <- schliepOutput$beta
-  betamx <- matrix(rep(NA, times = S*(p-1)), nrow = S, ncol = (p-1))
-  if(mode == "X"){
-    beta <- beta[burn_in:iter,]
-    i = 1
+  betamx <- matrix(rep(NA, times = S * (p - 1)), nrow = S, ncol = (p - 1))
+  if(mode == "X") {
+    beta <- beta[burn_in:iter, ]
+    i <- 1
     for(species in 1:S){
-      for(cov in 0:(p-1)){
-        varName <- paste0("beta_cov",cov,"_sp",species)
+      for(cov in 0:(p - 1)){
+        varName <- paste0("beta_cov", cov, "_sp", species)
         #### BUG FIXED
-        mean = mean(beta[,i])
-        quants = quantile(x = beta[,i], probs = c((1-ci_percent)/2,(1+ci_percent)/2))
+        mean <- mean(beta[, i])
+        quants <- quantile(x = beta[, i], probs = c((1 - ci_percent) / 2, (1 + ci_percent) / 2))
         if (cov != 0) {
             if (sign(as.numeric(quants[1])) > 0) {
                 betamx[species, cov] <- 1
@@ -229,16 +234,16 @@ plotPosteriorTable <- function(schliepOutput, ci_percent = 0.95, mode = "N", bur
             }
         }
         credibleIntervalsL[[varName]] <- c(as.numeric(mean), as.numeric(quants[1]), as.numeric(quants[2]))
-        i <- i+1
+        i <- i + 1
       }
     }
   } else {
-    beta <- beta[,,burn_in:iter]
+    beta <- beta[, , burn_in:iter]
     for(species in 1:S){
-      for(cov in 0:(p-1)){
-        varName<-paste0("beta_cov",cov,"_sp",species)
-        mean = mean(beta[cov+1, species, ])
-        quants = quantile(x = beta[cov+1, species, ], probs = c((1-ci_percent)/2,(1+ci_percent)/2))
+      for(cov in 0:(p - 1)){
+        varName <- paste0("beta_cov", cov, "_sp", species)
+        mean <- mean(beta[cov + 1, species, ])
+        quants <- quantile(x = beta[cov + 1, species, ], probs = c((1 - ci_percent) / 2, (1 + ci_percent) / 2))
         if (cov != 0) {
             if (sign(as.numeric(quants[1])) > 0) {
                 betamx[species, cov] <- 1
@@ -248,35 +253,35 @@ plotPosteriorTable <- function(schliepOutput, ci_percent = 0.95, mode = "N", bur
                 betamx[species, cov] <- 0
             }
         }
-        credibleIntervalsL[[varName]]<-c(as.numeric(mean), as.numeric(quants[1]), as.numeric(quants[2]))
+        credibleIntervalsL[[varName]] <- c(as.numeric(mean), as.numeric(quants[1]), as.numeric(quants[2]))
       }
     }
   }
   
-  if(mode == "X"){
-    rho <- schliepOutput$rho[,,burn_in:iter]
+  if(mode == "X") {
+    rho <- schliepOutput$rho[, , burn_in:iter]
     for(species1 in 1:S){
       for(species2 in 1:S){
-        varName = paste0("rho",species1,species2)
-        mean = mean(rho[species1, species2, ])
-        quants = quantile(x = rho[species1, species2, ], probs = c((1-ci_percent)/2,(1+ci_percent)/2))
-        if(species1 != species2){
+        varName <- paste0("rho", species1, species2)
+        mean <- mean(rho[species1, species2, ])
+        quants <- quantile(x = rho[species1, species2, ], probs = c((1 - ci_percent) / 2, (1 + ci_percent) / 2))
+        if(species1 != species2) {
             if(as.numeric(quants[1]) > 0) {
-                alphamx[species2,species1] <- 1
+                alphamx[species2, species1] <- 1
             } else if (as.numeric(quants[2]) < 0) {
-                alphamx[species2,species1] <- -1
+                alphamx[species2, species1] <- -1
             }
         }
-        credibleIntervalsL[[varName]]<-c(as.numeric(mean), as.numeric(quants[1]), as.numeric(quants[2]))
+        credibleIntervalsL[[varName]] <- c(as.numeric(mean), as.numeric(quants[1]), as.numeric(quants[2]))
       }
     }
   }
   
   credibleIntervals <- data.frame(t(data.frame(credibleIntervalsL)))
   names(credibleIntervals) <- c("mean", "lowBound", "highBound")
-  credibleIntervals$varName = row.names(credibleIntervals)
+  credibleIntervals$varName <- row.names(credibleIntervals)
 
-  returnL <- list(credibleIntervals=credibleIntervals, betamx = betamx, alphamx = alphamx)
+  returnL <- list(credibleIntervals = credibleIntervals, betamx = betamx, alphamx = alphamx)
   return(returnL)
 }
 
