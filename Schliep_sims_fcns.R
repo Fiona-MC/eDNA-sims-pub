@@ -27,7 +27,7 @@ configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "
     }
 
     sampledCovs <- list()
-    for (covNum in 1:length(sim_data_raw[[t]]$covs)){
+    for (covNum in seq_along(sim_data_raw[[t]]$covs)){
         if(paste0("Cov", covNum) %in% params$names_cov) {
             sampledCovs[[covNum]] <- sim_data_raw[[t]]$covs[[covNum]][locIndices]
         }
@@ -188,7 +188,7 @@ plotPosteriorTable <- function(schliepOutput, ci_percent = 0.95, mode = "N", bur
   p <- schliepOutput$data$p #number of covariates
   S <- schliepOutput$data$S #number of species
   t <- schliepOutput$data$t #number of time points
-  n <- schliepOutput$data$n #number of sites
+  # n <- schliepOutput$data$n #number of sites
   iter <- dim(schliepOutput$A)[3]
   
   credibleIntervalsL <- list()

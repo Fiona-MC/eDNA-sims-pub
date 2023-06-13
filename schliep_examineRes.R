@@ -22,7 +22,8 @@ res_df <- data.frame()
 runsL <- c()
 trialsL <- c()
 for (run in runNums) {
-    if (file.exists(paste0(dataDir, "randomRun", run, "/SchliepRes/trial1/SchliepRes.Rdata")) && file.exists(paste0(dataDir, "randomRun", run, "/SchliepRes/trial2/SchliepRes.Rdata"))) {
+    if (file.exists(paste0(dataDir, "randomRun", run, "/SchliepRes/trial1/SchliepRes.Rdata")) && 
+            file.exists(paste0(dataDir, "randomRun", run, "/SchliepRes/trial2/SchliepRes.Rdata"))) {
         print(paste("Running run number", run))
         subdir <- paste0(dataDir, "randomRun", run, "/")
         # get sim parms
@@ -31,21 +32,21 @@ for (run in runNums) {
         # take out functions from parmVals
         parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
         for (trial in trials) {
-            schliepParms <- readRDS(paste0(subdir, "SchliepRes/trial",trial,"/schliepParms.Rdata"))
+            schliepParms <- readRDS(paste0(subdir, "SchliepRes/trial", trial, "/schliepParms.Rdata"))
             # get results from schliep
-            schliepOutput <- readRDS(paste0(subdir, "SchliepRes/trial",trial, "/SchliepRes.Rdata"))
+            schliepOutput <- readRDS(paste0(subdir, "SchliepRes/trial", trial, "/SchliepRes.Rdata"))
             plotPosteriorTableOut <- plotPosteriorTable(schliepOutput, ci_percent = 0.95, mode = schliepParms$mode, burn_in = schliepParms$burn)
             thisMistakes <- numMistakes(plotPosteriorTableOut = plotPosteriorTableOut, simParms = simParms, trial = trial, simRun = run)
             write.csv(thisMistakes, paste0(subdir, "SchliepRes/trial", trial, "/schliep_mistakes.csv"))
-            thisRow <- data.frame(c(parmVals, thisMistakes[1,]))
+            thisRow <- data.frame(c(parmVals, thisMistakes[1, ]))
             res_df <- merge(res_df, thisRow, all = TRUE)
             runsL <- c(runsL, run)
             trialsL <- c(trialsL, trial)
         } # end trials loop
         # convergence testing
         if (numTrials > 1) {
-            schliepRes1 <- readRDS(paste0(subdir, "SchliepRes/trial",1, "/SchliepRes.Rdata"))
-            schliepRes2 <- readRDS(paste0(subdir, "SchliepRes/trial",2, "/SchliepRes.Rdata"))
+            schliepRes1 <- readRDS(paste0(subdir, "SchliepRes/trial", 1, "/SchliepRes.Rdata"))
+            schliepRes2 <- readRDS(paste0(subdir, "SchliepRes/trial", 2, "/SchliepRes.Rdata"))
             allVar_stats <- testConvergence(schliepRes1, schliepRes2, iter = schliepParms$numIters, mode = schliepParms$mode)
             write.csv(allVar_stats, paste0(subdir, "SchliepRes/convergence_diagnostics.csv"))
         }
