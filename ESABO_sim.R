@@ -3,6 +3,11 @@
 
 # # Rscript /home/fiona_callahan/eDNA_sims_code/ESABO_sim.R /space/s1/fiona_callahan/multiSim11/ 1000
 
+# from sim output (multisim folder with lots of sims), run ESABO on sitetab_sampled
+# outputs a csv of the number of inference mistakes per sim with sim parms
+
+# NOTE: covariates not included in inference and three species is hard coded here -- need to change this to generalize
+
 library(stats)
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -46,8 +51,8 @@ shiftScore <- function(twovec, op, rep) {
   x2 <- entropyTemp(x1)
   x3 <- sapply(1:rep, function(i) {
     twovec_sampled <- twovec
-    twovec_sampled[,1] <- sample(twovec[,1])
-    twovec_sampled[,2] <- sample(twovec[,2])
+    twovec_sampled[, 1] <- sample(twovec[, 1])
+    twovec_sampled[, 2] <- sample(twovec[, 2])
     and_sampled <- apply(twovec_sampled, MARGIN = 1, FUN = op)
     return(entropyTemp(and_sampled))
   })
