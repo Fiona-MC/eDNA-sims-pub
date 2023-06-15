@@ -754,3 +754,9 @@ abline(v = mean(multiSimRes[multiSimRes$RunNum %in% killed_runNums, var]), col =
 #2 figure out if there are other parms I should set for Ranger rf fucntion
 
 #3 figure out how to do basically the same thing with lasso regression
+
+
+
+# get best set of parameters
+bestParms<-multiSimRes_na.rm[multiSimRes_na.rm$totalMistakes == 0, c("mean_mig_rate", "r", "sigma", "N_50", "c2", "fpr.mean_fpr", "num_samples_time", "num_samples_space", "radius", "covMeasureNoise_sd", "covNoise_sd")]
+summary(bestParms)

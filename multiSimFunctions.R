@@ -97,6 +97,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
 
         N0_0 <- 10
     } else if(parmSet == 2) {
+      # more samples, higher sigma, lower species effect (compared to 1) 
+      # best so far
       num_samples_time <- 15 # sample times per location
       num_samples_space <- 30 # sample locations per time
       radius <- 16
@@ -142,7 +144,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
         mean_mig_rate <- 0.01 # poisson rate per individual per time
 
         N0_0 <- 10
-      } else if(parmSet == 3) {
+      } else if (parmSet == 3) {
+      # higer species effect (compared to 2) --does worse than 2 on logistic
       num_samples_time <- 15 # sample times per location
       num_samples_space <- 30 # sample locations per time
       radius <- 16
@@ -166,6 +169,62 @@ getParms <- function(random = TRUE, parmSet = 1) {
       #species effect
       c2 <- 200
 
+      mean_mig_rate <- 0.01 # poisson rate per individual per time
+
+      N0_0 <- 10
+    } else if (parmSet == "optim") {
+      # higer species effect (compared to 2) --does worse than 2 on logistic
+      num_samples_time <- 294 # sample times per location
+      num_samples_space <- 32 # sample locations per time
+      radius <- 16
+      # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
+      mean_fpr <- 0
+      #fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
+
+      fpr_mode <- "none"
+      #fpr_mode <- "independent"
+      covNoise_sd <- 0.05 # process noise
+      covMeasureNoise_sd <- 0.14
+
+      # this is the code from the sim: dN <- params$r * lastN * (1 - lastN / thisK[[s]]) + params$sigma * lastN * dWt
+      # intrinsic growth rate
+      r <- 0.58 #todo think on reasonableness here
+      # noise param for popn growth 
+      sigma <- 0.33
+
+      N_50 <- 198 # number of animals for which detection prob is 50%
+
+      #species effect
+      c2 <- 50
+
+        mean_mig_rate <- 0.05 # poisson rate per individual per time
+
+        N0_0 <- 10
+    } else if(parmSet == 4) {
+      # higer species effect (compared to 2) --does worse than 2 on logistic
+      num_samples_time <- 25 # sample times per location
+      num_samples_space <- 10 # sample locations per time
+      radius <- 16
+      # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
+      mean_fpr <- 0
+      #fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
+
+      fpr_mode <- "none"
+      #fpr_mode <- "independent"
+      covNoise_sd <- 0.05 # process noise
+      covMeasureNoise_sd <- 0
+
+      # this is the code from the sim: dN <- params$r * lastN * (1 - lastN / thisK[[s]]) + params$sigma * lastN * dWt
+      # intrinsic growth rate
+      r <- .8 #todo think on reasonableness here
+      # noise param for popn growth 
+      sigma <- 0
+
+      N_50 <- 50 # number of animals for which detection prob is 50%
+
+      #species effect
+      c2 <- 50
+
         #a12 <- sample(x = c(-1, 0, 1), size = 1)
         #a13 <- sample(x = c(-1, 0, 1), size = 1)
         #a21 <- sample(x = c(-1, 0, 1), size = 1)
@@ -185,10 +244,39 @@ getParms <- function(random = TRUE, parmSet = 1) {
         #b33 <- sample(x = c(-1, 0, 1), size = 1)
         #b34 <- 1
 
-        mean_mig_rate <- 0.01 # poisson rate per individual per time
+        mean_mig_rate <- 0.05 # poisson rate per individual per time
 
         N0_0 <- 10
-    } else {
+    } else if(parmSet == 5) {
+      # low migration rate, high radius (compared to 2) 
+      # 
+      num_samples_time <- 15 # sample times per location
+      num_samples_space <- 30 # sample locations per time
+      radius <- 100
+      # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
+      mean_fpr <- 0
+      #fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
+
+      fpr_mode <- "none"
+      #fpr_mode <- "independent"
+      covNoise_sd <- 0.05 # process noise
+      covMeasureNoise_sd <- 0
+
+      # this is the code from the sim: dN <- params$r * lastN * (1 - lastN / thisK[[s]]) + params$sigma * lastN * dWt
+      # intrinsic growth rate
+      r <- 1 #todo think on reasonableness here
+      # noise param for popn growth 
+      sigma <- 0.001
+
+      N_50 <- 10 # number of animals for which detection prob is 50%
+
+      #species effect
+      c2 <- 100
+
+      mean_mig_rate <- 0.001 # poisson rate per individual per time
+
+      N0_0 <- 10
+    } else { 
         num_samples_time <- 10 # sample times per location
         num_samples_space <- 10 # sample locations per time
         radius <- 16 # for neighborhoods: a little more the 

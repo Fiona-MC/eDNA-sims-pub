@@ -1,9 +1,9 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-sim_dir="/space/s1/fiona_callahan/multiSim11_testSet"
-numRuns=200
-numTrials=1
+sim_dir="/space/s1/fiona_callahan/multiSim_ParmSet2"
+numRuns=100
+numTrials=2
 
 Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
@@ -18,7 +18,7 @@ while IFS=',' read -r lineNum runNum reason; do
 done < ${sim_dir}/unrealistic_runNums.csv
 
 
-N=10 # N=10 resulted in average usage around 30 cores
+N=5 # N=10 resulted in average usage around 30 cores
 # based on current rate with N=10 -- this should take ~6 days for 1000 runs (2 trials each)
 
 for folder in ${sim_dir}/randomRun*; do

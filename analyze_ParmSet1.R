@@ -3,7 +3,7 @@ library(ggplot2)
 library(gridExtra)
 
 
-dirNums <- c("_ParmSet1")
+dirNums <- c("_ParmSet2")
 
 multiSimLogistic <- data.frame()
 dirNumL <- c()
@@ -37,3 +37,4 @@ multiSimLogistic$actual_mean_fpr <- actual_mean_fpr
 hist(multiSimLogistic$totalMistakes)
 mean(multiSimLogistic$totalMistakes)
 hist(multiSimLogistic$num_incorrectInferences)
+hist(multiSimLogistic$fp_fp_tp)
