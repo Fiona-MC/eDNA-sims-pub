@@ -1,8 +1,8 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-sim_dir="/space/s1/fiona_callahan/multiSim11"
-numRuns=200
+sim_dir="/space/s1/fiona_callahan/multiSim_ParmSet1"
+numRuns=100
 numTrials=1
 
 N=10 # N=10 resulted in average usage around 30 cores

@@ -2,7 +2,7 @@ library(ggplot2)
 library(reshape)
 library(gridExtra)
 
-getParms <- function(random = TRUE) {
+getParms <- function(random = TRUE, parmSet = 1) {
     if (random == TRUE) {
         num_samples_time <- sample(x = 5:500, size = 1) # sample times per location
         num_samples_space <- sample(5:64, size = 1) # sample locations per time
@@ -48,6 +48,144 @@ getParms <- function(random = TRUE) {
         #b34 <- 1
 
         mean_mig_rate <- runif(n = 1, min = 0, max = 0.1) # poisson rate per individual per time
+
+        N0_0 <- 10
+    } else if (parmSet == 1) {
+      num_samples_time <- 15 # sample times per location
+      num_samples_space <- 20 # sample locations per time
+      radius <- 16
+      # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
+      mean_fpr <- 0
+      #fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
+
+      fpr_mode <- "none"
+      #fpr_mode <- "independent"
+      covNoise_sd <- 0.01 # process noise
+      covMeasureNoise_sd <- 0
+
+      # this is the code from the sim: dN <- params$r * lastN * (1 - lastN / thisK[[s]]) + params$sigma * lastN * dWt
+      # intrinsic growth rate
+      r <- 1 #todo think on reasonableness here
+      # noise param for popn growth 
+      sigma <- 0.001
+
+      N_50 <- 10 # number of animals for which detection prob is 50%
+
+      #species effect
+      c2 <- 150
+
+        #a12 <- sample(x = c(-1, 0, 1), size = 1)
+        #a13 <- sample(x = c(-1, 0, 1), size = 1)
+        #a21 <- sample(x = c(-1, 0, 1), size = 1)
+        #a23 <- sample(x = c(-1, 0, 1), size = 1)
+        #a31 <- sample(x = c(-1, 0, 1), size = 1)
+        #a32 <- sample(x = c(-1, 0, 1), size = 1)
+        #b11 <- sample(x = c(-1, 0, 1), size = 1)
+        #b12 <- sample(x = c(-1, 0, 1), size = 1)
+        #b13 <- sample(x = c(-1, 0, 1), size = 1)
+        #b14 <- 1
+        #b21 <- sample(x = c(-1, 0, 1), size = 1)
+        #b22 <- sample(x = c(-1, 0, 1), size = 1)
+        #b23 <- sample(x = c(-1, 0, 1), size = 1)
+        #b24 <- 1
+        #b31 <- sample(x = c(-1, 0, 1), size = 1)
+        #b32 <- sample(x = c(-1, 0, 1), size = 1)
+        #b33 <- sample(x = c(-1, 0, 1), size = 1)
+        #b34 <- 1
+
+        mean_mig_rate <- 0.001 # poisson rate per individual per time
+
+        N0_0 <- 10
+    } else if(parmSet == 2) {
+      num_samples_time <- 15 # sample times per location
+      num_samples_space <- 30 # sample locations per time
+      radius <- 16
+      # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
+      mean_fpr <- 0
+      #fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
+
+      fpr_mode <- "none"
+      #fpr_mode <- "independent"
+      covNoise_sd <- 0.05 # process noise
+      covMeasureNoise_sd <- 0
+
+      # this is the code from the sim: dN <- params$r * lastN * (1 - lastN / thisK[[s]]) + params$sigma * lastN * dWt
+      # intrinsic growth rate
+      r <- 1 #todo think on reasonableness here
+      # noise param for popn growth 
+      sigma <- 0.001
+
+      N_50 <- 10 # number of animals for which detection prob is 50%
+
+      #species effect
+      c2 <- 100
+
+        #a12 <- sample(x = c(-1, 0, 1), size = 1)
+        #a13 <- sample(x = c(-1, 0, 1), size = 1)
+        #a21 <- sample(x = c(-1, 0, 1), size = 1)
+        #a23 <- sample(x = c(-1, 0, 1), size = 1)
+        #a31 <- sample(x = c(-1, 0, 1), size = 1)
+        #a32 <- sample(x = c(-1, 0, 1), size = 1)
+        #b11 <- sample(x = c(-1, 0, 1), size = 1)
+        #b12 <- sample(x = c(-1, 0, 1), size = 1)
+        #b13 <- sample(x = c(-1, 0, 1), size = 1)
+        #b14 <- 1
+        #b21 <- sample(x = c(-1, 0, 1), size = 1)
+        #b22 <- sample(x = c(-1, 0, 1), size = 1)
+        #b23 <- sample(x = c(-1, 0, 1), size = 1)
+        #b24 <- 1
+        #b31 <- sample(x = c(-1, 0, 1), size = 1)
+        #b32 <- sample(x = c(-1, 0, 1), size = 1)
+        #b33 <- sample(x = c(-1, 0, 1), size = 1)
+        #b34 <- 1
+
+        mean_mig_rate <- 0.01 # poisson rate per individual per time
+
+        N0_0 <- 10
+      } else if(parmSet == 3) {
+      num_samples_time <- 15 # sample times per location
+      num_samples_space <- 30 # sample locations per time
+      radius <- 16
+      # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
+      mean_fpr <- 0
+      #fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
+
+      fpr_mode <- "none"
+      #fpr_mode <- "independent"
+      covNoise_sd <- 0.05 # process noise
+      covMeasureNoise_sd <- 0
+
+      # this is the code from the sim: dN <- params$r * lastN * (1 - lastN / thisK[[s]]) + params$sigma * lastN * dWt
+      # intrinsic growth rate
+      r <- 1 #todo think on reasonableness here
+      # noise param for popn growth 
+      sigma <- 0.001
+
+      N_50 <- 10 # number of animals for which detection prob is 50%
+
+      #species effect
+      c2 <- 200
+
+        #a12 <- sample(x = c(-1, 0, 1), size = 1)
+        #a13 <- sample(x = c(-1, 0, 1), size = 1)
+        #a21 <- sample(x = c(-1, 0, 1), size = 1)
+        #a23 <- sample(x = c(-1, 0, 1), size = 1)
+        #a31 <- sample(x = c(-1, 0, 1), size = 1)
+        #a32 <- sample(x = c(-1, 0, 1), size = 1)
+        #b11 <- sample(x = c(-1, 0, 1), size = 1)
+        #b12 <- sample(x = c(-1, 0, 1), size = 1)
+        #b13 <- sample(x = c(-1, 0, 1), size = 1)
+        #b14 <- 1
+        #b21 <- sample(x = c(-1, 0, 1), size = 1)
+        #b22 <- sample(x = c(-1, 0, 1), size = 1)
+        #b23 <- sample(x = c(-1, 0, 1), size = 1)
+        #b24 <- 1
+        #b31 <- sample(x = c(-1, 0, 1), size = 1)
+        #b32 <- sample(x = c(-1, 0, 1), size = 1)
+        #b33 <- sample(x = c(-1, 0, 1), size = 1)
+        #b34 <- 1
+
+        mean_mig_rate <- 0.01 # poisson rate per individual per time
 
         N0_0 <- 10
     } else {

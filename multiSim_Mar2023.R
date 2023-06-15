@@ -16,8 +16,12 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim8/ 1 1000
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_ParmSet3/ 1 100
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
+random <- FALSE
+parmSet <- 3
+
+
 thisdir <- args[1]
 dir.create(thisdir)
 
@@ -35,7 +39,7 @@ for (run in runs) {
   subdir <- paste0(thisdir, "randomRun", run, "/")
   dir.create(subdir)
 
-  params <- getParms(random = TRUE)
+  params <- getParms(random = random, parmSet = parmSet)
   saveRDS(params, paste0(subdir, "params.Rdata"))
   
   num_locations <- params$x_split * params$y_split
