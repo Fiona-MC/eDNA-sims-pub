@@ -74,25 +74,6 @@ getParms <- function(random = TRUE, parmSet = 1) {
       #species effect
       c2 <- 150
 
-        #a12 <- sample(x = c(-1, 0, 1), size = 1)
-        #a13 <- sample(x = c(-1, 0, 1), size = 1)
-        #a21 <- sample(x = c(-1, 0, 1), size = 1)
-        #a23 <- sample(x = c(-1, 0, 1), size = 1)
-        #a31 <- sample(x = c(-1, 0, 1), size = 1)
-        #a32 <- sample(x = c(-1, 0, 1), size = 1)
-        #b11 <- sample(x = c(-1, 0, 1), size = 1)
-        #b12 <- sample(x = c(-1, 0, 1), size = 1)
-        #b13 <- sample(x = c(-1, 0, 1), size = 1)
-        #b14 <- 1
-        #b21 <- sample(x = c(-1, 0, 1), size = 1)
-        #b22 <- sample(x = c(-1, 0, 1), size = 1)
-        #b23 <- sample(x = c(-1, 0, 1), size = 1)
-        #b24 <- 1
-        #b31 <- sample(x = c(-1, 0, 1), size = 1)
-        #b32 <- sample(x = c(-1, 0, 1), size = 1)
-        #b33 <- sample(x = c(-1, 0, 1), size = 1)
-        #b34 <- 1
-
         mean_mig_rate <- 0.001 # poisson rate per individual per time
 
         N0_0 <- 10
@@ -121,25 +102,6 @@ getParms <- function(random = TRUE, parmSet = 1) {
 
       #species effect
       c2 <- 100
-
-        #a12 <- sample(x = c(-1, 0, 1), size = 1)
-        #a13 <- sample(x = c(-1, 0, 1), size = 1)
-        #a21 <- sample(x = c(-1, 0, 1), size = 1)
-        #a23 <- sample(x = c(-1, 0, 1), size = 1)
-        #a31 <- sample(x = c(-1, 0, 1), size = 1)
-        #a32 <- sample(x = c(-1, 0, 1), size = 1)
-        #b11 <- sample(x = c(-1, 0, 1), size = 1)
-        #b12 <- sample(x = c(-1, 0, 1), size = 1)
-        #b13 <- sample(x = c(-1, 0, 1), size = 1)
-        #b14 <- 1
-        #b21 <- sample(x = c(-1, 0, 1), size = 1)
-        #b22 <- sample(x = c(-1, 0, 1), size = 1)
-        #b23 <- sample(x = c(-1, 0, 1), size = 1)
-        #b24 <- 1
-        #b31 <- sample(x = c(-1, 0, 1), size = 1)
-        #b32 <- sample(x = c(-1, 0, 1), size = 1)
-        #b33 <- sample(x = c(-1, 0, 1), size = 1)
-        #b34 <- 1
 
         mean_mig_rate <- 0.01 # poisson rate per individual per time
 
@@ -225,28 +187,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
       #species effect
       c2 <- 50
 
-        #a12 <- sample(x = c(-1, 0, 1), size = 1)
-        #a13 <- sample(x = c(-1, 0, 1), size = 1)
-        #a21 <- sample(x = c(-1, 0, 1), size = 1)
-        #a23 <- sample(x = c(-1, 0, 1), size = 1)
-        #a31 <- sample(x = c(-1, 0, 1), size = 1)
-        #a32 <- sample(x = c(-1, 0, 1), size = 1)
-        #b11 <- sample(x = c(-1, 0, 1), size = 1)
-        #b12 <- sample(x = c(-1, 0, 1), size = 1)
-        #b13 <- sample(x = c(-1, 0, 1), size = 1)
-        #b14 <- 1
-        #b21 <- sample(x = c(-1, 0, 1), size = 1)
-        #b22 <- sample(x = c(-1, 0, 1), size = 1)
-        #b23 <- sample(x = c(-1, 0, 1), size = 1)
-        #b24 <- 1
-        #b31 <- sample(x = c(-1, 0, 1), size = 1)
-        #b32 <- sample(x = c(-1, 0, 1), size = 1)
-        #b33 <- sample(x = c(-1, 0, 1), size = 1)
-        #b34 <- 1
-
-        mean_mig_rate <- 0.05 # poisson rate per individual per time
-
-        N0_0 <- 10
+      mean_mig_rate <- 0.05 # poisson rate per individual per time
+      N0_0 <- 10
     } else if(parmSet == 5) {
       # low migration rate, high radius (compared to 2) 
       # 
