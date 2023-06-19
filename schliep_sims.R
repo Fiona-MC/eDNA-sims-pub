@@ -1,4 +1,5 @@
-# the purpose of this is to use the siumulation data in the code from Schliep paper  (/Users/fionacallahan/Documents/Nielsen_lab/schliep_code/RunMultivariateOrdinalSpatialAlgorithm.R)
+# the purpose of this is to use the siumulation data in the code from Schliep paper  
+# (/Users/fionacallahan/Documents/Nielsen_lab/schliep_code/RunMultivariateOrdinalSpatialAlgorithm.R)
 # (DOI: 10.1111/geb.12666)
 library(stats)
 library(ggplot2) # plotting
@@ -40,13 +41,14 @@ INLA_sitetab <- read.csv(paste0(dataDir, "sim_sitetab_sampled.csv"), header = TR
 locList <- readRDS(paste0(dataDir, "locList.Rdata"))
 params <- readRDS(paste0(dataDir, "params.Rdata"))
 
-timePts <- sort(params$num_gens - unique(INLA_sitetab$Age))[-1] # take out first time point because N_0 is 10 and that is too low for detection in most cases
+# take out first time point because N_0 is 10 and that is too low for detection in most cases
+timePts <- sort(params$num_gens - unique(INLA_sitetab$Age))[-1] 
 
 # get just the sampled locations (indices)
 locDF <- unique(INLA_sitetab[, c("Lat", "Long")])
 locList.asDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = TRUE))
 locIndices <- unname(apply(locDF, MARGIN = 1, FUN = function(latLon) {
-                                              return(which(apply(locList.asDF, 1, function(row) {all(round(row, 2) == round(latLon, 2))} )))
+                                              return(which(apply(locList.asDF, 1, function(row) {all(round(row, 2) == round(latLon, 2))})))
                                               }))
 # testing that above works
 #locations <- locList.asDF[locIndices,]
@@ -56,12 +58,13 @@ locIndices <- unname(apply(locDF, MARGIN = 1, FUN = function(latLon) {
 #testY<-list()
 #for(time in 1:dataSchliepSim[["t"]]){
 #    set.seed(time)
-#    testY[[time]]<-matrix(data=rbern(n=dataSchliepSim[["n"]]*dataSchliepSim[["S"]], prob = .3), nrow = dataSchliepSim[["n"]], ncol = dataSchliepSim[["S"]])
+#    testY[[time]]<-matrix(data=rbern(n=dataSchliepSim[["n"]]*dataSchliepSim[["S"]], prob = .3), 
+                                        #nrow = dataSchliepSim[["n"]], ncol = dataSchliepSim[["S"]])
 #}
 
 
 for (trial in 1:numTrials) {
-  outdir = paste0(dataDir, "SchliepRes/trial",trial,"/")
+  outdir <- paste0(dataDir, "SchliepRes/trial", trial, "/")
   dir.create(outdir)
 
   dataSchliepSim <- configureDataSchliep(outdir, sim_data_raw, locList, params, mode = mode, timePts = timePts, locIndices = locIndices)
@@ -69,7 +72,7 @@ for (trial in 1:numTrials) {
     print("BAD DATA")
   }
 
-  saveRDS(dataSchliepSim, paste0(outdir,"dataSchliep.Rdata"))
+  saveRDS(dataSchliepSim, paste0(outdir, "dataSchliep.Rdata"))
 
   # save info about this run
   schliepParms <- list(dataDir = dataDir, numIters = numIters, burn = burn, mode = mode)
@@ -82,13 +85,15 @@ for (trial in 1:numTrials) {
   #MCMC Algorithmsn for general model:
   if (mode == "N") {
     #Get hyperparameters for priors; whether or not temporal random effects are included (True or False)
-    priors = get.priors(dataSchliepSim,temporalRE=T) 
+    priors <- get.priors(dataSchliepSim, temporalRE = TRUE) 
     
     #Get starting values for the algorithm; whether or not temporal random effects are included (True or False)
-    pars = get.startingValues(dataSchliepSim,temporalRE=T) 
+    pars <- get.startingValues(dataSchliepSim, temporalRE = TRUE) 
     
-    #Run the model: Functions take the data, starting values for parameters, prior info, number of iterations to run, how often to print out the iteration number so you can monitor progress, and whether or not temporal random effects are included (True or False)
-    schliepRes = Multivariate.Ordinal.Spatial.Model(dataSchliepSim,pars,priors,temporalRE=T,iters=numIters,print.out=100)
+    # Run the model: Functions take the data, starting values for parameters, prior info, 
+    # number of iterations to run, how often to print out the iteration number so you can monitor progress, 
+    # and whether or not temporal random effects are included (True or False)
+    schliepRes <- Multivariate.Ordinal.Spatial.Model(dataSchliepSim, pars, priors, temporalRE = TRUE, iters = numIters, print.out = 100)
     
     #Output (in list form): 
     #data: returns the data that was input 
@@ -102,14 +107,19 @@ for (trial in 1:numTrials) {
     
   } else if (mode == "X") {
     
-    #Get hyperparameters for priors; whether or not temporal random effects are included (True or False), temporal dynamics (True or False), and replicate observations (True or False)
-    priorsX = get.priorsX(dataSchliepSim,temporalRE=T,temporalDyn=T,replicates=F)
+    # Get hyperparameters for priors; whether or not temporal random effects are included (True or False), 
+    # temporal dynamics (True or False), and replicate observations (True or False)
+    priorsX <- get.priorsX(dataSchliepSim, temporalRE = TRUE, temporalDyn = TRUE, replicates = FALSE)
     
-    #Get starting values for the algorithm; whether or not temporal random effects are included (True or False), temporal dynamics (True or False), and replicate observations (True or False)
-    parsX = get.startingvaluesX(dataSchliepSim,temporalRE=T,temporalDyn=T,replicates=F)
+    # Get starting values for the algorithm; whether or not temporal random effects are included (True or False), 
+    # temporal dynamics (True or False), and replicate observations (True or False)
+    parsX <- get.startingvaluesX(dataSchliepSim, temporalRE = TRUE, temporalDyn = TRUE, replicates = FALSE)
     
-    #Run the model: Functions take the data, starting values for parameters, prior info, number of iterations to run, how often to print out the iteration number so you can monitor progress, whether or not to include cross species spatial dependence, temporal random effects, temporal dynamics, cross species temporal dynamics, and replicate observations
-    schliepRes = Multivariate.Ordinal.Spatial.ModelX(dataSchliepSim,parsX,priorsX,iters=numIters,print.out=100,spDep=T,temporalRE=T,temporalDyn=T,crossDyn=T,replicates=F)
+    # Run the model: Functions take the data, starting values for parameters, prior info, 
+    # number of iterations to run, how often to print out the iteration number so you can monitor progress, 
+    # whether or not to include cross species spatial dependence, 
+    #temporal random effects, temporal dynamics, cross species temporal dynamics, and replicate observations
+    schliepRes <- Multivariate.Ordinal.Spatial.ModelX(dataSchliepSim, parsX, priorsX, iters = numIters, print.out = 100, spDep = TRUE, temporalRE = TRUE, temporalDyn = TRUE, crossDyn = TRUE, replicates = FALSE) # nolint: line_length_linter.
     
     
     ########################################
@@ -137,14 +147,15 @@ for (trial in 1:numTrials) {
     #K: matrix of dimension (n*S  x t x (iters+1)) of posterior samples
     #delta: matrix of dimension ((iters+1) x S) of posterior samples
     #rho: array of dimension (S x S x (iters+1)) of posterior samples
-    #Omega: array of dimension (n x S^2 x (iters+1)) of posterior samples; element Omega[i,,j] is the vectorized covariance matrix for location i and iteration j.
+    #Omega: array of dimension (n x S^2 x (iters+1)) of posterior samples; 
+            #element Omega[i,,j] is the vectorized covariance matrix for location i and iteration j.
     #RPS: array of dimension n x t x S
     
   } else {
     stop("mode not valid in Schliep_sim")
   }
   
-  saveRDS(schliepRes, paste0(outdir,"SchliepRes.Rdata"))
+  saveRDS(schliepRes, paste0(outdir, "SchliepRes.Rdata"))
   
   if (plot) {
     posteriors <- plotPosteriorTable(schliepRes, mode = mode, ci_percent = 0.95, burn_in = burn)
@@ -152,7 +163,7 @@ for (trial in 1:numTrials) {
     posteriorTable$color <- sign(posteriorTable$lowBound) * sign(posteriorTable$highBound)
     
     p1 <- ggplot(data = posteriorTable) + 
-      geom_point(aes(y = varName,x = mean, col = as.factor(color)), show.legend = FALSE) +
+      geom_point(aes(y = varName, x = mean, col = as.factor(color)), show.legend = FALSE) +
       geom_errorbarh(aes(y = varName, xmin = lowBound, xmax = highBound, col = as.factor(color)), show.legend = FALSE) +
       geom_vline(xintercept = 0) +
       scale_color_manual(values = c("#999999", "#999999", "#56B4E9")) +
@@ -161,4 +172,3 @@ for (trial in 1:numTrials) {
     ggsave(filename = paste0(outdir, "CI_plot_schliep.png"), plot = p1)
   }
 }
-

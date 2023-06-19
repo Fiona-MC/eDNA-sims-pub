@@ -2,7 +2,7 @@ library(tidyr)
 library(ggplot2)
 library(gridExtra)
 
-dirName <- c("dumbSim2")
+dirName <- c("multiSim_ParmSet2")
 
 #INLA
 multiSimRes <- data.frame()
@@ -35,11 +35,12 @@ multiSimRes$actual_mean_fpr <- actual_mean_fpr
 multiSimRes$fp_fp_tp <- multiSimRes$num_incorrectInferences / (multiSimRes$num_correctInferences + multiSimRes$num_incorrectInferences)
 
 hist(multiSimRes$totalMistakes)
-mean(multiSimRes$totalMistakes, na.rm = TRUE)
 hist(multiSimRes$num_incorrectInferences)
 hist(multiSimRes$fp_fp_tp)
 hist(multiSimRes$num_incorrect_alpha)
 hist(multiSimRes$num_incorrect_beta)
+
+mean(multiSimRes$fp_fp_tp, na.rm = TRUE) # with no violated assumptions should be 0.082
 
 
 
@@ -74,16 +75,19 @@ for (row in seq_len(dim(multiSimLogistic)[1])) { #1:dim(multiSimRes)[1]
 multiSimLogistic$actual_mean_fpr <- actual_mean_fpr
 
 hist(multiSimLogistic$totalMistakes)
-mean(multiSimLogistic$totalMistakes)
 hist(multiSimLogistic$num_incorrectInferences)
 hist(multiSimLogistic$fp_fp_tp)
 hist(multiSimLogistic$num_incorrect_alpha)
 hist(multiSimLogistic$num_incorrect_beta)
 
+mean(multiSimLogistic$fp_fp_tp) # with no violated assumptions --should be 0.082
 
 multiSimLogistic$fp_fp_tp_beta <- multiSimLogistic$num_incorrect_beta / 
                               ((3 - multiSimLogistic$num_missedEffects_beta) + multiSimLogistic$num_incorrect_beta)
 mean(multiSimLogistic$fp_fp_tp_beta) # expectation is 0.075 if all assumptions are met
+mean(multiSimLogistic$totalMistakes)
+
+
 
 # expectation of fp_tp_fp
 sum <- 0
@@ -109,5 +113,3 @@ for(fp in 1:6) {
 }
 sum # 0.075
 mean(multiSimLogistic$fp_fp_tp_beta) # expectation is 0.075 if all assumptions are met
-
-

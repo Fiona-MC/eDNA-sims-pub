@@ -13,6 +13,7 @@ while IFS=',' read -r runNum; do
         folder=${sim_dir}/randomRun${runNum}/
         echo "starting task $folder.."
         #timeout -k 10 168h Rscript /home/fiona_callahan/eDNA_sims_code/schliep_sims.R ${folder} 50000 10000
+        #echo ${folder}
         Rscript /home/fiona_callahan/eDNA_sims_code/schliep_sims.R ${folder} 100000 10000 
         sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
     )&
