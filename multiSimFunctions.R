@@ -391,7 +391,7 @@ abundanceEffectTransform <- function(mx, type = "none") {
 
 
 
-makePlots <- function(sim_data = sim_data, params = params, locList = locList, locPlots = c(19, 8, 6, 37, 64, 46), outDir) {
+makePlots <- function(sim_data = sim_data, params = params, locList = locList, locPlots = c(19, 8, 6, 37, 64, 46), outDir, sitetab_sampled) {
     detProbP <- ggplot(data.frame(x = 0:500, y = unlist(lapply(X = as.list(0:500), 
                                   FUN = function(x) { 
                                     (x^params$det_prob_exp) / (params$det_prob_add + x^params$det_prob_exp)}))),  # nolint: object_usage_linter.
@@ -485,7 +485,17 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     avgAbdPlot <- arrangeGrob(grobs = avgAbdPlotsL)
     ggsave(avgAbdPlot, file = paste0(outDir, "avgAbdPlot.png"), height = 7, width = 7)
     
-    
+    # plot covs over time for spatial locations 1 through 8 (first row in current setup)
+    covPlotsL <- list()
+    for(cov in 1:params$numCovs){
+      covPlotsL[[cov]] <- ggplot(data = sitetab_sampled[sitetab_sampled$labID <= 8, ], aes(x = Age, y = Cov1, group = labID, color = labID)) +
+          geom_point() +
+          geom_line()
+    }
+    covplots <- arrangeGrob(grobs = covPlotsL)
+    ggsave(covplots, file = paste0(outDir, "covPlots.png"), height = 8, width = 10)
+
+
     #plot env over space
     
     #data wrangling
