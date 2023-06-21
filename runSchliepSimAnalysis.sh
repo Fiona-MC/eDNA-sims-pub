@@ -7,6 +7,7 @@ export OMP_NUM_THREADS=5 # threads per job
 
 sim_dir="/space/s1/fiona_callahan/multiSim11"
 N=10 # number of jobs at a time
+runNumFile="schliepRun20.csv"
 
 while IFS=',' read -r runNum; do
    (
@@ -24,13 +25,13 @@ while IFS=',' read -r runNum; do
         # to be finished so there is a place to start next one.
         wait -n
     fi
-done < ${sim_dir}/schliepRun20.csv
+done < ${sim_dir}/${runNumFile}
 
 wait
 
 # get file for analysis in analyze_multiSim.R and test convergence 
 # .csv with convergence diagnostics will be produced for each folder
 # the 2 here is the number of schliep trials -- which was hard coded into schliep_sims.R
-Rscript /home/fiona_callahan/eDNA_sims_code/schliep_examineRes.R ${sim_dir}/ 2
+Rscript /home/fiona_callahan/eDNA_sims_code/schliep_examineRes.R ${sim_dir}/ 2 ${runNumFile}
 
 echo "all done"

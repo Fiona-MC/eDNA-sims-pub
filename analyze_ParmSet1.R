@@ -2,9 +2,10 @@ library(tidyr)
 library(ggplot2)
 library(gridExtra)
 
-dirName <- c("multiSim_ParmSet2")
+dirName <- c("dumbSim2")
+dirNums <- dirName
 
-#INLA
+# INLA
 multiSimRes <- data.frame()
 
 dirNumL <- c()

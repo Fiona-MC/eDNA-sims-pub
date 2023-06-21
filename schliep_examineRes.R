@@ -6,15 +6,16 @@ args <- commandArgs(trailingOnly = TRUE)
 
 source("/home/fiona_callahan/eDNA_sims_code/Schliep_sims_fcns.R")
 
-# Rscript /home/fiona_callahan/eDNA_sims_code/schliep_examineRes.R /space/s1/fiona_callahan/multiSim11/ 2
+# Rscript /home/fiona_callahan/eDNA_sims_code/schliep_examineRes.R /space/s1/fiona_callahan/multiSim11/ 2 schliep_runNums.csv
 
 dataDir <- "/space/s1/fiona_callahan/multiSim11/"
 numTrials <- 2
 
 dataDir <- args[1]
 numTrials <- as.numeric(args[2])
+runNumFile <- args[3]
 
-runNums <- read.csv(paste0(dataDir, "schliep_runNums.csv"))[, 1]
+runNums <- read.csv(paste0(dataDir, runNumFile))[, 1]
 trials <- 1:numTrials
 
 # initialize results df

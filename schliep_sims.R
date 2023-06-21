@@ -63,7 +63,7 @@ locIndices <- unname(apply(locDF, MARGIN = 1, FUN = function(latLon) {
 #}
 
 
-for (trial in 1:numTrials) {
+for (trial in 2:numTrials) {
   outdir <- paste0(dataDir, "SchliepRes/trial", trial, "/")
   dir.create(outdir)
 
