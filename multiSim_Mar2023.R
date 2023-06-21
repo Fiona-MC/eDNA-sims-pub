@@ -183,11 +183,6 @@ for (run in runs) {
     sim_data[[t]]$covs <- covL_norm
     sim_data[[t]]$FP_count <- FP_count
   } # end time loop
-  
-
-  if (makePlotsTF) {
-    makePlots(sim_data = sim_data, params = params, locList = locList, outDir = subdir)
-  }
 
   #timePts<-1:params$num_gens #time points to "collect"
   timePts <- seq(from = 1, to = params$num_gens, by = 1)
@@ -251,6 +246,9 @@ for (run in runs) {
                                     ncol = 4 + params$numCovs + params$numSpecies, byrow = TRUE)) 
   names(sim_sitetab_sampled) <- c("labID", "Age", "Lat", "Long", params$names_all_cov, params$names_species)
 
+  if (makePlotsTF) {
+    makePlots(sim_data = sim_data, params = params, locList = locList, outDir = subdir, sitetab_sampled = sim_sitetab_sampled)
+  }
   saveRDS(sim_data, paste0(subdir, "sim_data.Rdata"))
   saveRDS(locList, paste0(subdir, "locList.Rdata"))
   saveRDS(covList, paste0(subdir, "covList.Rdata"))
