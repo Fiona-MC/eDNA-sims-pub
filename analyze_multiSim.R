@@ -44,6 +44,8 @@ for (row in seq_len(dim(multiSimLogistic)[1])) { #1:dim(multiSimRes)[1]
       thisFPR <- 0
     } else if (multiSimLogistic$fpr.mode[row] == "dependent_sp") {
       thisFPR <- multiSimLogistic$fpr.mean_fpr[row]
+    } else if (multiSimRes$fpr.mode[row] == "independent") {
+      thisFPR <- multiSimRes$fpr.mean_fpr[row]
     }
     actual_mean_fpr[row] <- thisFPR
 }
@@ -64,6 +66,8 @@ for (row in seq_len(dim(multiSimRes)[1])) { #1:dim(multiSimRes)[1]
     } else if (multiSimRes$fpr.mode[row] == "none") {
       thisFPR <- 0
     } else if (multiSimRes$fpr.mode[row] == "dependent_sp") {
+      thisFPR <- multiSimRes$fpr.mean_fpr[row]
+    } else if (multiSimRes$fpr.mode[row] == "independent") {
       thisFPR <- multiSimRes$fpr.mean_fpr[row]
     }
     actual_mean_fpr[row] <- thisFPR
