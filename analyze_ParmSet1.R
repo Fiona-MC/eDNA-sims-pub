@@ -2,7 +2,9 @@ library(tidyr)
 library(ggplot2)
 library(gridExtra)
 
-dirName <- c("dumbSim2")
+# this is a little mini-analysis framework for smaller sims with specific properties (ie sets of parameters or whatever)
+
+dirName <- c("multiSim_ParmSet2")
 dirNums <- dirName
 
 # INLA
@@ -47,7 +49,7 @@ mean(multiSimRes$fp_fp_tp, na.rm = TRUE) # with no violated assumptions should b
 
 
 
-#Logistic
+# Logistic
 multiSimLogistic <- data.frame()
 dirNumL <- c()
 for (dirNum in dirNums) {

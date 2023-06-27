@@ -488,7 +488,7 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     # plot covs over time for spatial locations 1 through 8 (first row in current setup)
     covPlotsL <- list()
     for(cov in 1:params$numCovs){
-      covPlotsL[[cov]] <- ggplot(data = sitetab_sampled[sitetab_sampled$labID <= 8, ], aes(x = Age, y = Cov1, group = labID, color = labID)) +
+      covPlotsL[[cov]] <- ggplot(data = sitetab_sampled[sitetab_sampled$labID <= 8, ], aes(x = Age, y = Cov1, group = labID, color = labID)) + # nolint: object_usage_linter, line_length_linter.
           geom_point() +
           geom_line()
     }

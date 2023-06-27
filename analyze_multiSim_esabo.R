@@ -39,7 +39,7 @@ multiSimRes$actual_mean_fpr <- actual_mean_fpr
 multiSimRes$fp_fp_tp <- multiSimRes$num_incorrectInferences / (multiSimRes$num_correctInferences + multiSimRes$num_incorrectInferences)
 
 hist(multiSimRes$fp_fp_tp)
-mean(multiSimRes$fp_fp_tp, na.rm = TRUE)
+mean(multiSimRes$fp_fp_tp, na.rm = TRUE) # 0.596 for ~1000 sims in folder 11
 
 
 
@@ -49,7 +49,7 @@ mean(multiSimRes$fp_fp_tp, na.rm = TRUE)
 sum <- 0
 num_possible_tp <- 2
 num_possible_fp <- 4
-level <- pnorm(-1)*2
+level <- pnorm(-1) * 2
 for(fp in 1:num_possible_fp) {
   for(tp in 1:num_possible_tp) {
     # binomial probability that fp=fp times prob(tp=tp|fp=fp)
@@ -64,7 +64,7 @@ sum # 0.357 for esabo with reject level z = \pm 1
 sum <- 0
 num_possible_tp <- 2
 num_possible_fp <- 4
-level <- pnorm(-2)*2
+level <- pnorm(-2) * 2
 for(fp in 1:num_possible_fp) {
   for(tp in 1:num_possible_tp) {
     # binomial probability that fp=fp times prob(tp=tp|fp=fp)

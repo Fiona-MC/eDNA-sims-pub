@@ -1,6 +1,6 @@
 library(ggplot2)
 library(gridExtra)
-#TODO need to add this to the multiSimFunctions.R (in function makePlots)
+# added second part of this to the multiSimFunctions.R (in function makePlots) -- so this is just for kicks
 
 runNum <- 30
 thisDir <- paste0("/space/s1/fiona_callahan/multiSim11/randomRun", runNum,"/")

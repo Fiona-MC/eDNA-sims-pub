@@ -1,7 +1,7 @@
 # ESABO code translated into R by chatGPT and fixed so it actually works (no "evolution" part)
 # src paper https://doi.org/10.1371/journal.pcbi.1005361
 
-# # Rscript /home/fiona_callahan/eDNA_sims_code/ESABO_sim.R /space/s1/fiona_callahan/multiSim11/ 1000
+# # Rscript /home/fiona_callahan/eDNA_sims_code/ESABO_sim.R /space/s1/fiona_callahan/multiSim11/ 100
 
 # from sim output (multisim folder with lots of sims), run ESABO on sitetab_sampled
 # outputs a csv of the number of inference mistakes per sim with sim parms
@@ -24,6 +24,8 @@ esaboRep <- 1000
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])
+#cutoff <- 1
+cutoff <- 1
 
 
 ######################## FUNTIONS THAT DEFINE ESABO ##############################
@@ -161,7 +163,7 @@ for (run in runs) {
             # TODO maybe run ESABO on residuals after covs or something? --this wont really work unless we threshold the residuals though...?
             ESABO_sitetab  <- sim_sitetab_sampled[, c("Sp1", "Sp2", "Sp3")]
             esaboRes <- runESABO(ESABO_sitetab, rep = esaboRep)
-
+            saveRDS(esaboRes, file = paste0(data_dir, "randomRun", run, "/esaboRes_cutoff", cutoff, ".Rdata"))
             ############### GET INFERRED ALPHA AND BETA ######################
             #B11 <- (model_sp1_summary["Cov1", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov1", "Estimate"])
             #B12 <- (model_sp1_summary["Cov2", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov2", "Estimate"])
@@ -181,9 +183,9 @@ for (run in runs) {
                 for (k in 1:simParms$numSpecies) {
                     if (j == k) {
                       alphaInferred[j, k] <- 0
-                    } else if (esaboRes[j, k] > 1) {
+                    } else if (esaboRes[j, k] > cutoff) {
                       alphaInferred[j, k] <- 1
-                    } else if (esaboRes[j, k] < -1) {
+                    } else if (esaboRes[j, k] < -cutoff) {
                       alphaInferred[j, k] <- -1
                     } else {
                       alphaInferred[j, k] <- 0
@@ -247,4 +249,4 @@ parmsDF$trial <- trialL
 fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
 
 #print(fulldf)
-write.csv(fulldf, paste0(data_dir, "/ESABO_mistakes.csv"))
+write.csv(fulldf, paste0(data_dir, "/ESABO_mistakes_cutoff", cutoff, ".csv"))
