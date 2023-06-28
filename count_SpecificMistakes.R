@@ -8,10 +8,10 @@ if (length(args) < 2) {
   stop("input folders need to be supplied", call. = FALSE)
 } 
 
-sim_dir <- "/space/s1/fiona_callahan/multiSim11/"
+sim_dir <- "/space/s1/fiona_callahan/multiSim_rw/"
 sim_dir <- args[1]
 
-numRuns <- 1000
+numRuns <- 100
 numTrials <- 1
 nSpecies <- 3
 nCov <- 4
@@ -80,8 +80,18 @@ average_alphaInferred <- matrix(data = apply(X = alphaInferredDF[!is.na(alphaInf
 average_betaInferred <- matrix(data = apply(X = betaInferredDF[!is.na(betaInferredDF$beta11), ], MARGIN = 2, FUN = mean), 
                                 nrow = nSpecies, ncol = nCov)
 
+average_abs_alphaInferred <- matrix(data = apply(X = alphaInferredDF[!is.na(alphaInferredDF$alpha11), ], MARGIN = 2, 
+                                FUN = function(x) {mean(abs(x))}), 
+                                nrow = nSpecies, ncol = nSpecies)
+
+average_abs_betaInferred <- matrix(data = apply(X = betaInferredDF[!is.na(betaInferredDF$beta11), ], MARGIN = 2, 
+                                FUN = function(x) {mean(abs(x))}), 
+                                nrow = nSpecies, ncol = nCov)
+
 average_alphaInferred
 average_betaInferred
+
+hist(alphaInferredDF$alpha13)
 
 # print(df)
 write.csv(df, paste0(sim_dir, "specific_InferredParms.csv"))

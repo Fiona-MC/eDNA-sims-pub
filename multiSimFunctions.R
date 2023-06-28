@@ -218,6 +218,34 @@ getParms <- function(random = TRUE, parmSet = 1) {
       mean_mig_rate <- 0.001 # poisson rate per individual per time
 
       N0_0 <- 10
+    } else if(parmSet == "rw") {
+      # parmSet5 plus random walk covs and no cov noise and r lower, sigma lower, and migration rate lower, c2 higher
+      num_samples_time <- 15 # sample times per location
+      num_samples_space <- 30 # sample locations per time
+      radius <- 100
+      # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
+      mean_fpr <- 0
+      #fpr_mode <- sample(x = c("independent", "dependent_sp"), size = 1)
+
+      fpr_mode <- "none"
+      #fpr_mode <- "independent"
+      covNoise_sd <- 0 # process noise
+      covMeasureNoise_sd <- 0
+
+      # this is the code from the sim: dN <- params$r * lastN * (1 - lastN / thisK[[s]]) + params$sigma * lastN * dWt
+      # intrinsic growth rate
+      r <- .2 #todo think on reasonableness here
+      # noise param for popn growth 
+      sigma <- 0.001
+
+      N_50 <- 10 # number of animals for which detection prob is 50%
+
+      #species effect
+      c2 <- 200
+
+      mean_mig_rate <- 0.001 # poisson rate per individual per time
+
+      N0_0 <- 10
     } else { 
         num_samples_time <- 10 # sample times per location
         num_samples_space <- 10 # sample locations per time
@@ -229,11 +257,11 @@ getParms <- function(random = TRUE, parmSet = 1) {
         #intrinsic growth rate
         r <- 0.05
         #noise param for popn growth 
-        sigma <- 0.05
+        sigma <- 0.005
 
         N_50 <- 50 # number of animals for which detection prob is 50%
 
-        mean_mig_rate <- 0.1
+        mean_mig_rate <- 0.01
 
         N0_0 <- 10
     }
@@ -291,6 +319,13 @@ getParms <- function(random = TRUE, parmSet = 1) {
     covVars[[3]] <- list(type = "ripples")
     covVars[[4]] <- list(type = "constant")
 
+    if (parmSet == "rw") {
+      covVars[[1]] <- list(type = "randomWalk")
+      covVars[[2]] <- list(type = "randomWalk")
+      covVars[[3]] <- list(type = "randomWalk")
+      covVars[[4]] <- list(type = "constant")
+    }
+
     numCovs <- length(covVars)
     names_cov <- sapply(1:numCovs, FUN = function(cov) {
                     if (covVars[[cov]]$type != "constant") {
@@ -341,7 +376,7 @@ get_locations <- function(xdim = xdim1, ydim = ydim1, mode = "grid", xSplit = x_
 }
 
 #TODO make it so that you can just read covs in from other place
-get_cov <- function(location, type = "peaks", coef1func = NA, coef2func = NA, t = NA, params = params) {
+get_cov <- function(location, type = "peaks", coef1func = NA, coef2func = NA, t = NA, t_minus_1 = NA, params = params) {
   x <- location[1]
   y <- location[2]
   if (type == "peaks") {
@@ -368,11 +403,13 @@ get_cov <- function(location, type = "peaks", coef1func = NA, coef2func = NA, t 
     temp1 <- x - (t / params$num_gens) * (params$xdim / 2)
     temp2 <- y - (t / params$num_gens) * (params$ydim / 2)
     return(sqrt(temp1^2 + temp2^2))
-  }else if (type == "ripples") {
+  } else if (type == "ripples") {
     # x minus some number between 0 and 1 that changes with time (cycles every ~400)
     temp1 <- x / params$xdim - abs(sin((1 / 123) * t))  
     temp2 <- y / params$ydim - abs(cos((1 / 123) * t))
     return(sin(temp1 * 3 * temp2 * 3)) # the times 3 is just to get the function to behave
+  } else if (type == "randomWalk") { # not sure if I'm going to use this one--requires a little rearranging on the other end
+    return(t_minus_1 + rnorm(n = 1, mean = 0, sd = 0.01))
   } else {
     print("type invalid in function get_cov")
   }

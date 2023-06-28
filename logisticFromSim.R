@@ -11,8 +11,8 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_ParmSet1/"
-#numRuns <- 100
+#data_dir <- "/space/s1/fiona_callahan/multiSim_rw/"
+##numRuns <- 100
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])
@@ -76,15 +76,15 @@ for (run in runs) {
             sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
             
             # sp1
-            model_sp1 <- glm(Sp1 ~ 1 + Cov1 + Cov2 + Cov3 + Age + Lat + Long + Lat * Long + Sp2 + Sp3, 
+            model_sp1 <- glm(Sp1 ~ 1 + Cov1 + Cov2 + Cov3 + Sp2 + Sp3, 
                             family = binomial(link = 'logit'), data = sim_sitetab_sampled)
             model_sp1_summary <- data.frame(summary(model_sp1)$coefficients)
             # sp2
-            model_sp2 <- glm(Sp2 ~ 1 + Cov1 + Cov2 + Cov3 + Age + Lat + Long + Lat * Long  + Sp1 + Sp3, 
+            model_sp2 <- glm(Sp2 ~ 1 + Cov1 + Cov2 + Cov3 + Sp1 + Sp3, 
                             family = binomial(link = 'logit'), data = sim_sitetab_sampled)
             model_sp2_summary <- data.frame(summary(model_sp2)$coefficients)
             # sp3
-            model_sp3 <- glm(Sp3 ~ 1 + Cov1 + Cov2 + Cov3 + Age + Lat + Long + Lat * Long + Sp1 + Sp2, 
+            model_sp3 <- glm(Sp3 ~ 1 + Cov1 + Cov2 + Cov3 + Sp1 + Sp2, 
                             family = binomial(link = 'logit'), data = sim_sitetab_sampled)
             model_sp3_summary <- data.frame(summary(model_sp3)$coefficients)
 

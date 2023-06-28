@@ -16,10 +16,10 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_ParmSet5/ 1 100
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_rw2/ 1 1000
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- FALSE
-parmSet <- 5
+parmSet <- "rw"
 
 
 thisdir <- args[1]
@@ -63,6 +63,7 @@ for (run in runs) {
   ######################################################################
   #
   sim_data <- list()
+  t_minus_one <- list()
   for (t in 1:params$num_gens){
     sim_data[[t]] <- list()
     thisK <- list()
@@ -81,11 +82,25 @@ for (run in runs) {
       thisF1 <- params$covVars[[covNum]]$coef1func
       thisF2 <- params$covVars[[covNum]]$coef2func
       thisType <- params$covVars[[covNum]]$type
+      if (thisType == "randomWalk") {
+        if (t == 1) {
+          cov <- rnorm(n = length(locList), mean = 0, sd = 1)
+          t_minus_one[[covNum]] <- cov
+        } else {
+          cov <- unlist(lapply(X = seq_along(locList), FUN = 
+                           function(loc_index) {return(get_cov(locList[[loc_index]], type = thisType, 
+                                                        coef1func = thisF1, 
+                                                        coef2func = thisF2, 
+                                                        t = t, t_minus_1 = t_minus_one[[covNum]][loc_index], params = params))}))
+          t_minus_one[[covNum]] <- cov
+        }
+      } else {
       cov <- unlist(lapply(X = locList, FUN = 
                            function(loc) {return(get_cov(loc, type = thisType, 
                                                         coef1func = thisF1, 
                                                         coef2func = thisF2, 
                                                         t = t, params = params))}))
+      }
       if (params$covVars[[covNum]]$type != "constant") { # dont normalize if constant covariate
         covL_norm[[covNum]] <- (cov - mean(cov)) / sd(cov)
         # add noise (NOTE THIS IS PROCESS NOISE NOT MEASUREMENT NOISE)
