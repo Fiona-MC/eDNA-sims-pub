@@ -50,6 +50,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
         mean_mig_rate <- runif(n = 1, min = 0, max = 0.1) # poisson rate per individual per time
 
         N0_0 <- 10
+        x_split <- 8
+        y_split <- 8
     } else if (parmSet == 1) {
       num_samples_time <- 15 # sample times per location
       num_samples_space <- 20 # sample locations per time
@@ -74,9 +76,11 @@ getParms <- function(random = TRUE, parmSet = 1) {
       #species effect
       c2 <- 150
 
-        mean_mig_rate <- 0.001 # poisson rate per individual per time
+      mean_mig_rate <- 0.001 # poisson rate per individual per time
 
-        N0_0 <- 10
+      N0_0 <- 10
+      x_split <- 8
+      y_split <- 8
     } else if(parmSet == 2) {
       # more samples, higher sigma, lower species effect (compared to 1) 
       # best so far
@@ -103,9 +107,11 @@ getParms <- function(random = TRUE, parmSet = 1) {
       #species effect
       c2 <- 100
 
-        mean_mig_rate <- 0.01 # poisson rate per individual per time
+      mean_mig_rate <- 0.01 # poisson rate per individual per time
 
-        N0_0 <- 10
+      N0_0 <- 10
+      x_split <- 8
+      y_split <- 8
       } else if (parmSet == 3) {
       # higer species effect (compared to 2) --does worse than 2 on logistic
       num_samples_time <- 15 # sample times per location
@@ -134,6 +140,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
       mean_mig_rate <- 0.01 # poisson rate per individual per time
 
       N0_0 <- 10
+      x_split <- 8
+      y_split <- 8
     } else if (parmSet == "optim") {
       # higer species effect (compared to 2) --does worse than 2 on logistic
       num_samples_time <- 294 # sample times per location
@@ -159,9 +167,11 @@ getParms <- function(random = TRUE, parmSet = 1) {
       #species effect
       c2 <- 50
 
-        mean_mig_rate <- 0.05 # poisson rate per individual per time
+      mean_mig_rate <- 0.05 # poisson rate per individual per time
 
-        N0_0 <- 10
+      N0_0 <- 10
+      x_split <- 8
+      y_split <- 8
     } else if(parmSet == 4) {
       # higer species effect (compared to 2) --does worse than 2 on logistic
       num_samples_time <- 25 # sample times per location
@@ -189,6 +199,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
 
       mean_mig_rate <- 0.05 # poisson rate per individual per time
       N0_0 <- 10
+      x_split <- 8
+      y_split <- 8
     } else if(parmSet == 5) {
       # low migration rate, high radius (compared to 2) 
       # 
@@ -218,6 +230,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
       mean_mig_rate <- 0.001 # poisson rate per individual per time
 
       N0_0 <- 10
+      x_split <- 8
+      y_split <- 8
     } else if(parmSet == "rw") {
       # parmSet5 plus random walk covs and no cov noise and r lower, sigma lower, and migration rate lower, c2 higher
       num_samples_time <- 15 # sample times per location
@@ -243,9 +257,11 @@ getParms <- function(random = TRUE, parmSet = 1) {
       #species effect
       c2 <- 200
 
-      mean_mig_rate <- 0.001 # poisson rate per individual per time
+      mean_mig_rate <- 0.0001 # poisson rate per individual per time
 
       N0_0 <- 10
+      x_split <- 100
+      y_split <- 10
     } else { 
         num_samples_time <- 10 # sample times per location
         num_samples_space <- 10 # sample locations per time
@@ -264,6 +280,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
         mean_mig_rate <- 0.01
 
         N0_0 <- 10
+        x_split <- 10
+        y_split <- 10
     }
 
     a12 <- -1
@@ -291,8 +309,6 @@ getParms <- function(random = TRUE, parmSet = 1) {
     xdim1 <- 100
     ydim1 <- 100
     location_mode <- "grid"
-    x_split <- 10
-    y_split <- 10
     
     constant_fpr <- 0.05
     beta_fpr <- 50 # mean = alpha/(alpha+beta) = 5/(100+5) 
