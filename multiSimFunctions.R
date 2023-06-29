@@ -291,8 +291,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
     xdim1 <- 100
     ydim1 <- 100
     location_mode <- "grid"
-    x_split <- 8
-    y_split <- 8
+    x_split <- 10
+    y_split <- 10
     
     constant_fpr <- 0.05
     beta_fpr <- 50 # mean = alpha/(alpha+beta) = 5/(100+5) 

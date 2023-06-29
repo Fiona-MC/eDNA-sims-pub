@@ -16,11 +16,12 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_rw2/ 1 1000
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_rw3/ 1 100
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- FALSE
 parmSet <- "rw"
-
+# amount of generations to prime the sim before starting to record -- (not implemented TODO)
+burn <- 100
 
 thisdir <- args[1]
 dir.create(thisdir)

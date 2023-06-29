@@ -4,7 +4,7 @@ library(gridExtra)
 
 # this is a little mini-analysis framework for smaller sims with specific properties (ie sets of parameters or whatever)
 
-dirName <- c("multiSim_rw")
+dirName <- c("multiSim_rw/scrambled")
 dirNums <- dirName
 
 # INLA
