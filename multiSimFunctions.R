@@ -280,8 +280,8 @@ getParms <- function(random = TRUE, parmSet = 1) {
         mean_mig_rate <- 0.01
 
         N0_0 <- 10
-        x_split <- 10
-        y_split <- 10
+        x_split <- 8
+        y_split <- 8
     }
 
     a12 <- -1

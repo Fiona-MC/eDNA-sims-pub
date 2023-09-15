@@ -3,6 +3,7 @@
 library(tidyr)
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_rw3/"
+# note rw3 is 100 space pts and 100 sims
 outDir <- paste0(data_dir, "scrambled/")
 dir.create(outDir)
 numSims <- 100
@@ -21,7 +22,7 @@ new_sitetab_sampledL <- lapply(X = 1:n_sim_out, FUN = function(x) {
 for(run in 1:n_sim_out) {
     sitetab <- read.csv(paste0(data_dir, "randomRun", run, "/sitetab_longer.csv"))
     sitetab <- sitetab[, -1]
-    ages <- seq(numGens - 1, 0, -round(numGens / nTime))
+    ages <- seq(1, numGens - 1, round(numGens / nTime)) # note age is gens before present
     sitetab <- sitetab[sitetab$Age %in% ages, ]
     sitetab2 <- pivot_wider(sitetab, names_from = Species, values_from = c(Presence, Abundance))
 
