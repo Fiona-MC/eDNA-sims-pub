@@ -322,3 +322,86 @@ average_betaInferred
 
 average_abs_alphaInferred
 average_abs_betaInferred
+
+
+
+##############################################
+# specific parms for INLA
+nSpecies <- 3
+nCov <- 4
+numTrials <- 2
+
+runL <- rep(NA, times = n_sim_out * numTrials)
+trialL <- rep(NA, times = n_sim_out * numTrials)
+alphaInferredL <- matrix(nrow = n_sim_out * numTrials, ncol = nSpecies * nSpecies)
+betaInferredL <- matrix(nrow = n_sim_out * numTrials, ncol = nSpecies * (nCov - 1))
+
+i <- 1
+simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
+for (run in 1:n_sim_out) {
+    for (trial in 1:numTrials) {
+        # store run and trial info
+        runL[i] <- run
+        trialL[i] <- trial
+    
+        # figure out which beta column to remove based on just being an intercept variable
+        covVars <- simParms$covVars
+        const_covs <- unlist(lapply(covVars, FUN = function(covVar) {covVar$type != "constant"}))
+
+        actualBeta <- sign(simParms$beta)
+        actualBeta <- actualBeta[, const_covs]
+        actualAlpha <- sign(simParms$alpha)
+
+        if(file.exists(paste0(data_dir, "randomRun", run, "/INLA_res_paper/trial", trial, "/inferenceRes.Rdata"))){
+            inferredParms <- readRDS(paste0(data_dir, "randomRun", run, "/INLA_res_paper/trial", trial, "/inferenceRes.Rdata"))
+
+            betaInferred <- inferredParms$betaInferred
+            betaInferred <- betaInferred[, const_covs]
+
+            alphaInferred <- inferredParms$alphaInferred
+            
+            betaInferredL[i, ] <- as.vector(betaInferred)
+            alphaInferredL[i, ] <- as.vector(alphaInferred)
+        } else {
+            betaInferredL[i, ] <- NA
+            alphaInferredL[i, ] <- NA
+        }
+        i <- i + 1
+    }
+}
+
+alphaInferredDF <- as.data.frame(alphaInferredL)
+names(alphaInferredDF) <- c("alpha11", "alpha21", "alpha31", 
+                            "alpha12", "alpha22", "alpha32",
+                            "alpha13", "alpha23", "alpha33")
+betaInferredDF <- as.data.frame(betaInferredL)
+names(betaInferredDF) <- c("beta11", "beta21", "beta31", 
+                            "beta12", "beta22", "beta32",
+                            "beta13", "beta23", "beta33")
+
+df <- data.frame(sim_run = runL, 
+            trial = trialL, 
+            alphaInferredDF,
+            betaInferredDF)
+
+summary(df)
+
+average_alphaInferred <- matrix(data = apply(X = alphaInferredDF[!is.na(alphaInferredDF$alpha11), ], MARGIN = 2, FUN = mean), 
+                                nrow = nSpecies, ncol = nSpecies)
+
+average_betaInferred <- matrix(data = apply(X = betaInferredDF[!is.na(betaInferredDF$beta11), ], MARGIN = 2, FUN = mean), 
+                                nrow = nSpecies, ncol = nCov - 1)
+
+average_abs_alphaInferred <- matrix(data = apply(X = alphaInferredDF[!is.na(alphaInferredDF$alpha11), ], MARGIN = 2, 
+                                FUN = function(x) {mean(abs(x))}), 
+                                nrow = nSpecies, ncol = nSpecies)
+
+average_abs_betaInferred <- matrix(data = apply(X = betaInferredDF[!is.na(betaInferredDF$beta11), ], MARGIN = 2, 
+                                FUN = function(x) {mean(abs(x))}), 
+                                nrow = nSpecies, ncol = nCov - 1)
+
+round(average_alphaInferred, digits = 2)
+round(average_betaInferred, digits = 2)
+
+round(average_abs_alphaInferred, digits = 2)
+round(average_abs_betaInferred, digits = 2)
