@@ -14,9 +14,13 @@ if (length(args) < 2) {
 
 #data_dir <- "/home/fiona_callahan/simData/testing/run1/"
 #save_dir <- "/home/fiona_callahan/simData/testing/INLAres/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/"
+#${folder}/ ${folder}/INLA_res_${INLA_type}/#
 data_dir <- args[1]
 save_dir <- args[2]
 dir.create(save_dir)
+scramble <- (args[3] == 1)
 
 plot <- FALSE
 proj <- FALSE
@@ -27,6 +31,9 @@ sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
 #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
+if (scramble == TRUE) {
+  sitetab <- read.csv(paste0(data_dir, "sitetab_scrambled.csv"))
+}
 
 names_cov <- params$names_cov
 names_species <- params$names_species
@@ -42,6 +49,11 @@ for (trial in 1:numTrials){
   # alltidx <- seq(1,k)
   #reducedtidx <- seq(2,k,2)
   tknots <- seq(min(sitetab$Age), max(sitetab$Age), length = k)
+  #edge case, this is probably the wrong way to handle this
+  #(fixes bug if only one time pt)
+  if(min(sitetab$Age) == max(sitetab$Age)) {
+    tknots <- seq(min(sitetab$Age) - 1, max(sitetab$Age), length = k)
+  }
   #reducedtknots <- tknots[seq(2,k,2)]
   mesh_t <- inla.mesh.1d(tknots)
 

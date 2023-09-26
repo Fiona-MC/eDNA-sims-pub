@@ -4,8 +4,8 @@ library(tidyr)
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_rw3/"
 # note rw3 is 100 space pts and 100 sims
-outDir <- paste0(data_dir, "scrambled/")
-dir.create(outDir)
+#outDir <- paste0(data_dir, "scrambled_4/")
+#dir.create(outDir)
 numSims <- 100
 nSpace <- 100
 n_sim_out <- min(numSims, nSpace)
@@ -21,6 +21,7 @@ new_sitetab_sampledL <- lapply(X = 1:n_sim_out, FUN = function(x) {
 
 for(run in 1:n_sim_out) {
     sitetab <- read.csv(paste0(data_dir, "randomRun", run, "/sitetab_longer.csv"))
+    outDir <- paste0(data_dir, "randomRun", run, "/")
     sitetab <- sitetab[, -1]
     ages <- seq(1, numGens - 1, round(numGens / nTime)) # note age is gens before present
     sitetab <- sitetab[sitetab$Age %in% ages, ]
@@ -39,7 +40,7 @@ for(run in 1:n_sim_out) {
 
 # save new sitetabs
 for (i in 1:n_sim_out) {
-    write.csv(new_sitetab_sampledL[[i]], file = paste0(outDir, "sitetab_scrambled_", i, ".csv"))
+    write.csv(new_sitetab_sampledL[[i]], file = paste0(data_dir, "randomRun", i, "/sitetab_scrambled.csv"))
 }
 
 
@@ -80,7 +81,8 @@ i <- 1
 inferredParmsL <- list()
 for (run in runs) {
     for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
-        if(file.exists(paste0(outDir, "sitetab_scrambled_", i, ".csv"))) { # this is for the runs that were deleted
+    outDir <- paste0(data_dir, "randomRun", run, "/")
+        if(file.exists(paste0(outDir, "sitetab_scrambled.csv"))) { # this is for the runs that were deleted
             # store run and trial info
             runL[i] <- run
             trialL[i] <- trial
@@ -104,7 +106,7 @@ for (run in runs) {
 
             ############### DO LOGISTIC REGRESSION ######################
             # load sitetab
-            sim_sitetab_sampled <- read.csv(paste0(outDir, "sitetab_scrambled_", i, ".csv"), header = TRUE)
+            sim_sitetab_sampled <- read.csv(paste0(outDir, "sitetab_scrambled.csv"), header = TRUE)
             
             if (abd) {
                 # sp1
@@ -239,7 +241,7 @@ parmsDF$trial <- trialL
 fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
 
 #print(fulldf)
-write.csv(fulldf, paste0(outDir, "/logistic_mistakes.csv"))
+write.csv(fulldf, paste0(data_dir, "/logistic_mistakes.csv"))
 
 
 
