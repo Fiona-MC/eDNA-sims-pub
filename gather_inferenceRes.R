@@ -11,9 +11,20 @@ thisDir <- "/space/s1/fiona_callahan/multiSim11/"
 numRuns <- 1000
 numTrials <- 1
 
+thisDir="/space/s1/fiona_callahan/multiSim_rw3/"
+#numRuns=100
+numRuns=1
+numTrials=1
+
 thisDir <- args[1]
-numRuns <- args[2]
-numTrials <- args[3]
+numRuns <- as.numeric(args[2])
+numTrials <- as.numeric(args[3])
+scramble <- (as.numeric(args[4]) == 1)
+if (scramble) {
+    print("scramble")
+}
+INLAname <- "paper" # name of folder with INLA results is INLA_res_[INLAname]
+#INLAname <- "faster"
 
 runs <- 1:numRuns
 trials <- 1:numTrials
@@ -30,13 +41,16 @@ for (run in runs) {
         parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
         parmNames <- names(parmVals)
     }
-
-    if (file.exists(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv")) 
-                && file.exists(paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv"))
-                && file.info(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"))$size > 0) {
+    sitetabName <- paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv")
+    if (scramble) {
+        sitetabName <- paste0(thisDir, "randomRun", run, "/sitetab_scrambled.csv")
+    }
+    if (file.exists(paste0(thisDir, "randomRun", run, "/INLA_res_", INLAname, "/INLA_mistakes.csv")) 
+                && file.exists(sitetabName)
+                && file.info(paste0(thisDir, "randomRun", run, "/INLA_res_", INLAname, "/INLA_mistakes.csv"))$size > 0) {
         # load number of mistakes
-        INLA_mistakes <- read.csv(paste0(thisDir, "randomRun", run, "/INLA_res_faster/INLA_mistakes.csv"), header = TRUE)
-        sim_sitetab_sampled <- read.csv(paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
+        INLA_mistakes <- read.csv(paste0(thisDir, "randomRun", run, "/INLA_res_", INLAname, "/INLA_mistakes.csv"), header = TRUE)
+        sim_sitetab_sampled <- read.csv(sitetabName, header = TRUE)
         # get percent presence per species
         percent_presence <- list()
         for(species in params$names_species) {

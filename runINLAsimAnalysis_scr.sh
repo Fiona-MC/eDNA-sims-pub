@@ -26,10 +26,10 @@ N=1 # N=10 resulted in average usage around 30 cores
 
 for folder in ${sim_dir}/randomRun*; do
     (
-        if test ! -d "${folder}/INLA_res_${INLA_type}_scr/trial1" # if the folder is not already there NOT WORKING
+        if test ! -d "${folder}/INLA_res_${INLA_type}/trial1" # if the folder is not already there NOT WORKING
         then
             echo "starting task $folder.."
-            mkdir "$folder/INLA_res_${INLA_type}_scr/" 
+            mkdir "$folder/INLA_res_${INLA_type}/" 
             # run INLA sim analysis
             # throwing error here vvv
             #Try help(fields) to get started.
@@ -62,6 +62,6 @@ done
 # (all need to be finished)
 wait
 
-Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes.R ${sim_dir}/ ${numRuns} ${numTrials}
+Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes.R ${sim_dir}/ ${numRuns} ${numTrials} 1
 
 echo "all done"
