@@ -8,11 +8,13 @@ if (length(args) < 2) {
   stop("input folders need to be supplied", call. = FALSE)
 } 
 
-sim_dir <- "/space/s1/fiona_callahan/multiSim_rw/"
+sim_dir <- "/space/s1/fiona_callahan/multiSim_rw3/"
 sim_dir <- args[1]
+INLAname <- "paper"
+#INLAname <- "faster"
 
 numRuns <- 100
-numTrials <- 1
+numTrials <- 2
 nSpecies <- 3
 nCov <- 4
 
@@ -25,7 +27,7 @@ i <- 1
 for (run in 1:numRuns) {
     for (trial in 1:numTrials) {
         data_dir <- paste0(sim_dir, "randomRun", run, "/")
-        inla_dir <- paste0(sim_dir, "randomRun", run, "/INLA_res_faster/")
+        inla_dir <- paste0(sim_dir, "randomRun", run, "/INLA_res_", INLAname, "/")
         # store run and trial info
         runL[i] <- run
         trialL[i] <- trial

@@ -1,5 +1,6 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
+#this is for the scrambled ones
 
 sim_dir="/space/s1/fiona_callahan/multiSim_rw3"
 numRuns=100
@@ -63,5 +64,7 @@ done
 wait
 
 Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes.R ${sim_dir}/ ${numRuns} ${numTrials} 1
+# output is ${sim_dir}/infResGathered.csv 
+# next script to run is count_specificMistakes.R or analyze_multiSim.R 
 
 echo "all done"
