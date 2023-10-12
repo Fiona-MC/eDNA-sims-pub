@@ -7,6 +7,7 @@ library(gridExtra)
 library(gapminder)
 #library(gganimate)
 source("/home/fiona_callahan/eDNA_sims_code/multiSimFunctions.R")
+source("/home/fiona_callahan/eDNA_sims_code/multiSimParms.R")
 
 # Note to self about a bug you're going to create someday: 
 # count_INLAmistakes is going to fail if there is a constant covariate that is not the last one in the list
@@ -16,12 +17,14 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_rw_1000/ 1 1000
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 1 5
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
-random <- FALSE
-parmSet <- "rw"
+random <- TRUE
+#parmSet <- "rw"
 # amount of generations to prime the sim before starting to record -- (not implemented TODO)
 burn <- 100
+
+spNumMode <- 5
 
 thisdir <- args[1]
 dir.create(thisdir)
@@ -31,7 +34,7 @@ runend <- args[3]
 runs <- runstart:runend
 
 for (run in runs) {
-  if(run %% 10 == 0) {
+  if(run %% 10 == 1) {
     makePlotsTF <- TRUE
   } else {
     makePlotsTF <- FALSE
@@ -40,7 +43,11 @@ for (run in runs) {
   subdir <- paste0(thisdir, "randomRun", run, "/")
   dir.create(subdir)
 
-  params <- getParms(random = random, parmSet = parmSet)
+  if(spNumMode == 5) {
+    params <- getParms_5(random = random, parmSet = parmSet)
+  } else {
+    params <- getParms(random = random, parmSet = parmSet)
+  }
   saveRDS(params, paste0(subdir, "params.Rdata"))
   
   num_locations <- params$x_split * params$y_split

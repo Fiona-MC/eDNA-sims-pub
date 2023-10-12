@@ -1,7 +1,7 @@
 # plot covariance vs distance across time and space from sim data
 library(ggplot2)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim11/randomRun1/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_5sp_random/randomRun41/"
 
 sim_data <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))

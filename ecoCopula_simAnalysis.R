@@ -12,17 +12,19 @@ if (length(args) < 2) {
 
 #data_dir <- "/home/fiona_callahan/simData/testing/run1/"
 #save_dir <- "/home/fiona_callahan/simData/testing/INLAres/"
-data_dir <- "/space/s1/fiona_callahan/multiSim11a/randomRun30/"
-save_dir <- "/space/s1/fiona_callahan/multiSim11a/randomRun30/ecoCopula_res/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_5sp/randomRun22/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_5sp/randomRun22/ecoCopula_res/"
 #${folder}/ ${folder}/INLA_res_${INLA_type}/#
 data_dir <- args[1]
 save_dir <- args[2]
 dir.create(save_dir)
-scramble <- (as.numeric(args[3]) == 1)
 scramble <- FALSE
+scramble <- (as.numeric(args[3]) == 1)
+
 
 plot <- FALSE
-numTrials <- 2
+numTrials <- 1
+prec <- FALSE
 
 # load data
 sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
@@ -40,34 +42,26 @@ names_species <- params$names_species
 for (trial in 1:numTrials){
   # example from documentation
   # https://cran.r-project.org/web/packages/ecoCopula/vignettes/the_basics.html
-
-  fit0 <- stackedsdm(sitetab[100:200, names_species], formula_X = ~ Cov1 + Cov2 + Cov3, 
-                    data = sitetab[100:200, names_cov], family = "binomial", ncores = 1) 
+  subdir <- paste0(save_dir, "trial", trial, "/")
+  dir.create(subdir)
+  fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~ Cov1 + Cov2 + Cov3 + Cov4 + Cov5, 
+                    data = sitetab[, names_cov], family = "binomial", ncores = 1) 
   cgr_sim <- cgr(fit0)
-  plot(cgr_sim, pad = 1)
+  #plot(cgr_sim, pad = 1)
  
-
+  if(prec == TRUE) {
+    inferred_mx <- cgr_sim$best_graph$prec
+  } else {
+    inferred_mx <- cgr_sim$best_graph$cor
+  }
 
   # get inferred alpha and beta (just 1's -1's and 0's )
   inferenceRes <- list()
-  inferenceRes$alphaInferred <- matrix(data = 0, nrow = length(names_species), ncol = length(names_species))
-  inferenceRes$betaInferred <- matrix(data = 0, nrow = length(names_species), ncol = params$numCovs)
-  for (sp_index in seq_along(names_species)) {
-    this_best_model <- modelcands[which.min(waictab[, sp_index])]
-    best_model_res <- sim_lists[[this_best_model]][[names_species[sp_index]]]
-    significant_pos_vars <- row.names(best_model_res$summary.fixed)[best_model_res$summary.fixed$`0.025quant` > 0]
-    significant_neg_vars <- row.names(best_model_res$summary.fixed)[best_model_res$summary.fixed$`0.975quant` < 0]
-    for (sp_index2 in seq_along(names_species)) { # put 1's and -1's into alpha and beta inferred based on 95% CI
-      if (names_species[sp_index2] %in% significant_pos_vars) {inferenceRes$alphaInferred[sp_index, sp_index2] <- 1}
-      if (names_species[sp_index2] %in% significant_neg_vars) {inferenceRes$alphaInferred[sp_index, sp_index2] <- -1}
-    }
-    for (cov_index in seq_along(names_cov)) {
-      if (names_cov[cov_index] %in% significant_pos_vars) {inferenceRes$betaInferred[sp_index, cov_index] <- 1}
-      if (names_cov[cov_index] %in% significant_neg_vars) {inferenceRes$betaInferred[sp_index, cov_index] <- -1}
-    }
-  }
+  inferenceRes$alphaInferred <- sign(inferred_mx)
+  inferenceRes$betaInferred <- NA
+  # put 0s on diagonal
+  inferenceRes$alphaInferred <- inferenceRes$alphaInferred * as.integer(diag(nrow = params$numSpecies, ncol = params$numSpecies) == 0)
 
   saveRDS(inferenceRes, paste0(subdir, "inferenceRes.Rdata"))
-
 
 }
