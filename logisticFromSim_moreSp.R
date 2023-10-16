@@ -1,7 +1,7 @@
 # from sim output (multisim folder with lots of sims), run a logistic model on sitetab_sampled
 # outputs a csv of the number of logistic regression inference mistakes per sim
 
-# NOTE: five covariates and three species is hard coded here -- need to change this to generalize
+# NOTE: five covariates and five species is hard coded here -- need to change this to generalize
 
 library(stats)
 
@@ -18,7 +18,7 @@ data_dir <- args[1]
 numRuns <- as.numeric(args[2])
 
 # to run
-# Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim.R /space/s1/fiona_callahan/multiSim11_testSet/ 200
+# Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000
 
 runs <- 1:numRuns
 numTrials <- 1
@@ -45,6 +45,11 @@ parmNames <- names(parmVals)
 # initialize place to store parm values
 parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
 names(parmsDF) <- parmNames
+
+avg_alphInferred <- matrix(0, nrow = 5, ncol = 5)
+avg_betInferred <- matrix(0, nrow = 5, ncol = 5)
+nCompleteB <- 0
+nCompleteA <- 0
 
 i <- 1
 for (run in runs) {
@@ -88,13 +93,13 @@ for (run in runs) {
                             family = binomial(link = 'logit'), data = sim_sitetab_sampled)
             model_sp3_summary <- data.frame(summary(model_sp3)$coefficients)
             # sp4
-            model_sp4 <- glm(Sp3 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp1 + Sp2 + Sp3 + Sp5, 
+            model_sp4 <- glm(Sp4 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp1 + Sp2 + Sp3 + Sp5, 
                             family = binomial(link = 'logit'), data = sim_sitetab_sampled)
-            model_sp4_summary <- data.frame(summary(model_sp3)$coefficients)
+            model_sp4_summary <- data.frame(summary(model_sp4)$coefficients)
             # sp5
-            model_sp5 <- glm(Sp3 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp1 + Sp2 + Sp3 + Sp4, 
+            model_sp5 <- glm(Sp5 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp1 + Sp2 + Sp3 + Sp4, 
                             family = binomial(link = 'logit'), data = sim_sitetab_sampled)
-            model_sp5_summary <- data.frame(summary(model_sp3)$coefficients)
+            model_sp5_summary <- data.frame(summary(model_sp5)$coefficients)
 
             # TODO this isn't done -- gotta store these and decide whether they're "right"
             ############### GET INFERRED ALPHA AND BETA ######################
@@ -134,6 +139,10 @@ for (run in runs) {
                                     B31, B32, B33, B34, B35,
                                     B41, B42, B43, B44, B45,
                                     B51, B52, B53, B54, B55), nrow = 5, ncol = 5, byrow = TRUE)
+            if(!is.na(sum(betaInferred))) {
+                avg_betInferred <- avg_betInferred + betaInferred
+                nCompleteB <- nCompleteB + 1
+            }
             
             A12 <- (model_sp1_summary["Sp2", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Sp2", "Estimate"])
             A13 <- (model_sp1_summary["Sp3", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Sp3", "Estimate"])
@@ -164,8 +173,10 @@ for (run in runs) {
                                     A31, A32, 0, A34, A35,
                                     A41, A42, A43, 0, A45,
                                     A51, A52, A53, A54, 0), nrow = 5, ncol = 5, byrow = TRUE)
-
-
+            if(!is.na(sum(alphaInferred))) {
+                avg_alphInferred <- avg_alphInferred + alphaInferred
+                nCompleteA <- nCompleteA + 1
+            }
 
             ############### COMPARE INFERRECE RESULTS TO ACTUAL ALPHA AND BETA ######################
 
@@ -202,6 +213,8 @@ for (run in runs) {
     }
 }
 
+# done w loop
+
 df <- data.frame(sim_run = runL, 
             trial = trialL, 
             num_incorrect_alpha = num_incorrect_alphaL,
@@ -215,6 +228,12 @@ df <- data.frame(sim_run = runL,
             num_possibleEffectsL = num_possibleEffectsL)
 
 #print(df)
+
+avg_alphInferred <- avg_alphInferred / nCompleteA
+avg_betInferred <- avg_betInferred / nCompleteB
+
+round(avg_alphInferred, 4)
+round(abs(avg_alphInferred), 4)
 
 parmsDF$sim_run <- runL
 parmsDF$trial <- trialL

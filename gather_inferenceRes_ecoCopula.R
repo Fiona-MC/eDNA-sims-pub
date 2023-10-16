@@ -10,10 +10,12 @@ if (length(args) < 3) {
 thisDir="/space/s1/fiona_callahan/multiSim_5sp_random/"
 numRuns=1000
 numTrials=1
+resFolderName <- "ecoCopula_res"
 
 thisDir <- args[1]
 numRuns <- as.numeric(args[2])
 numTrials <- as.numeric(args[3])
+resFolderName <- args[4]
 
 runs <- 1:numRuns
 trials <- 1:numTrials
@@ -34,11 +36,11 @@ for (run in runs) {
     #if (scramble) {
     #    sitetabName <- paste0(thisDir, "randomRun", run, "/sitetab_scrambled.csv")
     #}
-    if (file.exists(paste0(thisDir, "randomRun", run, "/ecoCopula_res/mistakes.csv")) 
+    if (file.exists(paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv")) 
                 && file.exists(sitetabName)
-                && file.info(paste0(thisDir, "randomRun", run, "/ecoCopula_res/mistakes.csv"))$size > 0) {
+                && file.info(paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv"))$size > 0) {
         # load number of mistakes
-        mistakes <- read.csv(paste0(thisDir, "randomRun", run, "/ecoCopula_res/mistakes.csv"), header = TRUE)
+        mistakes <- read.csv(paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv"), header = TRUE)
         sim_sitetab_sampled <- read.csv(sitetabName, header = TRUE)
         # get percent presence per species
         percent_presence <- list()
@@ -57,10 +59,10 @@ for (run in runs) {
         }
     }
 }
-saveRDS(parmNames, paste0(thisDir, "parmNames.Rdata"))
+#saveRDS(parmNames, paste0(thisDir, "parmNames.Rdata"))
 
 # this will fail if the mistakes file was never made but I think that's ok
 colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(percent_presence), names(mistakes)) 
 
-write.csv(infResDF, paste0(thisDir, "infResGathered.csv"))
+write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered.csv"))
 # note -- beta1, beta2,..., beta9 (and same for alphas) are read off by column

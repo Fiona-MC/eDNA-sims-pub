@@ -8,11 +8,12 @@ library(tidyr)
 
 dirNums <- c("_5sp_random")
 multiSimRes <- data.frame()
+resName <- "ecoCopula_res_"
 
 dirNumL <- c()
 for (dirNum in dirNums) {
   thisDir <- paste0("/space/s1/fiona_callahan/multiSim", dirNum, "/")
-  thisMultiSimRes <- read.csv(paste0(thisDir, "infResGathered.csv"), header = TRUE)
+  thisMultiSimRes <- read.csv(paste0(thisDir, resName, "infResGathered.csv"), header = TRUE)
   dirNumL <- c(dirNumL, rep(dirNum, times = length(thisMultiSimRes$RunNum)))
   multiSimRes <- plyr::rbind.fill(multiSimRes, thisMultiSimRes)
 }

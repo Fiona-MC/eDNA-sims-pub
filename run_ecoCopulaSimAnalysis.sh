@@ -1,13 +1,14 @@
 #!/bin/bash
-export OMP_NUM_THREADS=15
+export OMP_NUM_THREADS=5
 
 sim_dir="/space/s1/fiona_callahan/multiSim_5sp_random"
 numRuns=1000
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
+resDirName=ecoCopula_res
 #INLA_type="faster"
 
-Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
+#Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
 
 # this takes a minute (cp takes awhile -- if we just delete them it will be fast)
@@ -26,16 +27,16 @@ N=3 # N=10 resulted in average usage around 30 cores
 
 for folder in ${sim_dir}/randomRun*; do
     (
-        if test ! -d "${folder}/ecoCopula_res/trial1" # if the folder is not already there NOT WORKING
-        then
+        #if test ! -d "${folder}/${resDirName}/trial1" # if the folder is not already there NOT WORKING
+        #then
             echo "starting task $folder.."
-            mkdir "$folder/ecoCopula_res/" 
+            mkdir "$folder/${resDirName}/" 
             # run INLA sim analysis
             #timeout -k 10 2h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/INLA_res_${INLA_type}/ $scramble
-            Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/ecoCopula_res/ 0
+            Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ 0
             Rscript /home/fiona_callahan/eDNA_sims_code/countEcoCopulaMistakes.R ${folder}/ ${folder}/ecoCopula_res/
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
-        fi
+        #fi
     ) &
 
     # allow to execute up to $N jobs in parallel
@@ -51,6 +52,6 @@ done
 # (all need to be finished)
 wait
 
-Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials}
+Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
 
 echo "all done"

@@ -2,6 +2,8 @@
 # to run
 # Rscript count_SpecificMistakes_5sp.R /space/s1/fiona_callahan/multiSim_5sp_random/
 
+# note for logistic model this is done in the logisticFromSim_moreSp.R document (havent put it in the other logistic one yet as of 10/16/23)
+
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) < 2) {
@@ -25,7 +27,7 @@ i <- 1
 for (run in 1:numRuns) {
     for (trial in 1:numTrials) {
         data_dir <- paste0(sim_dir, "randomRun", run, "/")
-        inla_dir <- paste0(sim_dir, "randomRun", run, "/ecoCopula_res/")
+        inla_dir <- paste0(sim_dir, "randomRun", run, "/INLA_res_paper/")
         # store run and trial info
         runL[i] <- run
         trialL[i] <- trial
@@ -88,11 +90,12 @@ average_abs_alphaInferred <- matrix(data = apply(X = alphaInferredDF[!is.na(alph
 #                                FUN = function(x) {mean(abs(x))}), 
  #                               nrow = nSpecies, ncol = nCov)
 
-average_alphaInferred
+round(average_alphaInferred, 4)
+round(average_abs_alphaInferred, 4)
 #average_betaInferred
 
 hist(alphaInferredDF$alpha13)
 
 # print(df)
-write.csv(df, paste0(sim_dir, "specific_InferredParms.csv"))
+#write.csv(df, paste0(sim_dir, "specific_InferredParms.csv"))
 

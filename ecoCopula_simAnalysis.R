@@ -38,8 +38,8 @@ if (scramble == TRUE) {
 names_cov <- params$names_cov
 names_species <- params$names_species
 
-# run analysis three times on the same data
-for (trial in 1:numTrials){
+
+for (trial in 1:numTrials) {
   # example from documentation
   # https://cran.r-project.org/web/packages/ecoCopula/vignettes/the_basics.html
   subdir <- paste0(save_dir, "trial", trial, "/")

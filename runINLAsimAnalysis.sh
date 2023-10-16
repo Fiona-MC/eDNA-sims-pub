@@ -1,5 +1,5 @@
 #!/bin/bash
-export OMP_NUM_THREADS=15
+export OMP_NUM_THREADS=5
 
 sim_dir="/space/s1/fiona_callahan/multiSim_5sp_random"
 numRuns=1000
