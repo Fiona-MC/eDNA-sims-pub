@@ -24,7 +24,7 @@ random <- TRUE
 # amount of generations to prime the sim before starting to record -- (not implemented TODO)
 burn <- 100
 
-spNumMode <- 5
+spNumMode <- "many"
 
 thisdir <- args[1]
 dir.create(thisdir)
@@ -45,7 +45,9 @@ for (run in runs) {
 
   if(spNumMode == 5) {
     params <- getParms_5(random = random, parmSet = parmSet)
-  } else {
+  } else if(spNumMode == "many") {
+    params <- getParms_many(random = random, parmSet = parmSet)
+  }else {
     params <- getParms(random = random, parmSet = parmSet)
   }
   saveRDS(params, paste0(subdir, "params.Rdata"))

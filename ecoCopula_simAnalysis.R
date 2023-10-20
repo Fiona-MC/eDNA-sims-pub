@@ -46,10 +46,12 @@ for (trial in 1:numTrials) {
   dir.create(subdir)
   fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~ Cov1 + Cov2 + Cov3 + Cov4 + Cov5, 
                     data = sitetab[, names_cov], family = "binomial", ncores = 1) 
+  fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~ 1, 
+                    data = sitetab[, names_cov], family = "binomial", ncores = 1) 
   cgr_sim <- cgr(fit0)
   #plot(cgr_sim, pad = 1)
  
-  if(prec == TRUE) {
+  if (prec == TRUE) {
     inferred_mx <- cgr_sim$best_graph$prec
   } else {
     inferred_mx <- cgr_sim$best_graph$cor

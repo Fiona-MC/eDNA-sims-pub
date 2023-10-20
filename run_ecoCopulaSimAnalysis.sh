@@ -5,7 +5,7 @@ sim_dir="/space/s1/fiona_callahan/multiSim_5sp_random"
 numRuns=1000
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
-resDirName=ecoCopula_res
+resDirName=ecoCopula_res_noCov
 #INLA_type="faster"
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}

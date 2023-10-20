@@ -5,6 +5,7 @@ sim_dir="/space/s1/fiona_callahan/multiSim_5sp_random"
 numRuns=1000
 numTrials=1 # I think as this is implemented right now this needs to be 1
 resDirName=spiecEasi_res_mb
+seMethod=lasso
 seMethod=mb
 random=1
 plot=1
