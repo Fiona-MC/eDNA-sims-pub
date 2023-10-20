@@ -1,4 +1,12 @@
+# NOTE -- ALL THIS CODE HAS NOW BEEN TRANSPLANTED INTO multiSim_Mar2023.R to happen if readAbdMode == T
+
+
+
+
+
+
 # takes the results of multiSim_Mar2023.R and samples the abundances of animals into read abundances
+# NOTE -- ALL THIS CODE HAS NOW BEEN TRANSPLANTED INTO multiSim_Mar2023.R to happen if readAbdMode == T
 # then normalizes the read abundances (?)
 library(ggplot2)
 source("/home/fiona_callahan/eDNA_sims_code/multiSimFunctions.R")
