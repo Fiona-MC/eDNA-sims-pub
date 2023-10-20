@@ -29,7 +29,7 @@ sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 
-# indivSampleRate is the poission rate of sampling individuals to deposit DNA 
+# indivSampleProb is the poission rate of sampling individuals to deposit DNA 
 # readSampleRate is the number of reads per individual that deposits DNA (avg) 
 # TODO (I think probably I want this to be NB not poission but for now it's poisson)
 if (random) {
@@ -48,7 +48,7 @@ saveRDS(abdParms, paste0(data_dir, "abdParms.Rdata"))
 for(t in 1:params$num_gens) {
     for(s in seq_along(locList)) {
         thisN <- sim_data_raw[[t]]$N[[s]] # vector of N for all species
-        lambdaDep <- abdParms$indivSampleRate * thisN
+        #lambdaDep <- abdParms$indivSampleRate * thisN
         N_depDNA <- rbinom(n = params$numSpecies, size = as.integer(thisN), p = abdParms$indivSampleProb)
         lambdaReads <- abdParms$readSampleRate * N_depDNA 
         Nreads <- rpois(n = params$numSpecies, lambda = lambdaReads)

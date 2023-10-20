@@ -63,10 +63,6 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
 
         mean_mig_rate <- 0.01
 
-        N0_0 <- 10
-        x_split <- 10
-        y_split <- 10
-
         c2 <- 300 #changed to be varied -- sp effect
         covMeasureNoise_sd <- 0
 
@@ -75,6 +71,9 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
         corr_mode <- "independent"
     }
 
+    N0_0 <- 10
+    x_split <- 10
+    y_split <- 10
     #TODO change to accommodate actual spatial locations -- this is mostly done I think -- 
     # might need something to figure out the lat long to dist mx
     xdim1 <- 100
@@ -140,7 +139,8 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
     
     #mig_rates=rep(0.1, times=numSpecies) # OR vvv sample this from gamma per species
     mig_rates <- rgamma(n = numSpecies, shape = mean_mig_rate / 0.01, scale = 0.01) # mean = 0.1, mode 0.09, variance 0.001
-
+    readThreshold <- 5
+    
     # parameters from old versions that dont exist in abundance version anymore
     det_prob_exp <- NA
     det_prob_add <- NA
@@ -159,7 +159,7 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
                alpha_fpr = alpha_fpr, beta_fpr = beta_fpr, constant_fpr = constant_fpr), names_cov = names_cov, names_all_cov = names_all_cov,
                names_species = names_species, N0_0 = N0_0, covNoise_sd = covNoise_sd, covMeasureNoise_sd = covMeasureNoise_sd, 
                num_samples_time = num_samples_time, num_samples_space = num_samples_space, radius = radius, indivSampleProb = indivSampleProb, 
-               readSampleRate = readSampleRate, corr_mode = corr_mode)
+               readSampleRate = readSampleRate, corr_mode = corr_mode, readThreshold = readThreshold)
     return(params)
 }
 

@@ -17,7 +17,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 1 5
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_manySp_testing/ 1 5
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- TRUE
 #parmSet <- "rw"
@@ -170,45 +170,46 @@ for (run in runs) {
       thisN[[s]] <- apply(matrix(thisN[[s]]), FUN = function(x) {max(x, 0)}, MARGIN = 1)  # nolint: brace_linter.
       
       if(readAbdMode) {
-        lambdaDep <- params$indivSampleRate * thisN
-        N_depDNA <- rbinom(n = params$numSpecies, size = as.integer(thisN), p = params$indivSampleProb)
+        #lambdaDep <- params$indivSampleRate * thisN
+        N_depDNA <- rbinom(n = params$numSpecies, size = as.integer(thisN[[s]]), p = params$indivSampleProb)
         lambdaReads <- params$readSampleRate * N_depDNA 
         Nreads <- rpois(n = params$numSpecies, lambda = lambdaReads)
         thisReadAbd[[s]] <- Nreads
-      }
-
-      # calculate new response data
-      detect_prob <- (thisN[[s]]^params$det_prob_exp) / (params$det_prob_add + thisN[[s]]^params$det_prob_exp)
-      thisY[[s]] <- rbinom(n = params$numSpecies, size = 1, prob = detect_prob)
-      
-      # add false detections (positives)
-      # TODO how to add option of whether fpr changes with location and time?
-      # fpr_mode = "constant" # fpr is constant 
-      # sample an fpr for this time and location
-      fpr_mode <- params$fpr$mode
-      if (fpr_mode == "none") {
-        # no false positives (ie rate is 0)
-        fpr <- rep(0, params$numSpecies)
-      } else if (fpr_mode == "constant") {
-        # fpr is a set constant  -- this is basically just for experimenting
-        fpr <- rep(params$fpr$constant_fpr, params$numSpecies)
-      } else if (fpr_mode == "independent") {
-        # draw separate fpr for each species
-        fpr <- rbeta(n = params$numSpecies, shape1 = params$fpr$alpha_fpr, shape2 = params$fpr$beta_fpr)
-      } else if (fpr_mode == "dependent_sp") {
-        # draw one fpr for this location and time and apply to all species
-        fpr <- rep(rbeta(n = 1, shape1 = params$fpr$alpha_fpr, shape2 = params$fpr$beta_fpr), params$numSpecies)
+        thisY[[s]] <- as.integer(Nreads >= params$readThreshold)
       } else {
-        print("your fpr_mode is not implemented")
-      }
-      # apply this fpr to all species (bernoulli trials)
-      for (species in 1:params$numSpecies){
-        if (thisY[[s]][species] == 0) { #if species is not detected (thisY[[s]] == 0) then set to 1 with prob fpr
-          FP <- rbinom(n = 1, size = 1, prob = fpr[species]) 
-          thisY[[s]][species] <- FP
-          if (FP) {
-            FP_count <- FP_count + 1
-          } 
+        # calculate new response data
+        detect_prob <- (thisN[[s]]^params$det_prob_exp) / (params$det_prob_add + thisN[[s]]^params$det_prob_exp)
+        thisY[[s]] <- rbinom(n = params$numSpecies, size = 1, prob = detect_prob)
+        
+        # add false detections (positives)
+        # TODO how to add option of whether fpr changes with location and time?
+        # fpr_mode = "constant" # fpr is constant 
+        # sample an fpr for this time and location
+        fpr_mode <- params$fpr$mode
+        if (fpr_mode == "none") {
+          # no false positives (ie rate is 0)
+          fpr <- rep(0, params$numSpecies)
+        } else if (fpr_mode == "constant") {
+          # fpr is a set constant  -- this is basically just for experimenting
+          fpr <- rep(params$fpr$constant_fpr, params$numSpecies)
+        } else if (fpr_mode == "independent") {
+          # draw separate fpr for each species
+          fpr <- rbeta(n = params$numSpecies, shape1 = params$fpr$alpha_fpr, shape2 = params$fpr$beta_fpr)
+        } else if (fpr_mode == "dependent_sp") {
+          # draw one fpr for this location and time and apply to all species
+          fpr <- rep(rbeta(n = 1, shape1 = params$fpr$alpha_fpr, shape2 = params$fpr$beta_fpr), params$numSpecies)
+        } else {
+          print("your fpr_mode is not implemented")
+        }
+        # apply this fpr to all species (bernoulli trials)
+        for (species in 1:params$numSpecies){
+          if (thisY[[s]][species] == 0) { #if species is not detected (thisY[[s]] == 0) then set to 1 with prob fpr
+            FP <- rbinom(n = 1, size = 1, prob = fpr[species]) 
+            thisY[[s]][species] <- FP
+            if (FP) {
+              FP_count <- FP_count + 1
+            } 
+          }
         }
       }
     } # end location loop
