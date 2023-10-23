@@ -5,6 +5,8 @@ library(reshape)
 library(gridExtra)
 #install.packages(c('gapminder','gganimate','gifski'))
 library(gapminder)
+install.packages("data.table")
+library(data.table)
 #library(gganimate)
 source("/home/fiona_callahan/eDNA_sims_code/multiSimFunctions.R")
 source("/home/fiona_callahan/eDNA_sims_code/multiSimParms.R")
@@ -27,6 +29,7 @@ burn <- 100
 spNumMode <- "many"
 readAbdMode <- TRUE
 
+thisdir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/"
 thisdir <- args[1]
 dir.create(thisdir)
 
@@ -48,7 +51,7 @@ for (run in runs) {
     params <- getParms_5(random = random, parmSet = parmSet)
   } else if(spNumMode == "many") {
     params <- getParms_many(random = random, parmSet = parmSet)
-  }else {
+  } else {
     params <- getParms(random = random, parmSet = parmSet)
   }
   saveRDS(params, paste0(subdir, "params.Rdata"))
@@ -76,6 +79,10 @@ for (run in runs) {
   sim_data <- list()
   t_minus_one <- list()
   for (t in 1:params$num_gens){
+    if(t %% 100 == 1){
+      print("t=")
+      print(t)
+    }
     sim_data[[t]] <- list()
     thisK <- list()
     thisK_cov <- list()
@@ -229,6 +236,7 @@ for (run in runs) {
   timePts <- seq(from = 1, to = params$num_gens, by = 1)
   
   # Wrangle data
+  #TODO -- this is taking WAY too long with more species lol
   sitetab_data <- numeric(length(timePts) * length(params$locList) * params$numSpecies * (7 + params$numCovs))
   i <- 1
   for (t in timePts){
@@ -255,7 +263,9 @@ for (run in runs) {
   namesCov <- sapply(1:params$numCov, FUN = function(cov) {paste0("Cov", cov)})
   names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "Presence", "Abundance")
   
-  write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
+  # TODO this is taking a stupid long time
+  fwrite(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
+  #write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
   
   # sample from full sitetab
   time_pts_sample <- seq(from = 1, to = params$num_gens, by = round(1000 / params$num_samples_time))
@@ -293,7 +303,8 @@ for (run in runs) {
   saveRDS(sim_data, paste0(subdir, "sim_data.Rdata"))
   saveRDS(locList, paste0(subdir, "locList.Rdata"))
   saveRDS(covList, paste0(subdir, "covList.Rdata"))
-  write.csv(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_sampled.csv"))
+  fwrite(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_sampled.csv"))
+  #write.csv(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_sampled.csv"))
 
   if(readAbdMode) {
     # Wrangle data for abd
@@ -323,7 +334,8 @@ for (run in runs) {
     namesCov <- sapply(1:params$numCov, FUN = function(cov) {paste0("Cov", cov)})
     names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "ReadAbd", "Abundance")
 
-    write.csv(sim_sitetab_longer, paste0(data_dir, "sitetab_longer_readAbd.csv"))
+    fwrite(sim_sitetab_longer, paste0(data_dir, "sitetab_longer_readAbd.csv"))
+    #write.csv(sim_sitetab_longer, paste0(data_dir, "sitetab_longer_readAbd.csv"))
 
     # sample from full sitetab
     time_pts_sample <- seq(from = 1, to = params$num_gens, by = round(1000 / params$num_samples_time))
@@ -359,7 +371,8 @@ for (run in runs) {
         makePlots(sim_data = sim_data_raw, params = params, locList = locList, outDir = data_dir, sitetab_sampled = sim_sitetab_sampled)
     }
     saveRDS(sim_data_raw, paste0(data_dir, "sim_data_abd.Rdata"))
-    write.csv(sim_sitetab_sampled, paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
+    fwrite(sim_sitetab_sampled, paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
+    #write.csv(sim_sitetab_sampled, paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
 
 
     if (plot == TRUE) {
