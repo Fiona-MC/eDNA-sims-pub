@@ -79,7 +79,7 @@ abundanceEffectTransform <- function(mx, type = "none") {
 
 
 
-makePlots <- function(sim_data = sim_data, params = params, locList = locList, locPlots = c(19, 8, 6, 37, 64, 46), outDir, sitetab_sampled) {
+makePlots <- function(sim_data = sim_data, params = params, locList = locList, locPlots = c(19, 8, 6, 37, 64, 46), outDir, sitetab_sampled, spList = c(1, 2, 3)) { # nolint: line_length_linter.
     detProbP <- ggplot(data.frame(x = 0:500, y = unlist(lapply(X = as.list(0:500), 
                                   FUN = function(x) { 
                                     (x^params$det_prob_exp) / (params$det_prob_add + x^params$det_prob_exp)}))),  # nolint: object_usage_linter.
@@ -96,7 +96,7 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     for (s_index in seq_along(locList)) {
       # make data frame for that location
       species_abundance[[s_index]] <- data.frame(time = 1:params$num_gens)
-      for (k in 1:params$numSpecies) {
+      for (k in spList) {
         spAbund <- lapply(sim_data, FUN = function(x) {return(x$N[[s_index]][k])}) # nolint: brace_linter.
         species_abundance[[s_index]][[paste0("species", k)]] <- unlist(spAbund)
       }
@@ -107,7 +107,7 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     for (s_index in seq_along(locList)){
       # make data frame for that location
       carrying_capacities[[s_index]] <- data.frame(time = 1:params$num_gens)
-      for (k in 1:params$numSpecies){
+      for (k in spList){
         Kcapacity <- lapply(sim_data, FUN = function(x) {return(x$K[[s_index]][k])})
         carrying_capacities[[s_index]][[paste0("species", k)]] <- unlist(Kcapacity)
       }
@@ -120,14 +120,14 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     for (i in seq_along(s_indexL)){
       s_index <- s_indexL[i]
       # species_abundance[[s_index]]
-      df <- melt(species_abundance[[s_index]][species_abundance[[s_index]]$time %in% 100:1000, ], id.vars = "time")
+      df <- reshape::melt(species_abundance[[s_index]][species_abundance[[s_index]]$time %in% 100:1000, ], id.vars = "time")
       names(df) <- c("time", "species", "abundance")
       abd_plot <- ggplot(df, aes(x = time, y = abundance, color = species)) + # nolint: object_usage_linter.
         geom_line() +
         ggtitle(paste("Species abundance for location", s_index))
       
       carrying_capacities[[s_index]]
-      df <- melt(carrying_capacities[[s_index]][carrying_capacities[[s_index]]$time %in% 100:1000, ], id.vars = "time")
+      df <- reshape::melt(carrying_capacities[[s_index]][carrying_capacities[[s_index]]$time %in% 100:1000, ], id.vars = "time")
       names(df) <- c("time", "species", "carrying_capacity")
       cc_plot <- ggplot(df, aes(x = time, y = carrying_capacity, color = species)) + # nolint: object_usage_linter.
         geom_line() +
@@ -153,7 +153,7 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     })
     
     abd_av_df <- data.frame(s_index = seq_along(locList), x = unlist(x_coords), y = unlist(y_coords))
-    for (k in 1:params$numSpecies){
+    for (k in spList){
       #just cause the first column isnt real
       sp_i <- k + 1
       sp_av <- lapply(sp_average, FUN = function(spav) {return(spav[sp_i])})
@@ -161,7 +161,7 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     }
     #abd_av_df
     
-    aesNamesString <- lapply(1:params$numSpecies, FUN = function(sp) {paste0("species", sp, "AverageAbundance")})
+    aesNamesString <- lapply(spList, FUN = function(sp) {paste0("species", sp, "AverageAbundance")})
     #plot average abundance of each species across space
     avgAbdPlotsL <- lapply(aesNamesString, FUN = function(varName) {
       p <- ggplot(abd_av_df, aes(x = x, y = y, label = s_index, color = !!sym(varName))) + # nolint: object_usage_linter.
@@ -231,7 +231,9 @@ plotDetectProb <- function(abdParms) {
     for (i in seq_along(N_set)) {
         N <- N_set[i]
         z_set <- seq(0, N, 1)
-        P_detect[i] <- sum((1 - dpois(x = 0, lambda = abdParms$readSampleRate * z_set)) * dbinom(x = z_set, size = N, p = abdParms$indivSampleProb))
+        # sum over i of (p(# reads greater than threshold | num indiv = z_set[i]) * p(num indiv sampled == z_set[i]))
+        P_detect[i] <- sum((1 - ppois(q = abdParms$readThreshold - 1, lambda = abdParms$readSampleRate * z_set)) * 
+                                dbinom(x = z_set, size = N, p = abdParms$indivSampleProb))
     }
     p <- ggplot(data.frame(x = N_set, y = P_detect),  # nolint: object_usage_linter.
                                     aes(x, y)) + # nolint: object_usage_linter.

@@ -5,7 +5,7 @@ library(reshape)
 library(gridExtra)
 #install.packages(c('gapminder','gganimate','gifski'))
 library(gapminder)
-install.packages("data.table")
+#install.packages("data.table")
 library(data.table)
 #library(gganimate)
 source("/home/fiona_callahan/eDNA_sims_code/multiSimFunctions.R")
@@ -37,6 +37,7 @@ runstart <- args[2]
 runend <- args[3]
 runs <- runstart:runend
 
+print(Sys.time())
 for (run in runs) {
   if(run %% 10 == 1) {
     makePlotsTF <- TRUE
@@ -298,7 +299,13 @@ for (run in runs) {
   names(sim_sitetab_sampled) <- c("labID", "Age", "Lat", "Long", params$names_all_cov, params$names_species)
 
   if (makePlotsTF) {
-    makePlots(sim_data = sim_data, params = params, locList = locList, outDir = subdir, sitetab_sampled = sim_sitetab_sampled)
+    if(params$numSpecies < 10) {
+      makePlots(sim_data = sim_data, params = params, locList = locList, outDir = subdir, 
+              sitetab_sampled = sim_sitetab_sampled, spList = 1:params$numSpecies)
+    } else {
+      makePlots(sim_data = sim_data, params = params, locList = locList, outDir = subdir, 
+              sitetab_sampled = sim_sitetab_sampled, spList = c(1, 2, 3))
+    }
   }
   saveRDS(sim_data, paste0(subdir, "sim_data.Rdata"))
   saveRDS(locList, paste0(subdir, "locList.Rdata"))
@@ -318,11 +325,11 @@ for (run in runs) {
         sitetab_data[i + 2] <- locList[s_index][[1]][1] #x_location
         sitetab_data[i + 3] <- locList[s_index][[1]][2] #y_location
         for (cov in 1:params$numCovs) { # add covariate values 
-            sitetab_data[i + 3 + cov] <- sim_data_raw[[t]]$covs[[cov]][s_index]
+            sitetab_data[i + 3 + cov] <- sim_data[[t]]$covs[[cov]][s_index]
         }
         sitetab_data[i + 4 + params$numCovs] <- k
-        sitetab_data[i + 5 + params$numCovs] <- sim_data_raw[[t]]$readAbd[[s_index]][k] # add presence absence for this species
-        sitetab_data[i + 6 + params$numCovs] <- sim_data_raw[[t]]$N[[s_index]][k] #add abundances here
+        sitetab_data[i + 5 + params$numCovs] <- sim_data[[t]]$readAbd[[s_index]][k] # add presence absence for this species
+        sitetab_data[i + 6 + params$numCovs] <- sim_data[[t]]$N[[s_index]][k] #add abundances here
         i <- i + 4 + params$numCovs + 3
         }
     }
@@ -334,8 +341,8 @@ for (run in runs) {
     namesCov <- sapply(1:params$numCov, FUN = function(cov) {paste0("Cov", cov)})
     names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "ReadAbd", "Abundance")
 
-    fwrite(sim_sitetab_longer, paste0(data_dir, "sitetab_longer_readAbd.csv"))
-    #write.csv(sim_sitetab_longer, paste0(data_dir, "sitetab_longer_readAbd.csv"))
+    fwrite(sim_sitetab_longer, paste0(subdir, "sitetab_longer_readAbd.csv"))
+    #write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer_readAbd.csv"))
 
     # sample from full sitetab
     time_pts_sample <- seq(from = 1, to = params$num_gens, by = round(1000 / params$num_samples_time))
@@ -354,10 +361,10 @@ for (run in runs) {
             sitetab_data_sampled[i + 3] <- locList[s_index][[1]][2]
             for (cov in 1:params$numCovs){ # add covariate values to sitetab
                 # ADD COV MEASUREMENT NOISE HERE
-                sitetab_data_sampled[i + 3 + cov] <- sim_data_raw[[t]]$covs[[cov]][s_index] + rnorm(n = 1, mean = 0, sd = params$covMeasureNoise_sd)
+                sitetab_data_sampled[i + 3 + cov] <- sim_data[[t]]$covs[[cov]][s_index] + rnorm(n = 1, mean = 0, sd = params$covMeasureNoise_sd)
             }
             for (k in 1:params$numSpecies){ # add read abd absence to sitetab
-                sitetab_data_sampled[i + 3 + params$numCovs + k] <- sim_data_raw[[t]]$readAbd[[s_index]][k]
+                sitetab_data_sampled[i + 3 + params$numCovs + k] <- sim_data[[t]]$readAbd[[s_index]][k]
             }
             i <- i + 4 + params$numCovs + params$numSpecies
         }
@@ -367,17 +374,15 @@ for (run in runs) {
                                     ncol = 4 + params$numCovs + params$numSpecies, byrow = TRUE)) 
     names(sim_sitetab_sampled) <- c("labID", "Age", "Lat", "Long", params$names_all_cov, params$names_species)
 
-    if (plot) {
-        makePlots(sim_data = sim_data_raw, params = params, locList = locList, outDir = data_dir, sitetab_sampled = sim_sitetab_sampled)
-    }
-    saveRDS(sim_data_raw, paste0(data_dir, "sim_data_abd.Rdata"))
-    fwrite(sim_sitetab_sampled, paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
-    #write.csv(sim_sitetab_sampled, paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
+    saveRDS(sim_data, paste0(subdir, "sim_data_abd.Rdata"))
+    fwrite(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_readAbd_sampled.csv"))
+    #write.csv(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_readAbd_sampled.csv"))
 
 
-    if (plot == TRUE) {
-        p <- plotDetectProb(abdParms = abdParms)
-        ggsave(p, file = paste0(data_dir, "detProbPlot_abd.png"), width = 7, height = 7)
+    if (makePlotsTF == TRUE) {
+        p <- plotDetectProb(abdParms = params)
+        ggsave(p, file = paste0(subdir, "detProbPlot_abd.png"), width = 7, height = 7)
     }
   }
+  print(Sys.time())
 }
