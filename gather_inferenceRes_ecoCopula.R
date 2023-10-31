@@ -7,10 +7,10 @@ if (length(args) < 3) {
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 5 1
 
-thisDir="/space/s1/fiona_callahan/multiSim_5sp_random/"
-numRuns=1000
+thisDir="/space/s1/fiona_callahan/multiSim_manySp_testing2/"
+numRuns=10
 numTrials=1
-resFolderName <- "ecoCopula_res"
+resFolderName <- "spiecEasi_res_mb"
 
 thisDir <- args[1]
 numRuns <- as.numeric(args[2])

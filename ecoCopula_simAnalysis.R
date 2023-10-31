@@ -10,11 +10,9 @@ if (length(args) < 2) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/home/fiona_callahan/simData/testing/run1/"
-#save_dir <- "/home/fiona_callahan/simData/testing/INLAres/"
-#data_dir <- "/space/s1/fiona_callahan/multiSim_5sp/randomRun22/"
-#save_dir <- "/space/s1/fiona_callahan/multiSim_5sp/randomRun22/ecoCopula_res/"
-#${folder}/ ${folder}/INLA_res_${INLA_type}/#
+#data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/randomRun3/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/randomRun3/ecoCopula_res_noCov/"
+
 data_dir <- args[1]
 save_dir <- args[2]
 dir.create(save_dir)
@@ -24,7 +22,7 @@ scramble <- (as.numeric(args[3]) == 1)
 
 plot <- FALSE
 numTrials <- 1
-prec <- FALSE
+prec <- TRUE
 
 # load data
 sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
@@ -37,6 +35,7 @@ if (scramble == TRUE) {
 
 names_cov <- params$names_cov
 names_species <- params$names_species
+cov <- FALSE
 
 
 for (trial in 1:numTrials) {
@@ -44,10 +43,15 @@ for (trial in 1:numTrials) {
   # https://cran.r-project.org/web/packages/ecoCopula/vignettes/the_basics.html
   subdir <- paste0(save_dir, "trial", trial, "/")
   dir.create(subdir)
-  fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~ Cov1 + Cov2 + Cov3 + Cov4 + Cov5, 
-                    data = sitetab[, names_cov], family = "binomial", ncores = 1) 
-  fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~ 1, 
-                    data = sitetab[, names_cov], family = "binomial", ncores = 1) 
+  #formula <- as.formula(paste(" ~ ", paste(names_cov, collapse = "+")))
+  if(cov) {
+    formula <- as.formula(paste(" ~ ", paste(names_cov, collapse = "+")))
+    fit0 <- stackedsdm(sitetab[, names_species], formula_X = formula, 
+                      data = sitetab[, names_cov], family = "binomial", ncores = 1) 
+  } else {
+    fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~ 1, 
+                      data = sitetab[, names_cov], family = "binomial", ncores = 1) 
+  }
   cgr_sim <- cgr(fit0)
   #plot(cgr_sim, pad = 1)
  

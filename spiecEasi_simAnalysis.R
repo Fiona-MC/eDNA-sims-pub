@@ -9,13 +9,14 @@ library(igraph)
 
 #note -- so far not controlling for covs
 args <- commandArgs(trailingOnly = TRUE)
-data_dir <- "/space/s1/fiona_callahan/multiSim_5sp_testing/randomRun2/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_5sp_testing/randomRun2/spiecEasi_res/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/randomRun3/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/randomRun3/spiecEasi_res_sparccTest/"
 data_dir <- args[1]
 save_dir <- args[2]
+se.method <- "sparcc"
 se.method <- args[3]
 numTrials <- args[4]
-se.method <- "mb"
+#se.method <- "mb"
 
 # load data
 locList <- readRDS(paste0(data_dir, "locList.Rdata"))
@@ -46,7 +47,7 @@ for (trial in 1:numTrials) {
         ## Define arbitrary threshold for SparCC correlation matrix for the graph
         res.graph <- abs(res$Cor) >= 0.3 #fiona edited
         diag(res.graph) <- 0
-        res.graph <- Matrix(sparcc.graph, sparse=TRUE)
+        res.graph <- Matrix(res.graph, sparse = TRUE)
     } 
 
     # get inferred alpha and beta (just 1's -1's and 0's )

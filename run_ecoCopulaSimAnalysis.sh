@@ -1,8 +1,8 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_5sp_random"
-numRuns=1000
+sim_dir="/space/s1/fiona_callahan/multiSim_manySp_testing2"
+numRuns=10
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
 resDirName=ecoCopula_res_noCov
@@ -31,10 +31,9 @@ for folder in ${sim_dir}/randomRun*; do
         #then
             echo "starting task $folder.."
             mkdir "$folder/${resDirName}/" 
-            # run INLA sim analysis
-            #timeout -k 10 2h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/INLA_res_${INLA_type}/ $scramble
+            # run sim analysis
             Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ 0
-            Rscript /home/fiona_callahan/eDNA_sims_code/countEcoCopulaMistakes.R ${folder}/ ${folder}/ecoCopula_res/
+            Rscript /home/fiona_callahan/eDNA_sims_code/countEcoCopulaMistakes.R ${folder}/ ${folder}/${resDirName}/
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
         #fi
     ) &

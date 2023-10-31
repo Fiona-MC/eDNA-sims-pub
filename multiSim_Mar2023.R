@@ -19,7 +19,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_manySp_testing/ 1 5
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_manySp_testing2/ 1 10
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- TRUE
 #parmSet <- "rw"
@@ -29,13 +29,16 @@ burn <- 100
 spNumMode <- "many"
 readAbdMode <- TRUE
 
-thisdir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/"
+thisdir <- "/space/s1/fiona_callahan/multiSim_manySp_testing_time/"
 thisdir <- args[1]
 dir.create(thisdir)
 
 runstart <- args[2]
 runend <- args[3]
 runs <- runstart:runend
+
+# controls whether sim_sitetab_longer.csv is created with all time points or just the sampled table
+longer <- FALSE 
 
 print(Sys.time())
 for (run in runs) {
@@ -80,10 +83,10 @@ for (run in runs) {
   sim_data <- list()
   t_minus_one <- list()
   for (t in 1:params$num_gens){
-    if(t %% 100 == 1){
-      print("t=")
-      print(t)
-    }
+    #if(t %% 100 == 1){
+    #  print("t=")
+    #  print(t)
+    #}
     sim_data[[t]] <- list()
     thisK <- list()
     thisK_cov <- list()
@@ -235,38 +238,39 @@ for (run in runs) {
 
   #timePts<-1:params$num_gens #time points to "collect"
   timePts <- seq(from = 1, to = params$num_gens, by = 1)
-  
-  # Wrangle data
-  #TODO -- this is taking WAY too long with more species lol
-  sitetab_data <- numeric(length(timePts) * length(params$locList) * params$numSpecies * (7 + params$numCovs))
-  i <- 1
-  for (t in timePts){
-    for (s_index in seq_along(locList)){
-      for (k in 1:params$numSpecies){
-        sitetab_data[i] <- s_index
-        sitetab_data[i + 1] <- params$num_gens - t # age
-        sitetab_data[i + 2] <- locList[s_index][[1]][1] #x_location
-        sitetab_data[i + 3] <- locList[s_index][[1]][2] #y_location
-        for (cov in 1:params$numCovs) { # add covariate values 
-            sitetab_data[i + 3 + cov] <- sim_data[[t]]$covs[[cov]][s_index]
+  if (longer) {
+    # Wrangle data
+    #TODO -- this is taking WAY too long with more species lol
+    sitetab_data <- numeric(length(timePts) * length(params$locList) * params$numSpecies * (7 + params$numCovs))
+    i <- 1
+    for (t in timePts){
+      for (s_index in seq_along(locList)){
+        for (k in 1:params$numSpecies){
+          sitetab_data[i] <- s_index
+          sitetab_data[i + 1] <- params$num_gens - t # age
+          sitetab_data[i + 2] <- locList[s_index][[1]][1] #x_location
+          sitetab_data[i + 3] <- locList[s_index][[1]][2] #y_location
+          for (cov in 1:params$numCovs) { # add covariate values 
+              sitetab_data[i + 3 + cov] <- sim_data[[t]]$covs[[cov]][s_index]
+          }
+          sitetab_data[i + 4 + params$numCovs] <- k
+          sitetab_data[i + 5 + params$numCovs] <- sim_data[[t]]$y[[s_index]][k] # add presence absence for this species
+          sitetab_data[i + 6 + params$numCovs] <- sim_data[[t]]$N[[s_index]][k] #add abundances here
+          i <- i + 4 + params$numCovs + 3
         }
-        sitetab_data[i + 4 + params$numCovs] <- k
-        sitetab_data[i + 5 + params$numCovs] <- sim_data[[t]]$y[[s_index]][k] # add presence absence for this species
-        sitetab_data[i + 6 + params$numCovs] <- sim_data[[t]]$N[[s_index]][k] #add abundances here
-        i <- i + 4 + params$numCovs + 3
       }
     }
-  }
-  
-  sim_sitetab_longer <- as.data.frame(matrix(data = sitetab_data, nrow = length(timePts) * length(locList) * params$numSpecies, 
-                                    ncol = 7 + params$numCovs, byrow = TRUE))
+    
+    sim_sitetab_longer <- as.data.frame(matrix(data = sitetab_data, nrow = length(timePts) * length(locList) * params$numSpecies, 
+                                      ncol = 7 + params$numCovs, byrow = TRUE))
 
-  namesCov <- sapply(1:params$numCov, FUN = function(cov) {paste0("Cov", cov)})
-  names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "Presence", "Abundance")
-  
-  # TODO this is taking a stupid long time
-  fwrite(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
-  #write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
+    namesCov <- sapply(1:params$numCov, FUN = function(cov) {paste0("Cov", cov)})
+    names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "Presence", "Abundance")
+    
+    # TODO this is taking a stupid long time
+    fwrite(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
+    #write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
+  }
   
   # sample from full sitetab
   time_pts_sample <- seq(from = 1, to = params$num_gens, by = round(1000 / params$num_samples_time))
@@ -314,35 +318,37 @@ for (run in runs) {
   #write.csv(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_sampled.csv"))
 
   if(readAbdMode) {
-    # Wrangle data for abd
-    sitetab_data <- numeric(length(timePts) * length(params$locList) * params$numSpecies * (7 + params$numCovs))
-    i <- 1
-    for (t in timePts){
-    for (s_index in seq_along(locList)){
-        for (k in 1:params$numSpecies){
-        sitetab_data[i] <- s_index
-        sitetab_data[i + 1] <- params$num_gens - t # age
-        sitetab_data[i + 2] <- locList[s_index][[1]][1] #x_location
-        sitetab_data[i + 3] <- locList[s_index][[1]][2] #y_location
-        for (cov in 1:params$numCovs) { # add covariate values 
-            sitetab_data[i + 3 + cov] <- sim_data[[t]]$covs[[cov]][s_index]
-        }
-        sitetab_data[i + 4 + params$numCovs] <- k
-        sitetab_data[i + 5 + params$numCovs] <- sim_data[[t]]$readAbd[[s_index]][k] # add presence absence for this species
-        sitetab_data[i + 6 + params$numCovs] <- sim_data[[t]]$N[[s_index]][k] #add abundances here
-        i <- i + 4 + params$numCovs + 3
-        }
+    if (longer) {
+      # Wrangle data for abd
+      sitetab_data <- numeric(length(timePts) * length(params$locList) * params$numSpecies * (7 + params$numCovs))
+      i <- 1
+      for (t in timePts){
+      for (s_index in seq_along(locList)){
+          for (k in 1:params$numSpecies){
+          sitetab_data[i] <- s_index
+          sitetab_data[i + 1] <- params$num_gens - t # age
+          sitetab_data[i + 2] <- locList[s_index][[1]][1] #x_location
+          sitetab_data[i + 3] <- locList[s_index][[1]][2] #y_location
+          for (cov in 1:params$numCovs) { # add covariate values 
+              sitetab_data[i + 3 + cov] <- sim_data[[t]]$covs[[cov]][s_index]
+          }
+          sitetab_data[i + 4 + params$numCovs] <- k
+          sitetab_data[i + 5 + params$numCovs] <- sim_data[[t]]$readAbd[[s_index]][k] # add presence absence for this species
+          sitetab_data[i + 6 + params$numCovs] <- sim_data[[t]]$N[[s_index]][k] #add abundances here
+          i <- i + 4 + params$numCovs + 3
+          }
+      }
+      }
+
+      sim_sitetab_longer <- as.data.frame(matrix(data = sitetab_data, nrow = length(timePts) * length(locList) * params$numSpecies, 
+                                      ncol = 7 + params$numCovs, byrow = TRUE))
+
+      namesCov <- sapply(1:params$numCov, FUN = function(cov) {paste0("Cov", cov)})
+      names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "ReadAbd", "Abundance")
+
+      fwrite(sim_sitetab_longer, paste0(subdir, "sitetab_longer_readAbd.csv"))
+      #write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer_readAbd.csv"))
     }
-    }
-
-    sim_sitetab_longer <- as.data.frame(matrix(data = sitetab_data, nrow = length(timePts) * length(locList) * params$numSpecies, 
-                                    ncol = 7 + params$numCovs, byrow = TRUE))
-
-    namesCov <- sapply(1:params$numCov, FUN = function(cov) {paste0("Cov", cov)})
-    names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "ReadAbd", "Abundance")
-
-    fwrite(sim_sitetab_longer, paste0(subdir, "sitetab_longer_readAbd.csv"))
-    #write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer_readAbd.csv"))
 
     # sample from full sitetab
     time_pts_sample <- seq(from = 1, to = params$num_gens, by = round(1000 / params$num_samples_time))

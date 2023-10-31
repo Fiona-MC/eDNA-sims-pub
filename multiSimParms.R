@@ -112,22 +112,22 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
     beta <- matrix(0, nrow = numSpecies, ncol = numCovs)
      
     # choose species interactions
-    for(ii in sample(x = 1:(numSpecies %/% 2), size = numSpecies %/% 2, replace = TRUE)) {
-      for(jj in sample(x = 1:(numSpecies %/% 2), size = numSpecies %/% 2, replace = TRUE)) {
+    for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+      for(jj in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
         alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
       }
     }
 
-    for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = numSpecies %/% 2, replace = TRUE)) {
-      for(jj in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = numSpecies %/% 2, replace = TRUE)) {
+    for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+      for(jj in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
         alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
       }
     }
 
     # set environment interactions as independent
-    for(i in 1:numSpecies) {
-      beta[i, i] <- 1 # one independent covariate per species
-      beta[i, numSpecies + 1] <- 1 # this is the intercept variable
+    for(iii in 1:numSpecies) {
+      beta[iii, iii] <- 1 # one independent covariate per species
+      beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
     }
 
     #alpha and beta numbers respectively (for scaling purposes)

@@ -6,9 +6,10 @@ library(plyr)
 library(gridExtra)
 library(tidyr)
 
-dirName <- c("multiSim_5sp_random")
+dirName <- c("multiSim_manySp_testing2")
 multiSimRes <- data.frame()
 resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
+resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 # load results into list
@@ -18,7 +19,8 @@ for (i in seq_along(resNames)) {
   thisMultiSimRes$totalMistakes <- thisMultiSimRes$num_incorrectInferences + thisMultiSimRes$num_missedEffectsL
   thisMultiSimRes$fp_fp_tp <- thisMultiSimRes$num_incorrectInferences / 
                               (thisMultiSimRes$num_correctInferences + thisMultiSimRes$num_incorrectInferences)
-
+  thisMultiSimRes$fp_fp_tp_cluster <- thisMultiSimRes$num_incorrect_cluster / 
+                              (thisMultiSimRes$num_correct_cluster + thisMultiSimRes$num_incorrect_cluster)
   actual_mean_fpr <- rep(NA, times = dim(thisMultiSimRes)[1])
   for (row in seq_len(dim(thisMultiSimRes)[1])) { #1:dim(multiSimRes)[1]
       if(thisMultiSimRes$fpr.mode[row] == "constant") {
