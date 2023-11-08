@@ -11,6 +11,8 @@ multiSimRes <- data.frame()
 resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
 resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
+resNames <- c()
+
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 # load results into list
 multiSimResL <- c()

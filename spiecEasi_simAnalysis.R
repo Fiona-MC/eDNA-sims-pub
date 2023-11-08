@@ -9,11 +9,11 @@ library(igraph)
 
 #note -- so far not controlling for covs
 args <- commandArgs(trailingOnly = TRUE)
-data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/randomRun3/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/randomRun3/spiecEasi_res_sparccTest/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun3/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun3/spiecEasi_res_dumb_mb/"
 data_dir <- args[1]
 save_dir <- args[2]
-se.method <- "sparcc"
+se.method <- "mb"
 se.method <- args[3]
 numTrials <- args[4]
 #se.method <- "mb"
@@ -21,7 +21,7 @@ numTrials <- args[4]
 # load data
 locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
-sim_data_raw <- readRDS(paste0(data_dir, "sim_data_abd.Rdata"))
+sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb.csv"))
 sitetab_data <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
 
 names_cov <- params$names_cov
