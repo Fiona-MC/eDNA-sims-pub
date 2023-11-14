@@ -27,9 +27,11 @@ random <- TRUE
 burn <- 100
 
 spNumMode <- "many"
+nSp <- 2
+nSp <- 100
 readAbdMode <- TRUE
 
-thisdir <- "/space/s1/fiona_callahan/multiSim_manySp_testing_time/"
+thisdir <- "/space/s1/fiona_callahan/multiSim_2sp_test/"
 thisdir <- args[1]
 dir.create(thisdir)
 
@@ -54,7 +56,7 @@ for (run in runs) {
   if(spNumMode == 5) {
     params <- getParms_5(random = random, parmSet = parmSet)
   } else if(spNumMode == "many") {
-    params <- getParms_many(random = random, parmSet = parmSet)
+    params <- getParms_many(random = random, parmSet = parmSet,  numSpecies = nSp)
   } else {
     params <- getParms(random = random, parmSet = parmSet)
   }

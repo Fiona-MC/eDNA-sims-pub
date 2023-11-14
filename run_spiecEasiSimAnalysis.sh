@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_manySp_testing2"
+sim_dir="/space/s1/fiona_callahan/multiSim_2sp_test"
 numRuns=10
 numTrials=1 # I think as this is implemented right now this needs to be 1
 seMethod=mb

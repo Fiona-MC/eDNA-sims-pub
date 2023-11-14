@@ -1,8 +1,9 @@
 library(mvtnorm)
 #install.packages("highfrequency")
+library(data.table)
 library(highfrequency)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/"
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 
 actualAlpha <- params$alpha
@@ -28,7 +29,11 @@ for (i in 1:params$numSpecies) {
 corrMx <- corrMx + diag(x = 1, nrow = params$numSpecies, ncol = params$numSpecies)
 precMx <- corrMx
 
+eig <- eigen(precMx)
+min(eig$values)
+
 covarMx <- solve(precMx)
+covarMx <- corrMx
 #covarMx <- makePsd(corrMx, method = "covariance")
 
 sum(covarMx == 0)
@@ -53,11 +58,11 @@ reads <- round(reads)
 sitetab_abd <- data.frame(site = 1:samples, reads)
 names(sitetab_abd) <- c("site", params$names_species)
 
-fwrite(x = sitetab_abd, file = paste0(data_dir, "sitetab_abd_dumb.csv"))
+fwrite(x = sitetab_abd, file = paste0(data_dir, "sitetab_abd_dumb_dir.csv"))
 
 # truncate to presence absence 
 presAbs <- (reads > params$readThreshold) * 1
 sitetab <- data.frame(site = 1:samples, presAbs)
 names(sitetab) <- c("site", params$names_species)
 
-fwrite(x = sitetab, file = paste0(data_dir, "sitetab_dumb.csv"))
+fwrite(x = sitetab, file = paste0(data_dir, "sitetab_dumb_dir.csv"))

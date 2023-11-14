@@ -5,7 +5,7 @@ library(igraph)
 library(ppcor)
 library(data.table)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun5/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/"
 
 sim_data <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
@@ -135,6 +135,9 @@ ggplot(covarData, aes(x = time_splits, y = covariance)) +
 
 # question: does pairwise covariance (between species) correlate to actual connections in the large networks
 
+sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
+sitetab <- read.csv(paste0(data_dir, "sitetab_abd_dumb.csv"))
+
 sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
 # what about if we are using abundances? vvv
 sitetab <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
@@ -147,22 +150,22 @@ for (sp1 in 1:params$numSpecies) {
         covar_mx[sp1, sp2] <- cov(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
         corr_mx[sp1, sp2] <- cor(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
         # what about after controlling for covariates? 
-        pcors <- pcor(sitetab[, c(paste0("Sp", sp1), paste0("Sp", sp2), params$names_cov)])
-        pcorsEst <- pcors$estimate
-        pcor_mx[sp1, sp2] <- pcorsEst[1, 2]
+        #pcors <- pcor(sitetab[, c(paste0("Sp", sp1), paste0("Sp", sp2), params$names_cov)])
+        #pcorsEst <- pcors$estimate
+        #pcor_mx[sp1, sp2] <- pcorsEst[1, 2]
     }
 }
 
 # what about after controlling for covariates
-covar_mx <- pcor_mx
+#covar_mx <- pcor_mx
 #covar_mx <- corr_mx
 
 actual_alpha <- sign(params$alpha)
 
 # what about if actual alpha is the clustering version? vvv
-#alphaG <- graph_from_adjacency_matrix(actual_alpha)
-#actual_alpha <- (distances(alphaG, v = 1:100, to = 1:100) != Inf) * 
-#                        (diag(nrow = dim(actual_alpha)[1], ncol = dim(actual_alpha)[1]) == 0)
+alphaG <- graph_from_adjacency_matrix(actual_alpha)
+actual_alpha <- (distances(alphaG, v = 1:100, to = 1:100) != Inf) * 
+                        (diag(nrow = dim(actual_alpha)[1], ncol = dim(actual_alpha)[1]) == 0)
 
 
 covar_pos_interact <- as.numeric(covar_mx * (actual_alpha > 0))

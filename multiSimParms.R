@@ -127,6 +127,7 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
     # set environment interactions as independent
     for(iii in 1:numSpecies) {
       beta[iii, iii] <- 1 # one independent covariate per species
+      alpha[iii, iii] <- 0
       beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
     }
 

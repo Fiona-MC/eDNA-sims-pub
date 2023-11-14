@@ -6,22 +6,25 @@ library(igraph)
 
 # to run
 # Rscript spiecEasi_simAnalysis.R /space/s1/fiona_callahan/multiSim_5sp_testing/randomRun2/ /space/s1/fiona_callahan/multiSim_5sp_testing/randomRun2/spiecEasi_res/ glasso 1
-
 #note -- so far not controlling for covs
 args <- commandArgs(trailingOnly = TRUE)
-data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun3/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun3/spiecEasi_res_dumb_mb/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/spiecEasi_res_dumbDir_mb/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/spiecEasi_res_mb/"
 data_dir <- args[1]
 save_dir <- args[2]
 se.method <- "mb"
 se.method <- args[3]
 numTrials <- args[4]
 #se.method <- "mb"
+dir.create(save_dir)
+
 
 # load data
 locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
-sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb.csv"))
+sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb_dir.csv"))
 sitetab_data <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
 
 names_cov <- params$names_cov

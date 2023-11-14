@@ -11,14 +11,15 @@ if (length(args) < 2) {
 
 # TODO! fix this so that it won't count the constant covariate
 # but be careful because this is currently running and I don't wanna ruin it
-data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun3/"
-eco_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun3/spiecEasi_res_mb/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/"
+eco_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/spiecEasi_res_dumbDir_mb/"
 data_dir <- args[1]
 eco_dir <- args[2]
 
 numRuns <- 1 # runs per folder (1 is correct)
 numTrials <- 1
-cluster <- TRUE
+cluster <- TRUE #just controls cluster plotting
+
 
 runL <- rep(NA, times = numRuns * numTrials)
 trialL <- rep(NA, times = numRuns * numTrials)
@@ -53,9 +54,9 @@ for (run in 1:numRuns) {
           inferredParms <- readRDS(paste0(eco_dir, "trial", trial, "/inferenceRes.Rdata"))
           alphaG <- graph_from_adjacency_matrix(actualAlpha)
           inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred)
-          connected_alpha_actual <- (distances(alphaG, v = 1:100, to = 1:100) != Inf) * 
+          connected_alpha_actual <- (distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
                                     (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
-          connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:100, to = 1:100) != Inf) * 
+          connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
                                     (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
           # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
           num_correct <- sum(inferredParms$alphaInferred * actualAlpha == 1)
@@ -130,4 +131,4 @@ df <- data.frame(sim_run = runL,
 
 # print(df)
 
-write.csv(df, paste0(eco_dir, "mistakes.csv"))
+write.csv(df, paste0(eco_dir, "mistakes_dir.csv"))
