@@ -10,8 +10,8 @@ if (length(args) < 2) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/randomRun3/"
-#save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing/randomRun3/ecoCopula_res_noCov/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/ecoCopula_res_noCov_dumb/"
 
 data_dir <- args[1]
 save_dir <- args[2]
@@ -26,6 +26,7 @@ prec <- TRUE
 
 # load data
 sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
+#sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
 sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
 #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
@@ -49,8 +50,8 @@ for (trial in 1:numTrials) {
     fit0 <- stackedsdm(sitetab[, names_species], formula_X = formula, 
                       data = sitetab[, names_cov], family = "binomial", ncores = 1) 
   } else {
-    fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~ 1, 
-                      data = sitetab[, names_cov], family = "binomial", ncores = 1) 
+    fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~1, 
+                          data = data.frame(intercept = rep(1, times = dim(sitetab)[1])), family = "binomial", ncores = 1) 
   }
   cgr_sim <- cgr(fit0)
   #plot(cgr_sim, pad = 1)

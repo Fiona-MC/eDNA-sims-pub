@@ -19,16 +19,17 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_manySp_testing2/ 1 10
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_10sp_dep/ 1 20
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
-random <- TRUE
-#parmSet <- "rw"
+random <- FALSE
+#parmSet <- "indep" # indep means that all alphas will be 0
+parmSet <- 1 # this is default
 # amount of generations to prime the sim before starting to record -- (not implemented TODO)
 burn <- 100
 
 spNumMode <- "many"
-nSp <- 2
-nSp <- 100
+#nSp <- 2
+nSp <- 10
 readAbdMode <- TRUE
 
 thisdir <- "/space/s1/fiona_callahan/multiSim_2sp_test/"
@@ -56,7 +57,7 @@ for (run in runs) {
   if(spNumMode == 5) {
     params <- getParms_5(random = random, parmSet = parmSet)
   } else if(spNumMode == "many") {
-    params <- getParms_many(random = random, parmSet = parmSet,  numSpecies = nSp)
+    params <- getParms_many(random = random, parmSet = parmSet, numSpecies = nSp)
   } else {
     params <- getParms(random = random, parmSet = parmSet)
   }
@@ -121,6 +122,8 @@ for (run in runs) {
                                                         t = t, t_minus_1 = t_minus_one[[covNum]][loc_index], params = params))}))
           t_minus_one[[covNum]] <- cov
         }
+      } else if (thisType == "randomNormal") {
+        cov <- rnorm(n = length(locList), mean = 0, sd = 1)
       } else {
       cov <- unlist(lapply(X = locList, FUN = 
                            function(loc) {return(get_cov(loc, type = thisType, 

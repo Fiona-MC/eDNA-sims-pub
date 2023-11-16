@@ -11,8 +11,8 @@ if (length(args) < 2) {
 
 # TODO! fix this so that it won't count the constant covariate
 # but be careful because this is currently running and I don't wanna ruin it
-data_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/"
-eco_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/spiecEasi_res_dumbDir_mb/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_indep/randomRun2/"
+eco_dir <- "/space/s1/fiona_callahan/multiSim_10sp_indep/randomRun2/ecoCopula_res_noCov/"
 data_dir <- args[1]
 eco_dir <- args[2]
 
@@ -35,6 +35,7 @@ finished_trL <- rep(NA, times = numRuns * numTrials) # T or F whether this trial
 num_correct_clusterL <- rep(NA, times = numRuns * numTrials)
 num_incorrect_clusterL <- rep(NA, times = numRuns * numTrials)
 num_missed_clusterL <- rep(NA, times = numRuns * numTrials)
+alpha_direction_mistakesL <- rep(NA, times = numRuns * numTrials)
 
 i <- 1
 for (run in 1:numRuns) {
@@ -52,8 +53,9 @@ for (run in 1:numRuns) {
 
         if (finished_tr) {
           inferredParms <- readRDS(paste0(eco_dir, "trial", trial, "/inferenceRes.Rdata"))
-          alphaG <- graph_from_adjacency_matrix(actualAlpha)
-          inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred)
+          try(if (sum(diag(inferredParms$alphaInferred)) != 0) {stop("Elements of inferred alpha diagonal are not 0")})
+          alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+          inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "undirected")
           connected_alpha_actual <- (distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
                                     (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
           connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
@@ -65,6 +67,7 @@ for (run in 1:numRuns) {
           # Note: here we want to add together inferrence in the wrong direction with saying there is an effect when it's actually 0
           # type 1 error -- inferring an effect where there is none or wrong direction of effect
           count_incorrectT1_alpha <- sum(inferredParms$alphaInferred * actualAlpha == -1) + sum(actualAlpha == 0 & inferredParms$alphaInferred != 0)
+          alpha_direction_mistakes <- sum(inferredParms$alphaInferred * actualAlpha == -1)
           count_incorrectT1 <- count_incorrectT1_alpha
 
           count_incorrect_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == -1) + 
@@ -83,15 +86,13 @@ for (run in 1:numRuns) {
           num_incorrectInferencesL[i] <- count_incorrectT1
           num_missedEffects_alphaL[i] <- num_missedEffects_alpha
           num_missedEffectsL[i] <- num_missedEffects
-
+          alpha_direction_mistakesL[i] <- alpha_direction_mistakes
           num_correct_clusterL[i] <- num_correct_cluster
           num_incorrect_clusterL[i] <- count_incorrect_cluster
           num_missed_clusterL[i] <- num_missedEffects_cluster
-
-          # note this "if" is just because I changed this during a run -- can be taken out later (or not)
           if ("time" %in% names(inferredParms)) {
             timeL[i] <- inferredParms$time
-          } 
+          }
         } 
         
         # count total number of actual effects in the model
@@ -127,8 +128,9 @@ df <- data.frame(sim_run = runL,
             num_possibleEffectsL = num_possibleEffectsL,
             num_correct_cluster = num_correct_clusterL,
             num_incorrect_cluster = num_incorrect_clusterL,
-            num_missed_cluster = num_missed_clusterL)
+            num_missed_cluster = num_missed_clusterL,
+            alpha_direction_mistakes = alpha_direction_mistakesL)
 
 # print(df)
 
-write.csv(df, paste0(eco_dir, "mistakes_dir.csv"))
+write.csv(df, paste0(eco_dir, "mistakes.csv"))

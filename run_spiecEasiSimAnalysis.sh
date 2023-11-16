@@ -1,8 +1,8 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_2sp_test"
-numRuns=10
+sim_dir="/space/s1/fiona_callahan/multiSim_10sp_indep"
+numRuns=20
 numTrials=1 # I think as this is implemented right now this needs to be 1
 seMethod=mb
 #seMethod=sparcc
@@ -26,9 +26,9 @@ resDirName=spiecEasi_res_${seMethod}
 
 
 
-N=3 # 
+N=5 # 
 
-for folder in ${sim_dir}/randomRun*; do
+for folder in ${sim_dir}/randomRun*; do 
     (
         #if test ! -d "${folder}/${resDirName}/trial1" # if the folder is not already there NOT WORKING
         #then

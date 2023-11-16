@@ -1,8 +1,8 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_manySp_testing2"
-numRuns=10
+sim_dir="/space/s1/fiona_callahan/multiSim_10sp_dep"
+numRuns=20
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
 resDirName=ecoCopula_res_noCov
@@ -22,7 +22,7 @@ resDirName=ecoCopula_res_noCov
 
 
 
-N=3 # N=10 resulted in average usage around 30 cores
+N=5 # N=10 resulted in average usage around 30 cores
 # based on current rate with N=10 -- this should take ~6 days for 1000 runs (2 trials each)
 
 for folder in ${sim_dir}/randomRun*; do
