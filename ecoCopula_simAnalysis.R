@@ -26,8 +26,9 @@ prec <- TRUE
 
 # load data
 sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
+sitetab <- read.csv(paste0(data_dir, "sitetab_dumb.csv"))
 #sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
-sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
+#sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
 #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 if (scramble == TRUE) {

@@ -11,8 +11,8 @@ if (length(args) < 2) {
 
 # TODO! fix this so that it won't count the constant covariate
 # but be careful because this is currently running and I don't wanna ruin it
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_indep/randomRun2/"
-eco_dir <- "/space/s1/fiona_callahan/multiSim_10sp_indep/randomRun2/ecoCopula_res_noCov/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
+eco_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/spiecEasi_res_mb_dumb/"
 data_dir <- args[1]
 eco_dir <- args[2]
 
@@ -36,6 +36,8 @@ num_correct_clusterL <- rep(NA, times = numRuns * numTrials)
 num_incorrect_clusterL <- rep(NA, times = numRuns * numTrials)
 num_missed_clusterL <- rep(NA, times = numRuns * numTrials)
 alpha_direction_mistakesL <- rep(NA, times = numRuns * numTrials)
+alpha_incorrect_undirectedL <- rep(NA, times = numRuns * numTrials)
+alpha_correct_undirectedL <- rep(NA, times = numRuns * numTrials)
 
 i <- 1
 for (run in 1:numRuns) {
@@ -80,6 +82,14 @@ for (run in 1:numRuns) {
 
           num_missedEffects_cluster <- sum(connected_alpha_actual != 0 & connected_alpha_inferred == 0)
 
+          # undirected meaning that a-->b iff b-->a in "actual alpha"
+          undirected_alpha_actual <- distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
+          undirected_alpha_inferred <- distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
+
+          alpha_incorrect_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == -1) + 
+                                          sum(undirected_alpha_actual == 0 & undirected_alpha_inferred != 0)
+          alpha_correct_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == 1)
+
           # add to running lists
           num_incorrect_alphaL[i] <- count_incorrectT1_alpha
           num_correctInferencesL[i] <- num_correct
@@ -90,6 +100,9 @@ for (run in 1:numRuns) {
           num_correct_clusterL[i] <- num_correct_cluster
           num_incorrect_clusterL[i] <- count_incorrect_cluster
           num_missed_clusterL[i] <- num_missedEffects_cluster
+          alpha_incorrect_undirectedL[i] <- alpha_incorrect_undirected
+          alpha_correct_undirectedL[i] <- alpha_correct_undirected
+
           if ("time" %in% names(inferredParms)) {
             timeL[i] <- inferredParms$time
           }
@@ -129,7 +142,9 @@ df <- data.frame(sim_run = runL,
             num_correct_cluster = num_correct_clusterL,
             num_incorrect_cluster = num_incorrect_clusterL,
             num_missed_cluster = num_missed_clusterL,
-            alpha_direction_mistakes = alpha_direction_mistakesL)
+            alpha_direction_mistakes = alpha_direction_mistakesL,
+            alpha_incorrect_undirected = alpha_incorrect_undirectedL,
+            alpha_correct_undirected = alpha_correct_undirectedL)
 
 # print(df)
 

@@ -5,7 +5,7 @@ sim_dir="/space/s1/fiona_callahan/multiSim_10sp_dep"
 numRuns=20
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
-resDirName=ecoCopula_res_noCov
+resDirName=ecoCopula_res_noCov_dumb
 #INLA_type="faster"
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
@@ -32,7 +32,7 @@ for folder in ${sim_dir}/randomRun*; do
             echo "starting task $folder.."
             mkdir "$folder/${resDirName}/" 
             # run sim analysis
-            Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ 0
+            #Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ 0
             Rscript /home/fiona_callahan/eDNA_sims_code/countEcoCopulaMistakes.R ${folder}/ ${folder}/${resDirName}/
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
         #fi

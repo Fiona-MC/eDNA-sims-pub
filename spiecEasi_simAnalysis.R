@@ -24,8 +24,9 @@ dir.create(save_dir)
 # load data
 locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
+sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb.csv"))
 #sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb_dir.csv"))
-sitetab_data <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
+#sitetab_data <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
 
 names_cov <- params$names_cov
 names_species <- params$names_species

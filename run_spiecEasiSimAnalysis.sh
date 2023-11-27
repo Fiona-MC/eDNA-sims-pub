@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_10sp_indep"
+sim_dir="/space/s1/fiona_callahan/multiSim_10sp_dep"
 numRuns=20
 numTrials=1 # I think as this is implemented right now this needs to be 1
 seMethod=mb
@@ -10,7 +10,7 @@ seMethod=mb
 random=1
 plot=1
 
-resDirName=spiecEasi_res_${seMethod}
+resDirName=spiecEasi_res_${seMethod}_dumb
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
