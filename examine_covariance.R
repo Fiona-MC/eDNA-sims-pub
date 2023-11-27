@@ -5,7 +5,7 @@ library(igraph)
 library(ppcor)
 library(data.table)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun5/"
 
 sim_data <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
@@ -109,8 +109,6 @@ ggplot(covarData, aes(x = distance, y = covariance)) +
         axis.title = element_text(size = 16)) 
 
 
-
-
 # species covariance time
 covars <- c()
 for (time_spl in as.character(time_splits)) {
@@ -128,60 +126,87 @@ ggplot(covarData, aes(x = time_splits, y = covariance)) +
         axis.title = element_text(size = 16)) 
 
 
+getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE) {
+    plotData_all <- data.frame()
+    for(data_dir in data_dirs) {
+        params <- readRDS(paste0(data_dir, "params.Rdata"))
+        # question: does pairwise covariance (between species) correlate to actual connections in the large networks
+        if (dumb) {
+            if (abd) {
+                sitetab_path <- paste0(data_dir, "sitetab_abd_dumb.csv")
+                if (prec) {
+                    sitetab_path <- paste0(data_dir, "sitetab_abd_dumb_prec.csv")
+                }
+            } else {
+                sitetab_path <- paste0(data_dir, "sitetab_dumb.csv")
+                if (prec) {
+                    sitetab_path <- paste0(data_dir, "sitetab_dumb_prec.csv")
+                }
+            }
+        } else {
+            sitetab_path <- paste0(data_dir, "sim_sitetab_sampled.csv")
+        }
+
+        if (!dumb && abd) {
+            # what about if we are using abundances? vvv
+            sitetab_path <- paste0(data_dir, "sim_sitetab_readAbd_sampled.csv")
+        }
+
+        sitetab <- read.csv(sitetab_path)
+        print(sitetab_path)
+
+        corr_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
+        covar_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
+        pcor_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
+        for (sp1 in 1:params$numSpecies) {
+            for (sp2 in 1:params$numSpecies) {
+                covar_mx[sp1, sp2] <- cov(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
+                corr_mx[sp1, sp2] <- cor(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
+                if (covariates) {
+                    # what about after controlling for covariates? 
+                    pcors <- pcor(sitetab[, c(paste0("Sp", sp1), paste0("Sp", sp2), params$names_cov)])
+                    pcorsEst <- pcors$estimate
+                    pcor_mx[sp1, sp2] <- pcorsEst[1, 2]
+                }
+            }
+        }
+
+        if (covariates) {
+            # what about after controlling for covariates
+            covar_mx <- pcor_mx
+        }
+
+        actual_alpha <- sign(params$alpha)
+        
+        if (cluster) {
+            # what about if actual alpha is the clustering version? vvv
+            alphaG <- graph_from_adjacency_matrix(actual_alpha, mode = "undirected")
+            actual_alpha <- (distances(alphaG, v = 1:params$numSpecies, to = 1:params$numSpecies) != Inf) * 
+                                    (diag(nrow = dim(actual_alpha)[1], ncol = dim(actual_alpha)[1]) == 0)
+        }
 
 
+        covar_pos_interact <- as.numeric(covar_mx * (actual_alpha > 0))
+        covar_pos_interact <- covar_pos_interact[covar_pos_interact != 0]
 
+        covar_neg_interact <- as.numeric(covar_mx * (actual_alpha < 0))
+        covar_neg_interact <- covar_neg_interact[covar_neg_interact != 0]
 
-
-# question: does pairwise covariance (between species) correlate to actual connections in the large networks
-
-sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
-sitetab <- read.csv(paste0(data_dir, "sitetab_abd_dumb.csv"))
-
-sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
-# what about if we are using abundances? vvv
-sitetab <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
-
-corr_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
-covar_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
-pcor_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
-for (sp1 in 1:params$numSpecies) {
-    for (sp2 in 1:params$numSpecies) {
-        covar_mx[sp1, sp2] <- cov(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
-        corr_mx[sp1, sp2] <- cor(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
-        # what about after controlling for covariates? 
-        #pcors <- pcor(sitetab[, c(paste0("Sp", sp1), paste0("Sp", sp2), params$names_cov)])
-        #pcorsEst <- pcors$estimate
-        #pcor_mx[sp1, sp2] <- pcorsEst[1, 2]
+        covar_no_interact <- as.numeric(covar_mx * (actual_alpha == 0))
+        covar_no_interact <- covar_no_interact[covar_no_interact != 0]
+        plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
+                                                rep("negative", times = length(covar_neg_interact)), 
+                                                rep("none", times = length(covar_no_interact))),
+                            covariance = c(covar_pos_interact, covar_neg_interact, covar_no_interact))
+        plotData_all <- rbind(plotData_all, plotData)
     }
+    
+    return(plotData_all)
 }
 
-# what about after controlling for covariates
-#covar_mx <- pcor_mx
-#covar_mx <- corr_mx
-
-actual_alpha <- sign(params$alpha)
-
-# what about if actual alpha is the clustering version? vvv
-alphaG <- graph_from_adjacency_matrix(actual_alpha)
-actual_alpha <- (distances(alphaG, v = 1:100, to = 1:100) != Inf) * 
-                        (diag(nrow = dim(actual_alpha)[1], ncol = dim(actual_alpha)[1]) == 0)
-
-
-covar_pos_interact <- as.numeric(covar_mx * (actual_alpha > 0))
-covar_pos_interact <- covar_pos_interact[covar_pos_interact != 0]
-
-covar_neg_interact <- as.numeric(covar_mx * (actual_alpha < 0))
-covar_neg_interact <- covar_neg_interact[covar_neg_interact != 0]
-
-covar_no_interact <- as.numeric(covar_mx * (actual_alpha == 0))
-covar_no_interact <- covar_no_interact[covar_no_interact != 0]
-
-plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
-                                            rep("negative", times = length(covar_neg_interact)), 
-                                            rep("none", times = length(covar_no_interact))),
-                        covariance = c(covar_pos_interact, covar_neg_interact, covar_no_interact))
-
+data_dirs <- c("/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/")
+data_dirs <- sapply(X = 1:20, FUN = function(num) {paste0("/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun", num, "/")})
+plotData <- getCovarData(data_dirs, dumb = TRUE, prec = TRUE, abd = TRUE, cluster = FALSE, covariates = FALSE)
 # what if we do absolute value of covariance?
 #plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
 #                                            rep("negative", times = length(covar_neg_interact)), 
@@ -189,9 +214,15 @@ plotData <- data.frame(actual_interaction = c(rep("positive", times = length(cov
 #                        covariance = abs(c(covar_pos_interact, covar_neg_interact, covar_no_interact)))
 
 ggplot(data = plotData[plotData$covariance < 1, ], aes(x = actual_interaction, y = covariance)) +
-            geom_boxplot() + 
-            ggtitle(paste0(data_dir))
+            geom_boxplot() #+ 
+            #ggtitle(paste0(data_dir))
 
 ggplot(data = plotData, aes(x = covariance, fill = actual_interaction)) +
-            geom_histogram(position = "dodge", stat = "density") +
-            ggtitle(paste0(data_dir))
+            geom_histogram(position = "dodge", stat = "density") #+
+            #ggtitle(paste0(data_dir))
+
+ggplot(data = plotData, aes(x = covariance, fill = actual_interaction)) +
+            geom_histogram(position = "dodge") #+
+            #ggtitle(paste0(data_dir))
+
+
