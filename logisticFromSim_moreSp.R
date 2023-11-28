@@ -11,8 +11,8 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_5sp_random/"
-numRuns <- 1000
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/"
+numRuns <- 20
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])
@@ -46,8 +46,8 @@ parmNames <- names(parmVals)
 parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
 names(parmsDF) <- parmNames
 
-avg_alphInferred <- matrix(0, nrow = 5, ncol = 5)
-avg_betInferred <- matrix(0, nrow = 5, ncol = 5)
+avg_alphInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
+avg_betInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numCovs - 1)
 nCompleteB <- 0
 nCompleteA <- 0
 
@@ -80,28 +80,18 @@ for (run in runs) {
             # load sitetab
             sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
             
-            # sp1
-            model_sp1 <- glm(Sp1 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp2 + Sp3 + Sp4 + Sp5, 
-                            family = binomial(link = 'logit'), data = sim_sitetab_sampled)
-            model_sp1_summary <- data.frame(summary(model_sp1)$coefficients)
-            # sp2
-            model_sp2 <- glm(Sp2 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp1 + Sp3 + Sp4 + Sp5, 
-                            family = binomial(link = 'logit'), data = sim_sitetab_sampled)
-            model_sp2_summary <- data.frame(summary(model_sp2)$coefficients)
-            # sp3
-            model_sp3 <- glm(Sp3 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp1 + Sp2 + Sp4 + Sp5, 
-                            family = binomial(link = 'logit'), data = sim_sitetab_sampled)
-            model_sp3_summary <- data.frame(summary(model_sp3)$coefficients)
-            # sp4
-            model_sp4 <- glm(Sp4 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp1 + Sp2 + Sp3 + Sp5, 
-                            family = binomial(link = 'logit'), data = sim_sitetab_sampled)
-            model_sp4_summary <- data.frame(summary(model_sp4)$coefficients)
-            # sp5
-            model_sp5 <- glm(Sp5 ~ 1 + Cov1 + Cov2 + Cov3 + Cov4 + Cov5 + Sp1 + Sp2 + Sp3 + Sp4, 
-                            family = binomial(link = 'logit'), data = sim_sitetab_sampled)
-            model_sp5_summary <- data.frame(summary(model_sp5)$coefficients)
-
-            # TODO this isn't done -- gotta store these and decide whether they're "right"
+            sp_glm_L <- list()
+            for (speciesName in simParms$names_species) {
+                # glm
+                fmla <- as.formula(paste(speciesName, "~", 
+                                    paste(c(simParms$names_species[simParms$names_species != speciesName]), collapse = "+"), "+",
+                                    paste(c(simParms$names_cov), collapse = "+")))
+                model <- glm(fmla, family = binomial(link = 'logit'), data = sim_sitetab_sampled)
+                model_summary <- data.frame(summary(model)$coefficients)
+                sp_glm_L[[speciesName]] <- model_summary
+            }
+            
+            #TODO!!! make this generalize to lots of species
             ############### GET INFERRED ALPHA AND BETA ######################
             B11 <- (model_sp1_summary["Cov1", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov1", "Estimate"])
             B12 <- (model_sp1_summary["Cov2", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov2", "Estimate"])
