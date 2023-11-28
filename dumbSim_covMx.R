@@ -15,7 +15,8 @@ data_dir <- args[1]
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 
 actualAlpha <- params$alpha
-prec <- TRUE
+prec <- FALSE
+sim_covs <- TRUE
 
 # simulate reads from covariance matrix
 samples <- params$num_samples_time * params$num_samples_space
@@ -60,15 +61,29 @@ sum(precMx != 0)
 # this is not going to work because covarMx is not positive semidefinite -- 
 # need to think of anohter way to get this mx
 reads <- rmvnorm(n = samples, mean = rep(0, times = params$numSpecies), sigma = covarMx)
+if (prec) {
+    saveRDS(covarMx, file = paste0(data_dir, "dumb_covar_mx_prec.Rdata"))
+} else {
+   saveRDS(covarMx, file = paste0(data_dir, "dumb_covar_mx.Rdata"))
+}
 # truncate at 0
 reads <- reads * (reads > 0)
 # turn into reasonable numbers 
 reads <- reads * 100
 reads <- round(reads)
 
+#sim random normal covariates
+
+
 # df of read counts
-sitetab_abd <- data.frame(site = 1:samples, reads)
-names(sitetab_abd) <- c("site", params$names_species)
+if (sim_covs) {
+    covVals <- matrix(data = rnorm(n = params$numSpecies * (params$numCovs - 1)), nrow = params$numSpecies, ncol = (params$numCovs - 1))
+    sitetab_abd <- data.frame(site = 1:samples, reads, covVals)
+    names(sitetab_abd) <- c("site", params$names_species, params$names_cov)
+} else {
+    sitetab_abd <- data.frame(site = 1:samples, reads)
+    names(sitetab_abd) <- c("site", params$names_species)
+}
 
 if (prec) {
     fwrite(x = sitetab_abd, file = paste0(data_dir, "sitetab_abd_dumb_prec.csv"))
@@ -78,8 +93,13 @@ if (prec) {
 
 # truncate to presence absence 
 presAbs <- (reads > params$readThreshold) * 1
-sitetab <- data.frame(site = 1:samples, presAbs)
-names(sitetab) <- c("site", params$names_species)
+if (sim_covs) {
+    sitetab <- data.frame(site = 1:samples, presAbs, covVals)
+    names(sitetab) <- c("site", params$names_species, params$names_cov)
+} else {
+    sitetab <- data.frame(site = 1:samples, presAbs)
+    names(sitetab) <- c("site", params$names_species)
+}
 
 if (prec) {
     fwrite(x = sitetab, file = paste0(data_dir, "sitetab_dumb_prec.csv"))

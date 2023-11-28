@@ -13,9 +13,10 @@ if (length(args) < 2) {
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/"
 numRuns <- 20
+dumb <- TRUE
 
-data_dir <- args[1]
-numRuns <- as.numeric(args[2])
+#data_dir <- args[1]
+#numRuns <- as.numeric(args[2])
 
 # to run
 # Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000
@@ -78,12 +79,16 @@ for (run in runs) {
 
             ############### DO LOGISTIC REGRESSION ######################
             # load sitetab
-            sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
+            if (dumb) {
+                sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sitetab_dumb.csv"), header = TRUE)
+            } else {
+                sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
+            }
             
             sp_glm_L <- list()
             for (speciesName in simParms$names_species) {
                 # glm
-                fmla <- as.formula(paste(speciesName, "~", 
+                fmla <- as.formula(paste(speciesName, "~ ", 
                                     paste(c(simParms$names_species[simParms$names_species != speciesName]), collapse = "+"), "+",
                                     paste(c(simParms$names_cov), collapse = "+")))
                 model <- glm(fmla, family = binomial(link = 'logit'), data = sim_sitetab_sampled)
@@ -91,78 +96,38 @@ for (run in runs) {
                 sp_glm_L[[speciesName]] <- model_summary
             }
             
-            #TODO!!! make this generalize to lots of species
             ############### GET INFERRED ALPHA AND BETA ######################
-            B11 <- (model_sp1_summary["Cov1", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov1", "Estimate"])
-            B12 <- (model_sp1_summary["Cov2", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov2", "Estimate"])
-            B13 <- (model_sp1_summary["Cov3", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov3", "Estimate"])
-            B14 <- (model_sp1_summary["Cov4", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov4", "Estimate"])
-            B15 <- (model_sp1_summary["Cov5", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Cov5", "Estimate"])
-
-            B21 <- (model_sp2_summary["Cov1", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Cov1", "Estimate"])
-            B22 <- (model_sp2_summary["Cov2", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Cov2", "Estimate"])
-            B23 <- (model_sp2_summary["Cov3", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Cov3", "Estimate"])
-            B24 <- (model_sp2_summary["Cov4", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Cov4", "Estimate"])
-            B25 <- (model_sp2_summary["Cov5", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Cov5", "Estimate"])
-
-
-            B31 <- (model_sp3_summary["Cov1", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Cov1", "Estimate"])
-            B32 <- (model_sp3_summary["Cov2", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Cov2", "Estimate"])
-            B33 <- (model_sp3_summary["Cov3", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Cov3", "Estimate"])
-            B34 <- (model_sp3_summary["Cov4", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Cov4", "Estimate"])
-            B35 <- (model_sp3_summary["Cov5", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Cov5", "Estimate"])
-
-            B41 <- (model_sp4_summary["Cov1", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Cov1", "Estimate"])
-            B42 <- (model_sp4_summary["Cov2", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Cov2", "Estimate"])
-            B43 <- (model_sp4_summary["Cov3", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Cov3", "Estimate"])
-            B44 <- (model_sp4_summary["Cov4", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Cov4", "Estimate"])
-            B45 <- (model_sp4_summary["Cov5", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Cov5", "Estimate"])
-
-            B51 <- (model_sp5_summary["Cov1", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Cov1", "Estimate"])
-            B52 <- (model_sp5_summary["Cov2", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Cov2", "Estimate"])
-            B53 <- (model_sp5_summary["Cov3", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Cov3", "Estimate"])
-            B54 <- (model_sp5_summary["Cov4", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Cov4", "Estimate"])
-            B55 <- (model_sp5_summary["Cov5", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Cov5", "Estimate"])
-
-            betaInferred <- matrix(c(B11, B12, B13, B14, B15, 
-                                    B21, B22, B23, B24, B25, 
-                                    B31, B32, B33, B34, B35,
-                                    B41, B42, B43, B44, B45,
-                                    B51, B52, B53, B54, B55), nrow = 5, ncol = 5, byrow = TRUE)
+            betaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = (simParms$numCovs - 1))
+            for (spNum in 1:simParms$numSpecies) {
+                for (covNum in 1:(simParms$numCovs - 1)) {
+                    speciesName <- paste0("Sp", spNum)
+                    covName <- paste0("Cov", covNum)
+                    model_summary <- sp_glm_L[[speciesName]]
+                    betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < 0.05) * sign(model_summary[covName, "Estimate"])
+                }
+            }
+            
             if(!is.na(sum(betaInferred))) {
                 avg_betInferred <- avg_betInferred + betaInferred
                 nCompleteB <- nCompleteB + 1
             }
-            
-            A12 <- (model_sp1_summary["Sp2", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Sp2", "Estimate"])
-            A13 <- (model_sp1_summary["Sp3", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Sp3", "Estimate"])
-            A14 <- (model_sp1_summary["Sp4", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Sp4", "Estimate"])
-            A15 <- (model_sp1_summary["Sp5", "Pr...z.."] < 0.05) * sign(model_sp1_summary["Sp5", "Estimate"])
-            
-            A21 <- (model_sp2_summary["Sp1", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Sp1", "Estimate"])
-            A23 <- (model_sp2_summary["Sp3", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Sp3", "Estimate"])
-            A24 <- (model_sp2_summary["Sp4", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Sp4", "Estimate"])
-            A25 <- (model_sp2_summary["Sp5", "Pr...z.."] < 0.05) * sign(model_sp2_summary["Sp5", "Estimate"])
 
-            A31 <- (model_sp3_summary["Sp1", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Sp1", "Estimate"])
-            A32 <- (model_sp3_summary["Sp2", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Sp2", "Estimate"])
-            A34 <- (model_sp3_summary["Sp4", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Sp4", "Estimate"])
-            A35 <- (model_sp3_summary["Sp5", "Pr...z.."] < 0.05) * sign(model_sp3_summary["Sp5", "Estimate"])
 
-            A41 <- (model_sp4_summary["Sp1", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Sp1", "Estimate"])
-            A42 <- (model_sp4_summary["Sp2", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Sp2", "Estimate"])
-            A43 <- (model_sp4_summary["Sp3", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Sp3", "Estimate"])
-            A45 <- (model_sp4_summary["Sp5", "Pr...z.."] < 0.05) * sign(model_sp4_summary["Sp5", "Estimate"])
+            alphaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
+            for (spNum1 in 1:simParms$numSpecies) {
+                for (spNum2 in 1:simParms$numSpecies) {
+                    speciesName1 <- paste0("Sp", spNum1)
+                    speciesName2 <- paste0("Sp", spNum2)
+                    model_summary <- sp_glm_L[[speciesName1]]
+                    if (spNum1 == spNum2) {
+                        alphaInferred[spNum1, spNum2] <- 0
+                    } else {
+                        alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...z.."] < 0.05) * 
+                                                        sign(model_summary[speciesName2, "Estimate"])
+                    }
+                }
+            }
 
-            A51 <- (model_sp5_summary["Sp1", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Sp1", "Estimate"])
-            A52 <- (model_sp5_summary["Sp2", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Sp2", "Estimate"])
-            A53 <- (model_sp5_summary["Sp3", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Sp3", "Estimate"])
-            A54 <- (model_sp5_summary["Sp4", "Pr...z.."] < 0.05) * sign(model_sp5_summary["Sp4", "Estimate"])
-            alphaInferred <- matrix(c(0, A12, A13, A14, A15,
-                                    A21, 0, A23, A24, A25,
-                                    A31, A32, 0, A34, A35,
-                                    A41, A42, A43, 0, A45,
-                                    A51, A52, A53, A54, 0), nrow = 5, ncol = 5, byrow = TRUE)
             if(!is.na(sum(alphaInferred))) {
                 avg_alphInferred <- avg_alphInferred + alphaInferred
                 nCompleteA <- nCompleteA + 1
@@ -232,4 +197,8 @@ parmsDF$trial <- trialL
 fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
 
 #print(fulldf)
-write.csv(fulldf, paste0(data_dir, "/logistic_mistakes.csv"))
+if(dumb) {
+    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb.csv"))
+} else {
+    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes.csv"))
+}

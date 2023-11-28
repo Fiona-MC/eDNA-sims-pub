@@ -126,7 +126,7 @@ ggplot(covarData, aes(x = time_splits, y = covariance)) +
         axis.title = element_text(size = 16)) 
 
 
-getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE) {
+getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE) {
     plotData_all <- data.frame()
     for(data_dir in data_dirs) {
         params <- readRDS(paste0(data_dir, "params.Rdata"))
@@ -154,6 +154,14 @@ getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, clus
 
         sitetab <- read.csv(sitetab_path)
         print(sitetab_path)
+
+        if (dumb) {
+            if (prec) {
+                actual_covar_mx <- readRDS(paste0(data_dir, "dumb_covar_mx_prec.Rdata"))
+            } else {
+                actual_covar_mx <- readRDS(paste0(data_dir, "dumb_covar_mx.Rdata"))
+            }
+        }
 
         corr_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
         covar_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
@@ -185,20 +193,43 @@ getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, clus
                                     (diag(nrow = dim(actual_alpha)[1], ncol = dim(actual_alpha)[1]) == 0)
         }
 
+        if (!actualMx) {
+            covar_pos_interact <- as.numeric(covar_mx * (actual_alpha > 0))
+            covar_pos_interact <- covar_pos_interact[covar_pos_interact != 0]
 
-        covar_pos_interact <- as.numeric(covar_mx * (actual_alpha > 0))
-        covar_pos_interact <- covar_pos_interact[covar_pos_interact != 0]
+            covar_neg_interact <- as.numeric(covar_mx * (actual_alpha < 0))
+            covar_neg_interact <- covar_neg_interact[covar_neg_interact != 0]
 
-        covar_neg_interact <- as.numeric(covar_mx * (actual_alpha < 0))
-        covar_neg_interact <- covar_neg_interact[covar_neg_interact != 0]
+            covar_no_interact <- as.numeric((covar_mx + 0.00001) * (actual_alpha == 0))
+            # remove diagonal 
+            covar_no_interact <- covar_no_interact * (diag(nrow = params$numSpecies) == 0)
+            covar_no_interact <- covar_no_interact[covar_no_interact != 0]
+            plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
+                                                    rep("negative", times = length(covar_neg_interact)), 
+                                                    rep("none", times = length(covar_no_interact))),
+                                covariance = c(covar_pos_interact, covar_neg_interact, covar_no_interact))
+            plotData_all <- rbind(plotData_all, plotData)
+        }
 
-        covar_no_interact <- as.numeric(covar_mx * (actual_alpha == 0))
-        covar_no_interact <- covar_no_interact[covar_no_interact != 0]
-        plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
-                                                rep("negative", times = length(covar_neg_interact)), 
-                                                rep("none", times = length(covar_no_interact))),
-                            covariance = c(covar_pos_interact, covar_neg_interact, covar_no_interact))
-        plotData_all <- rbind(plotData_all, plotData)
+        if (actualMx) {
+            covar_mx <- actual_covar_mx
+            covar_pos_interact <- as.numeric(covar_mx * (actual_alpha > 0))
+            covar_pos_interact <- covar_pos_interact[covar_pos_interact != 0]
+
+            covar_neg_interact <- as.numeric(covar_mx * (actual_alpha < 0))
+            covar_neg_interact <- covar_neg_interact[covar_neg_interact != 0]
+
+            # hacky way to get the ones that are 0 in alpha but not make it all 0's if covariance is actually 0
+            covar_no_interact <- as.numeric((covar_mx + 0.00001) * (actual_alpha == 0))
+            # remove diagonal 
+            covar_no_interact <- covar_no_interact * (diag(nrow = params$numSpecies) == 0)
+            covar_no_interact <- covar_no_interact[covar_no_interact != 0]
+            plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
+                                                    rep("negative", times = length(covar_neg_interact)), 
+                                                    rep("none", times = length(covar_no_interact))),
+                                covariance = c(covar_pos_interact, covar_neg_interact, covar_no_interact))
+            plotData_all <- rbind(plotData_all, plotData)
+        }
     }
     
     return(plotData_all)
@@ -206,7 +237,7 @@ getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, clus
 
 data_dirs <- c("/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/")
 data_dirs <- sapply(X = 1:20, FUN = function(num) {paste0("/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun", num, "/")})
-plotData <- getCovarData(data_dirs, dumb = TRUE, prec = TRUE, abd = TRUE, cluster = FALSE, covariates = FALSE)
+plotData <- getCovarData(data_dirs, dumb = TRUE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
 # what if we do absolute value of covariance?
 #plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
 #                                            rep("negative", times = length(covar_neg_interact)), 
