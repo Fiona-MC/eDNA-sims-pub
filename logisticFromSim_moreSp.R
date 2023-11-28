@@ -112,7 +112,6 @@ for (run in runs) {
                 nCompleteB <- nCompleteB + 1
             }
 
-
             alphaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
             for (spNum1 in 1:simParms$numSpecies) {
                 for (spNum2 in 1:simParms$numSpecies) {
@@ -187,8 +186,8 @@ df <- data.frame(sim_run = runL,
 avg_alphInferred <- avg_alphInferred / nCompleteA
 avg_betInferred <- avg_betInferred / nCompleteB
 
-round(avg_alphInferred, 4)
-round(abs(avg_alphInferred), 4)
+#round(avg_alphInferred, 4)
+#round(abs(avg_alphInferred), 4)
 
 parmsDF$sim_run <- runL
 parmsDF$trial <- trialL

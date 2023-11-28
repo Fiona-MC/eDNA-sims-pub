@@ -77,7 +77,7 @@ reads <- round(reads)
 
 # df of read counts
 if (sim_covs) {
-    covVals <- matrix(data = rnorm(n = params$numSpecies * (params$numCovs - 1)), nrow = params$numSpecies, ncol = (params$numCovs - 1))
+    covVals <- matrix(data = rnorm(n = samples * (params$numCovs - 1)), nrow = samples, ncol = (params$numCovs - 1))
     sitetab_abd <- data.frame(site = 1:samples, reads, covVals)
     names(sitetab_abd) <- c("site", params$names_species, params$names_cov)
 } else {
