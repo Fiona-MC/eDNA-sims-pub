@@ -12,6 +12,10 @@ data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/"
 save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/spiecEasi_res_dumbDir_mb/"
 data_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/"
 save_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/spiecEasi_res_mb/"
+
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/spiecEasi_res_test/"
+
 data_dir <- args[1]
 save_dir <- args[2]
 se.method <- "mb"
@@ -24,9 +28,9 @@ dir.create(save_dir)
 # load data
 locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
-sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb.csv"))
+#sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb.csv"))
 #sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb_dir.csv"))
-#sitetab_data <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
+sitetab_data <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
 
 names_cov <- params$names_cov
 names_species <- params$names_species

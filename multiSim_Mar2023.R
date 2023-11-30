@@ -19,7 +19,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_10sp_dep/ 1 20
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_100/ 1 100
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- FALSE
 #parmSet <- "indep" # indep means that all alphas will be 0

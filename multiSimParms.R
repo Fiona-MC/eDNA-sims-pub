@@ -85,7 +85,7 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
     #alpha_fpr <- (-beta_fpr * mean_fpr) / (mean_fpr - 1) # moment matching
     #fpr_mode = "dependent_sp" # "independent" "dependent_sp" "constant" "none"
 
-    num_gens <- 1000
+    num_gens <- 10000
     #detection prob param
 
     #det_prob_exp <- 2 # fix this at 2

@@ -10,8 +10,8 @@ if (length(args) < 2) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/"
-#save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/ecoCopula_res_noCov_dumb/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/ecoCopula_res_noCov_test/"
 
 data_dir <- args[1]
 save_dir <- args[2]
@@ -26,9 +26,9 @@ prec <- TRUE
 
 # load data
 sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
-sitetab <- read.csv(paste0(data_dir, "sitetab_dumb.csv"))
+#sitetab <- read.csv(paste0(data_dir, "sitetab_dumb.csv"))
 #sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
-#sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
+sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
 #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 if (scramble == TRUE) {
@@ -60,7 +60,7 @@ for (trial in 1:numTrials) {
   if (prec == TRUE) {
     inferred_mx <- cgr_sim$best_graph$prec
   } else {
-    inferred_mx <- cgr_sim$best_graph$cor
+    inferred_mx <- cgr_sim$best_graph$cov
   }
 
   # get inferred alpha and beta (just 1's -1's and 0's )
