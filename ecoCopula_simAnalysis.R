@@ -10,8 +10,8 @@ if (length(args) < 2) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/ecoCopula_res_noCov_test/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/ecoCopula_res_noCov_test/"
 
 data_dir <- args[1]
 save_dir <- args[2]
@@ -58,7 +58,7 @@ for (trial in 1:numTrials) {
   #plot(cgr_sim, pad = 1)
  
   if (prec == TRUE) {
-    inferred_mx <- cgr_sim$best_graph$prec
+    inferred_mx <- -1 * cgr_sim$best_graph$prec
   } else {
     inferred_mx <- cgr_sim$best_graph$cov
   }
