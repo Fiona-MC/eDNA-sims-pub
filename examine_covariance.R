@@ -236,8 +236,8 @@ getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, clus
 }
 
 data_dirs <- c("/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/")
-data_dirs <- sapply(X = 1:20, FUN = function(num) {paste0("/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun", num, "/")})
-plotData <- getCovarData(data_dirs, dumb = TRUE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
+data_dirs <- sapply(X = 1:100, FUN = function(num) {paste0("/space/s1/fiona_callahan/multiSim_100/randomRun", num, "/")})
+plotData <- getCovarData(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
 # what if we do absolute value of covariance?
 #plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
 #                                            rep("negative", times = length(covar_neg_interact)), 

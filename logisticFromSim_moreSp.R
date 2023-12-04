@@ -11,12 +11,12 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/"
-numRuns <- 20
-dumb <- TRUE
+#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/"
+#numRuns <- 100
+dumb <- FALSE
 
-#data_dir <- args[1]
-#numRuns <- as.numeric(args[2])
+data_dir <- args[1]
+numRuns <- as.numeric(args[2])
 
 # to run
 # Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000

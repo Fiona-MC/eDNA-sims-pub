@@ -44,11 +44,11 @@ for (trial in 1:numTrials) {
     #"Also, we should use a larger number of stars repetitions  for real data" (meaning >50)
     if (se.method == "mb") {
         res <- spiec.easi(as.matrix(sitetab_data[, params$names_species]), method = 'mb', lambda.min.ratio = 1e-3,
-                            nlambda = 20, pulsar.params = list(rep.num = 500))
+                            nlambda = 100, pulsar.params = list(rep.num = 500))
         res.graph <- getRefit(res)
     } else if (se.method == "glasso") {
         res <- spiec.easi(as.matrix(sitetab_data[, params$names_species]), method = 'glasso', lambda.min.ratio = 1e-3,
-                            nlambda = 20, pulsar.params = list(rep.num = 500))
+                            nlambda = 100, pulsar.params = list(rep.num = 500))
         res.graph <- getRefit(res)
     } else if (se.method == "sparcc") {
         res <- sparcc(as.matrix(sitetab_data[, params$names_species]))

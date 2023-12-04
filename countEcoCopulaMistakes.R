@@ -9,10 +9,8 @@ if (length(args) < 2) {
   stop("input folders need to be supplied", call. = FALSE)
 } 
 
-# TODO! fix this so that it won't count the constant covariate
-# but be careful because this is currently running and I don't wanna ruin it
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
-eco_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/spiecEasi_res_mb_dumb/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
+eco_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_noCov/"
 data_dir <- args[1]
 eco_dir <- args[2]
 
@@ -82,7 +80,7 @@ for (run in 1:numRuns) {
 
           num_missedEffects_cluster <- sum(connected_alpha_actual != 0 & connected_alpha_inferred == 0)
 
-          # undirected meaning that a-->b iff b-->a in "actual alpha"
+          # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
           undirected_alpha_actual <- distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
           undirected_alpha_inferred <- distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
 

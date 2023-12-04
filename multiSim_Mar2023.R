@@ -32,7 +32,7 @@ spNumMode <- "many"
 nSp <- 10
 readAbdMode <- TRUE
 
-thisdir <- "/space/s1/fiona_callahan/multiSim_2sp_test/"
+thisdir <- "/space/s1/fiona_callahan/multiSim_100/"
 thisdir <- args[1]
 dir.create(thisdir)
 
