@@ -1,44 +1,35 @@
-# from sim output (multisim folder with lots of sims), run a logistic model on sitetab_sampled
-# outputs a csv of the number of logistic regression inference mistakes per sim
-
-# NOTE: five covariates and five species is hard coded here -- need to change this to generalize
-
-library(stats)
+#!/usr/bin/env Rscript
 library(igraph)
+# to run
+# Rscript countEcoCopulaMistakes.R /space/s1/fiona_callahan/multiSim_5sp_testing/randomRun1/ /space/s1/fiona_callahan/multiSim_5sp_testing/randomRun1/ecoCopula_res/
 
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) < 2) {
-  stop("input folder needs to be supplied", call. = FALSE)
+  stop("input folders need to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_100/"
-numRuns <- 100
-dumb <- FALSE
+data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
+outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/ecoCopula_res_noCov/"
+covs <- TRUE # is beta inferred?
 
 data_dir <- args[1]
-numRuns <- as.numeric(args[2])
+outdir <- args[2]
+covs <- args[3]
 
-covs <- TRUE
-
-# to run
-# Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000
-
-runs <- 1:numRuns
+numRuns <- 1 # runs per folder (1 is correct)
 numTrials <- 1
-trials <- 1:1
+cluster <- TRUE #just controls cluster plotting
 
 
 runL <- rep(NA, times = numRuns * numTrials)
 trialL <- rep(NA, times = numRuns * numTrials)
 num_correctInferencesL <- rep(NA, times = numRuns * numTrials) # true pos
 num_incorrect_alphaL <- rep(NA, times = numRuns * numTrials) # species interaction incorrectInference
-num_incorrect_betaL <- rep(NA, times = numRuns * numTrials) # covariate interaction incorrectInference
 num_incorrectInferencesL <- rep(NA, times = numRuns * numTrials) # false pos (or wrong direction)
 num_actualEffectsL <- rep(NA, times = numRuns * numTrials) # total actual effects
 num_possibleEffectsL <- rep(NA, times = numRuns * numTrials) # n^2 + n*p -n (minus n because of the diagonal of alpha)
 num_missedEffects_alphaL <- rep(NA, times = numRuns * numTrials)
-num_missedEffects_betaL <- rep(NA, times = numRuns * numTrials)
 num_missedEffectsL <- rep(NA, times = numRuns * numTrials)# false negatives
 timeL <- rep(NA, times = numRuns * numTrials)
 finished_trL <- rep(NA, times = numRuns * numTrials) # T or F whether this trial finished the INLA part
@@ -49,112 +40,27 @@ alpha_direction_mistakesL <- rep(NA, times = numRuns * numTrials)
 alpha_incorrect_undirectedL <- rep(NA, times = numRuns * numTrials)
 alpha_correct_undirectedL <- rep(NA, times = numRuns * numTrials)
 
-# this is a hacky way to get the number of parms
-simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
-parmVals <- unlist(simParms)
-# take out functions from parmVals
-parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
-parmNames <- names(parmVals)
-# initialize place to store parm values
-parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
-names(parmsDF) <- parmNames
-
-avg_alphInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
-avg_betInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numCovs - 1)
-nCompleteB <- 0
-nCompleteA <- 0
-
 i <- 1
-for (run in runs) {
-    for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
-        if(file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
-            # store run and trial info
-            runL[i] <- run
-            trialL[i] <- trial
+for (run in 1:numRuns) {
+    for (trial in 1:numTrials) {
+        # store run and trial info
+        runL[i] <- run
+        trialL[i] <- trial
 
-            ############### LOAD ACTUAL PARAMS ######################
-            simParms <- readRDS(paste0(data_dir, "randomRun", run, "/params.Rdata"))
-            
-            parmVals <- unlist(simParms)
-            # take out functions from parmVals
-            parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
-            parmNames <- names(parmVals)
-            parmsDF[i, ] <- parmVals
+        simParms <- readRDS(paste0(data_dir, "/params.Rdata"))
+        actualAlpha <- sign(simParms$alpha)
 
-            # figure out which beta column to remove based on just being an intercept variable
-            covVars <- simParms$covVars
-            const_covs <- unlist(lapply(covVars, FUN = function(covVar) {covVar$type != "constant"}))
-
+        if (covs) {
             actualBeta <- sign(simParms$beta)
-            actualBeta <- actualBeta[, const_covs]
-            actualAlpha <- sign(simParms$alpha)
+        }
 
-            ############### DO LOGISTIC REGRESSION ######################
-            # load sitetab
-            if (dumb) {
-                sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sitetab_dumb.csv"), header = TRUE)
-            } else {
-                sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
-            }
-            
-            sp_glm_L <- list()
-            for (speciesName in simParms$names_species) {
-                if (covs) {
-                    # glm
-                    fmla <- as.formula(paste(speciesName, "~ ", 
-                                        paste(c(simParms$names_species[simParms$names_species != speciesName]), collapse = "+"), "+",
-                                        paste(c(simParms$names_cov), collapse = "+")))
-                } else {
-                    fmla <- as.formula(paste(speciesName, "~ ", 
-                                    paste(c(simParms$names_species[simParms$names_species != speciesName]), collapse = "+")))
-                }
-                model <- glm(fmla, family = binomial(link = 'logit'), data = sim_sitetab_sampled)
-                model_summary <- data.frame(summary(model)$coefficients)
-                sp_glm_L[[speciesName]] <- model_summary
-            }
-            
-            ############### GET INFERRED ALPHA AND BETA ######################
-            betaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = (simParms$numCovs - 1))
-            if (covs) {
-                for (spNum in 1:simParms$numSpecies) {
-                    for (covNum in 1:(simParms$numCovs - 1)) {
-                        speciesName <- paste0("Sp", spNum)
-                        covName <- paste0("Cov", covNum)
-                        model_summary <- sp_glm_L[[speciesName]]
-                        betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < 0.05) * sign(model_summary[covName, "Estimate"])
-                    }
-                }
-                if(!is.na(sum(betaInferred))) {
-                    avg_betInferred <- avg_betInferred + betaInferred
-                    nCompleteB <- nCompleteB + 1
-                }   
-            }
+        # check if the inference for this trial finished and store info
+        finished_tr <- file.exists(paste0(outdir, "trial", trial, "/inferenceRes.Rdata"))
+        finished_trL[i] <- finished_tr
 
-            alphaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
-            for (spNum1 in 1:simParms$numSpecies) {
-                for (spNum2 in 1:simParms$numSpecies) {
-                    speciesName1 <- paste0("Sp", spNum1)
-                    speciesName2 <- paste0("Sp", spNum2)
-                    model_summary <- sp_glm_L[[speciesName1]]
-                    if (spNum1 == spNum2) {
-                        alphaInferred[spNum1, spNum2] <- 0
-                    } else {
-                        alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...z.."] < 0.05) * 
-                                                        sign(model_summary[speciesName2, "Estimate"])
-                    }
-                }
-            }
-
-            if(!is.na(sum(alphaInferred))) {
-                avg_alphInferred <- avg_alphInferred + alphaInferred
-                nCompleteA <- nCompleteA + 1
-            }
-
-            ############### COMPARE INFERRECE RESULTS TO ACTUAL ALPHA AND BETA ######################
-            inferredParms <- list()
-            inferredParms$alphaInferred <- alphaInferred
-            inferredParms$betaInferred <- betaInferred
-
+        if (finished_tr) {
+            inferredParms <- readRDS(paste0(outdir, "trial", trial, "/inferenceRes.Rdata"))
+            try(if (sum(diag(inferredParms$alphaInferred)) != 0) {stop("Elements of inferred alpha diagonal are not 0")})
             alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
             inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "undirected")
             connected_alpha_actual <- (distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
@@ -217,6 +123,7 @@ for (run in runs) {
                 num_missedEffects_betaL[i] <- num_missedEffects_beta
             } 
 
+            # add to running lists
             num_incorrect_alphaL[i] <- count_incorrectT1_alpha
             num_correctInferencesL[i] <- num_correct
             num_incorrectInferencesL[i] <- count_incorrectT1
@@ -232,30 +139,46 @@ for (run in runs) {
             if ("time" %in% names(inferredParms)) {
                 timeL[i] <- inferredParms$time
             }
-            }
-
-            # count total number of actual effects in the model
+        } 
+        
+        # count total number of actual effects in the model
+        if (covs) {
+            num_actualEffects <- sum(abs(actualAlpha)) + sum(abs(actualBeta))
+        } else {
             num_actualEffects <- sum(abs(actualAlpha))
+        }
+        num_actualEffectsL[i] <- num_actualEffects
 
-            num_actualEffectsL[i] <- num_actualEffects
-            num_possibleEffectsL[i] <- dim(actualAlpha)[1]^2 - dim(actualAlpha)[1]
-            i <- i + 1
+        if (covs) {
+            num_possibleEffects <- dim(actualAlpha)[1]^2 - dim(actualAlpha)[1] + (dim(actualBeta)[1] * dim(actualBeta)[2])
+        } else {
+            num_possibleEffects <- dim(actualAlpha)[1]^2 - dim(actualAlpha)[1]
+        }
+        num_possibleEffectsL[i] <- num_possibleEffects
+
+        if (cluster) {
+          layout <- layout_with_mds(graph = alphaG)
+          plot(alphaG, main = "Actual Network", vertex.size = 0)
+          png(filename = paste0(outdir, "actualNetworkPlot.png"), height = 800, width = 800, units = "px")
+          dev.off()
+          layout <- layout_with_mds(graph = inferredAlphaG)
+          plot(inferredAlphaG, main = paste0("Inferred Network: ", outdir), layout = layout, vertex.size = 0)
+          png(filename = paste0(outdir, "inferredNetworkPlot.png"), height = 800, width = 800, units = "px")
+          dev.off()
+        }
+        i <- i + 1
     }
 }
-
-# done w loop
 
 df <- data.frame(sim_run = runL, 
             trial = trialL, 
             finished = finished_trL,
             runtime = timeL,
             num_incorrect_alpha = num_incorrect_alphaL,
-            num_incorrect_beta = num_incorrect_betaL,
             num_correctInferences = num_correctInferencesL, 
             num_incorrectInferences = num_incorrectInferencesL, 
             num_actualEffects = num_actualEffectsL,
             num_missedEffects_alpha = num_missedEffects_alphaL,
-            num_missedEffects_beta = num_missedEffects_betaL,
             num_missedEffectsL = num_missedEffectsL,
             num_possibleEffectsL = num_possibleEffectsL,
             num_correct_cluster = num_correct_clusterL,
@@ -265,23 +188,6 @@ df <- data.frame(sim_run = runL,
             alpha_incorrect_undirected = alpha_incorrect_undirectedL,
             alpha_correct_undirected = alpha_correct_undirectedL)
 
-#print(df)
+# print(df)
 
-avg_alphInferred <- avg_alphInferred / nCompleteA
-avg_betInferred <- avg_betInferred / nCompleteB
-
-#round(avg_alphInferred, 4)
-#round(abs(avg_alphInferred), 4)
-
-parmsDF$sim_run <- runL
-parmsDF$trial <- trialL
-#print(parmsDF)
-
-fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
-
-#print(fulldf)
-if(dumb) {
-    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb.csv"))
-} else {
-    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes.csv"))
-}
+write.csv(df, paste0(outdir, "mistakes.csv"))

@@ -11,7 +11,8 @@ multiSimRes <- data.frame()
 resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
 resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
-resNames <- c("ecoCopula_res_noCov_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv")
+#ls /space/s1/fiona_callahan/multiSim_100
+resNames <- c("ecoCopula_res_noCov_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "logistic_mistakes.csv", "INLA_infResGathered.csv")
 
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 # load results into list
@@ -21,8 +22,8 @@ for (i in seq_along(resNames)) {
   thisMultiSimRes$totalMistakes <- thisMultiSimRes$num_incorrectInferences + thisMultiSimRes$num_missedEffectsL
   thisMultiSimRes$fp_fp_tp <- thisMultiSimRes$num_incorrectInferences / 
                               (thisMultiSimRes$num_correctInferences + thisMultiSimRes$num_incorrectInferences)
-  thisMultiSimRes$fp_fp_tp_cluster <- thisMultiSimRes$num_incorrect_cluster / 
-                              (thisMultiSimRes$num_correct_cluster + thisMultiSimRes$num_incorrect_cluster)
+  #thisMultiSimRes$fp_fp_tp_cluster <- thisMultiSimRes$num_incorrect_cluster / 
+  #                            (thisMultiSimRes$num_correct_cluster + thisMultiSimRes$num_incorrect_cluster)
   actual_mean_fpr <- rep(NA, times = dim(thisMultiSimRes)[1])
   for (row in seq_len(dim(thisMultiSimRes)[1])) { #1:dim(multiSimRes)[1]
     if(is.na(thisMultiSimRes$fpr.mode[row])){
@@ -55,8 +56,11 @@ multiSimRes <- multiSimResL$ecoCopula_res_noCov_infResGathered.csv
 multiSimRes <- multiSimResL$spiecEasi_res_mb_infResGathered.csv
 
 mean(multiSimRes$alpha_incorrect_undirected + multiSimRes$alpha_correct_undirected)
-mean(multiSimRes$num_incorrect_alpha + multiSimRes$num_correctInferences)
+mean(multiSimRes$num_incorrect_alpha + multiSimRes$num_correctInferences, na.rm = TRUE)
 mean(multiSimRes$num_incorrect_cluster + multiSimRes$num_correct_cluster)
+
+summary(multiSimRes$num_incorrect_alpha)
+summary(multiSimRes$num_correctInferences)
 
 mean(multiSimRes$fp_fp_tp, na.rm = TRUE)
 mean(multiSimRes$alpha_incorrect_undirected / (multiSimRes$alpha_incorrect_undirected + multiSimRes$alpha_correct_undirected), na.rm = TRUE)
