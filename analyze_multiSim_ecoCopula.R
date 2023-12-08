@@ -56,7 +56,7 @@ multiSimRes <- multiSimResL$ecoCopula_res_noCov_infResGathered.csv
 multiSimRes <- multiSimResL$spiecEasi_res_mb_infResGathered.csv
 
 mean(multiSimRes$alpha_incorrect_undirected + multiSimRes$alpha_correct_undirected)
-mean(multiSimRes$num_incorrect_alpha + multiSimRes$num_correctInferences, na.rm = TRUE)
+mean(multiSimRes$num_incorrectInferences + multiSimRes$num_correctInferences, na.rm = TRUE)
 mean(multiSimRes$num_incorrect_cluster + multiSimRes$num_correct_cluster)
 
 summary(multiSimRes$num_incorrect_alpha)

@@ -14,12 +14,11 @@ if (length(args) < 2) {
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_100/"
 numRuns <- 100
-
+dumb <- (as.numeric("1") == 1)
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])
-cutoff <- as.numeric(args[3])
-dumb <- (args[4] == 1)
+dumb <- as.numeric(args[3]) == 1
 
 covs <- TRUE
 
@@ -54,43 +53,13 @@ alpha_correct_undirectedL <- rep(NA, times = numRuns * numTrials)
 
 # this is a hacky way to get the number of parms
 simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
-parmVals <- unlist(simParms)
-# take out functions from parmVals
-parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
-parmNames <- names(parmVals)
-# initialize place to store parm values
-parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
-names(parmsDF) <- parmNames
 
-avg_alphInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
-avg_betInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numCovs - 1)
-nCompleteB <- 0
-nCompleteA <- 0
-
-i <- 1
+logisticRes <- list()
 for (run in runs) {
     for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
         if (file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
-            # store run and trial info
-            runL[i] <- run
-            trialL[i] <- trial
-
-            ############### LOAD ACTUAL PARAMS ######################
+            # LOAD ACTUAL PARAMS 
             simParms <- readRDS(paste0(data_dir, "randomRun", run, "/params.Rdata"))
-            
-            parmVals <- unlist(simParms)
-            # take out functions from parmVals
-            parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
-            parmNames <- names(parmVals)
-            parmsDF[i, ] <- parmVals
-
-            # figure out which beta column to remove based on just being an intercept variable
-            covVars <- simParms$covVars
-            const_covs <- unlist(lapply(covVars, FUN = function(covVar) {covVar$type != "constant"}))
-
-            actualBeta <- sign(simParms$beta)
-            actualBeta <- actualBeta[, const_covs]
-            actualAlpha <- sign(simParms$alpha)
 
             ############### DO LOGISTIC REGRESSION ######################
             # load sitetab
@@ -115,8 +84,45 @@ for (run in runs) {
                 model_summary <- data.frame(summary(model)$coefficients)
                 sp_glm_L[[speciesName]] <- model_summary
             }
-            
-            #for (cutoff in cutoffs) {
+            logisticRes[[run]] <- sp_glm_L
+        }
+    }
+}
+
+for (cutoff in cutoffs) {
+    i <- 1
+    avg_alphInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
+    avg_betInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numCovs - 1)
+    nCompleteB <- 0
+    nCompleteA <- 0
+    # initialize place to store parm values
+    parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
+    names(parmsDF) <- parmNames
+    for (run in runs) {
+        for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
+            if (file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
+                sp_glm_L <- logisticRes[[run]]
+                # store run and trial info
+                runL[i] <- run
+                trialL[i] <- trial
+
+                ############### LOAD ACTUAL PARAMS ######################
+                simParms <- readRDS(paste0(data_dir, "randomRun", run, "/params.Rdata"))
+                
+                parmVals <- unlist(simParms)
+                # take out functions from parmVals
+                parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
+                parmNames <- names(parmVals)
+                parmsDF[i, ] <- parmVals
+
+                # figure out which beta column to remove based on just being an intercept variable
+                covVars <- simParms$covVars
+                const_covs <- unlist(lapply(covVars, FUN = function(covVar) {covVar$type != "constant"}))
+
+                actualBeta <- sign(simParms$beta)
+                actualBeta <- actualBeta[, const_covs]
+                actualAlpha <- sign(simParms$alpha)
+
                 ############### GET INFERRED ALPHA AND BETA ######################
                 betaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = (simParms$numCovs - 1))
                 if (covs) {
@@ -239,58 +245,59 @@ for (run in runs) {
                 if ("time" %in% names(inferredParms)) {
                     timeL[i] <- inferredParms$time
                 }
+                    
                 
-            
+            }
+
+                # count total number of actual effects in the model
+                num_actualEffects <- sum(abs(actualAlpha))
+
+                num_actualEffectsL[i] <- num_actualEffects
+                num_possibleEffectsL[i] <- dim(actualAlpha)[1]^2 - dim(actualAlpha)[1]
+                i <- i + 1
         }
-
-            # count total number of actual effects in the model
-            num_actualEffects <- sum(abs(actualAlpha))
-
-            num_actualEffectsL[i] <- num_actualEffects
-            num_possibleEffectsL[i] <- dim(actualAlpha)[1]^2 - dim(actualAlpha)[1]
-            i <- i + 1
     }
-}
 
-# done w loop
+    # done w loop
 
-df <- data.frame(sim_run = runL, 
-            trial = trialL, 
-            finished = finished_trL,
-            runtime = timeL,
-            num_incorrect_alpha = num_incorrect_alphaL,
-            num_incorrect_beta = num_incorrect_betaL,
-            num_correctInferences = num_correctInferencesL, 
-            num_incorrectInferences = num_incorrectInferencesL, 
-            num_actualEffects = num_actualEffectsL,
-            num_missedEffects_alpha = num_missedEffects_alphaL,
-            num_missedEffects_beta = num_missedEffects_betaL,
-            num_missedEffectsL = num_missedEffectsL,
-            num_possibleEffectsL = num_possibleEffectsL,
-            num_correct_cluster = num_correct_clusterL,
-            num_incorrect_cluster = num_incorrect_clusterL,
-            num_missed_cluster = num_missed_clusterL,
-            alpha_direction_mistakes = alpha_direction_mistakesL,
-            alpha_incorrect_undirected = alpha_incorrect_undirectedL,
-            alpha_correct_undirected = alpha_correct_undirectedL)
+    df <- data.frame(sim_run = runL, 
+                trial = trialL, 
+                finished = finished_trL,
+                runtime = timeL,
+                num_incorrect_alpha = num_incorrect_alphaL,
+                num_incorrect_beta = num_incorrect_betaL,
+                num_correctInferences = num_correctInferencesL, 
+                num_incorrectInferences = num_incorrectInferencesL, 
+                num_actualEffects = num_actualEffectsL,
+                num_missedEffects_alpha = num_missedEffects_alphaL,
+                num_missedEffects_beta = num_missedEffects_betaL,
+                num_missedEffectsL = num_missedEffectsL,
+                num_possibleEffectsL = num_possibleEffectsL,
+                num_correct_cluster = num_correct_clusterL,
+                num_incorrect_cluster = num_incorrect_clusterL,
+                num_missed_cluster = num_missed_clusterL,
+                alpha_direction_mistakes = alpha_direction_mistakesL,
+                alpha_incorrect_undirected = alpha_incorrect_undirectedL,
+                alpha_correct_undirected = alpha_correct_undirectedL)
 
-#print(df)
+    #print(df)
 
-avg_alphInferred <- avg_alphInferred / nCompleteA
-avg_betInferred <- avg_betInferred / nCompleteB
+    avg_alphInferred <- avg_alphInferred / nCompleteA
+    avg_betInferred <- avg_betInferred / nCompleteB
 
-#round(avg_alphInferred, 4)
-#round(abs(avg_alphInferred), 4)
+    #round(avg_alphInferred, 4)
+    #round(abs(avg_alphInferred), 4)
 
-parmsDF$sim_run <- runL
-parmsDF$trial <- trialL
-#print(parmsDF)
+    parmsDF$sim_run <- runL
+    parmsDF$trial <- trialL
+    #print(parmsDF)
 
-fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
+    fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
 
-#print(fulldf)
-if (dumb) {
-    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb_cutoff", cutoff, ".csv"))
-} else {
-    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_cutoff", cutoff, ".csv"))
+    #print(fulldf)
+    if (dumb) {
+        write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb_cutoff", cutoff, ".csv"))
+    } else {
+        write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_cutoff", cutoff, ".csv"))
+    }
 }
