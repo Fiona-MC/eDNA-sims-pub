@@ -14,10 +14,12 @@ if (length(args) < 2) {
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_100/"
 numRuns <- 100
-dumb <- FALSE
+
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])
+cutoff <- as.numeric(args[3])
+dumb <- (args[4] == 1)
 
 covs <- TRUE
 
@@ -28,6 +30,7 @@ runs <- 1:numRuns
 numTrials <- 1
 trials <- 1:1
 
+cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
 
 runL <- rep(NA, times = numRuns * numTrials)
 trialL <- rep(NA, times = numRuns * numTrials)
@@ -67,7 +70,7 @@ nCompleteA <- 0
 i <- 1
 for (run in runs) {
     for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
-        if(file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
+        if (file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
             # store run and trial info
             runL[i] <- run
             trialL[i] <- trial
@@ -113,126 +116,132 @@ for (run in runs) {
                 sp_glm_L[[speciesName]] <- model_summary
             }
             
-            ############### GET INFERRED ALPHA AND BETA ######################
-            betaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = (simParms$numCovs - 1))
-            if (covs) {
-                for (spNum in 1:simParms$numSpecies) {
-                    for (covNum in 1:(simParms$numCovs - 1)) {
-                        speciesName <- paste0("Sp", spNum)
-                        covName <- paste0("Cov", covNum)
-                        model_summary <- sp_glm_L[[speciesName]]
-                        betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < 0.05) * sign(model_summary[covName, "Estimate"])
+            #for (cutoff in cutoffs) {
+                ############### GET INFERRED ALPHA AND BETA ######################
+                betaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = (simParms$numCovs - 1))
+                if (covs) {
+                    for (spNum in 1:simParms$numSpecies) {
+                        for (covNum in 1:(simParms$numCovs - 1)) {
+                            speciesName <- paste0("Sp", spNum)
+                            covName <- paste0("Cov", covNum)
+                            model_summary <- sp_glm_L[[speciesName]]
+                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < cutoff) * sign(model_summary[covName, "Estimate"])
+                        }
+                    }
+                    if(!is.na(sum(betaInferred))) {
+                        avg_betInferred <- avg_betInferred + betaInferred
+                        nCompleteB <- nCompleteB + 1
+                    }   
+                }
+
+                alphaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
+                for (spNum1 in 1:simParms$numSpecies) {
+                    for (spNum2 in 1:simParms$numSpecies) {
+                        speciesName1 <- paste0("Sp", spNum1)
+                        speciesName2 <- paste0("Sp", spNum2)
+                        model_summary <- sp_glm_L[[speciesName1]]
+                        if (spNum1 == spNum2) {
+                            alphaInferred[spNum1, spNum2] <- 0
+                        } else {
+                            alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...z.."] < cutoff) * 
+                                                            sign(model_summary[speciesName2, "Estimate"])
+                        }
                     }
                 }
-                if(!is.na(sum(betaInferred))) {
-                    avg_betInferred <- avg_betInferred + betaInferred
-                    nCompleteB <- nCompleteB + 1
-                }   
-            }
 
-            alphaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
-            for (spNum1 in 1:simParms$numSpecies) {
-                for (spNum2 in 1:simParms$numSpecies) {
-                    speciesName1 <- paste0("Sp", spNum1)
-                    speciesName2 <- paste0("Sp", spNum2)
-                    model_summary <- sp_glm_L[[speciesName1]]
-                    if (spNum1 == spNum2) {
-                        alphaInferred[spNum1, spNum2] <- 0
-                    } else {
-                        alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...z.."] < 0.05) * 
-                                                        sign(model_summary[speciesName2, "Estimate"])
-                    }
+                if(!is.na(sum(alphaInferred))) {
+                    avg_alphInferred <- avg_alphInferred + alphaInferred
+                    nCompleteA <- nCompleteA + 1
                 }
-            }
 
-            if(!is.na(sum(alphaInferred))) {
-                avg_alphInferred <- avg_alphInferred + alphaInferred
-                nCompleteA <- nCompleteA + 1
-            }
+                ############### COMPARE INFERRECE RESULTS TO ACTUAL ALPHA AND BETA ######################
+                inferredParms <- list()
+                inferredParms$alphaInferred <- alphaInferred
+                inferredParms$betaInferred <- betaInferred
+                inferredParms$cutoff <- cutoff
 
-            ############### COMPARE INFERRECE RESULTS TO ACTUAL ALPHA AND BETA ######################
-            inferredParms <- list()
-            inferredParms$alphaInferred <- alphaInferred
-            inferredParms$betaInferred <- betaInferred
+                alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+                inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "undirected")
+                connected_alpha_actual <- (distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
+                                            (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
+                connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
+                                            (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
+                # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
+                num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1)
+                if (covs) {
+                    num_correct_beta <- sum(inferredParms$betaInferred * actualBeta == 1)
+                    num_correct <- num_correct_alpha + num_correct_beta
+                } else {
+                    num_correct <- num_correct_alpha
+                }
 
-            alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
-            inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "undirected")
-            connected_alpha_actual <- (distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
-                                        (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
-            connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
-                                        (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
-            # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
-            num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1)
-            if (covs) {
-                num_correct_beta <- sum(inferredParms$betaInferred * actualBeta == 1)
-                num_correct <- num_correct_alpha + num_correct_beta
-            } else {
-                num_correct <- num_correct_alpha
-            }
+                num_correct_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == 1)
 
-            num_correct_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == 1)
+                # Note: here we want to add together inferrence in the wrong direction with saying there is an effect when it's actually 0
+                # type 1 error -- inferring an effect where there is none or wrong direction of effect
+                count_incorrectT1_alpha <- sum(inferredParms$alphaInferred * actualAlpha == -1) + 
+                                                sum(actualAlpha == 0 & inferredParms$alphaInferred != 0)
+                alpha_direction_mistakes <- sum(inferredParms$alphaInferred * actualAlpha == -1)
 
-            # Note: here we want to add together inferrence in the wrong direction with saying there is an effect when it's actually 0
-            # type 1 error -- inferring an effect where there is none or wrong direction of effect
-            count_incorrectT1_alpha <- sum(inferredParms$alphaInferred * actualAlpha == -1) + sum(actualAlpha == 0 & inferredParms$alphaInferred != 0)
-            alpha_direction_mistakes <- sum(inferredParms$alphaInferred * actualAlpha == -1)
+                if (covs) {
+                    count_incorrectT1_beta <- sum(inferredParms$betaInferred * actualBeta == -1) + 
+                                                sum(actualBeta == 0 & inferredParms$betaInferred != 0)
+                    count_incorrectT1 <- count_incorrectT1_beta + count_incorrectT1_alpha
+                } else {
+                    count_incorrectT1 <- count_incorrectT1_alpha
+                }
 
-            if (covs) {
-                count_incorrectT1_beta <- sum(inferredParms$betaInferred * actualBeta == -1) + sum(actualBeta == 0 & inferredParms$betaInferred != 0)
-                count_incorrectT1 <- count_incorrectT1_beta + count_incorrectT1_alpha
-            } else {
-                count_incorrectT1 <- count_incorrectT1_alpha
-            }
+                count_incorrect_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == -1) + 
+                                                sum(connected_alpha_actual == 0 & connected_alpha_inferred != 0)
 
-            count_incorrect_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == -1) + 
-                                            sum(connected_alpha_actual == 0 & connected_alpha_inferred != 0)
+                # type 2 error
+                # count missed effects (number of times that actual effect is 1 or -1 and inferred effect is 0)
+                num_missedEffects_alpha <- sum(actualAlpha != 0 & inferredParms$alphaInferred == 0)
 
-            # type 2 error
-            # count missed effects (number of times that actual effect is 1 or -1 and inferred effect is 0)
-            num_missedEffects_alpha <- sum(actualAlpha != 0 & inferredParms$alphaInferred == 0)
+                if (covs) {
+                    num_missedEffects_beta <- sum(actualBeta != 0 & inferredParms$betaInferred == 0)
+                }
 
-            if (covs) {
-                num_missedEffects_beta <- sum(actualBeta != 0 & inferredParms$betaInferred == 0)
-            }
+                if (covs) {
+                    num_missedEffects <- num_missedEffects_alpha + num_missedEffects_beta
+                } else {
+                    num_missedEffects <- num_missedEffects_alpha 
+                }
 
-            if (covs) {
-                num_missedEffects <- num_missedEffects_alpha + num_missedEffects_beta
-            } else {
-                num_missedEffects <- num_missedEffects_alpha 
-            }
+                num_missedEffects_cluster <- sum(connected_alpha_actual != 0 & connected_alpha_inferred == 0)
 
-            num_missedEffects_cluster <- sum(connected_alpha_actual != 0 & connected_alpha_inferred == 0)
+                # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
+                undirected_alpha_actual <- distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
+                undirected_alpha_inferred <- distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
 
-            # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
-            undirected_alpha_actual <- distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
-            undirected_alpha_inferred <- distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
+                alpha_incorrect_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == -1) + 
+                                                sum(undirected_alpha_actual == 0 & undirected_alpha_inferred != 0)
+                alpha_correct_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == 1)
 
-            alpha_incorrect_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == -1) + 
-                                            sum(undirected_alpha_actual == 0 & undirected_alpha_inferred != 0)
-            alpha_correct_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == 1)
+                # add to running lists
+                if (covs) {
+                    num_incorrect_betaL[i] <- count_incorrectT1_beta
+                    num_missedEffects_betaL[i] <- num_missedEffects_beta
+                } 
 
-            # add to running lists
-            if (covs) {
-                num_incorrect_betaL[i] <- count_incorrectT1_beta
-                num_missedEffects_betaL[i] <- num_missedEffects_beta
-            } 
+                num_incorrect_alphaL[i] <- count_incorrectT1_alpha
+                num_correctInferencesL[i] <- num_correct
+                num_incorrectInferencesL[i] <- count_incorrectT1
+                num_missedEffects_alphaL[i] <- num_missedEffects_alpha
+                num_missedEffectsL[i] <- num_missedEffects
+                alpha_direction_mistakesL[i] <- alpha_direction_mistakes
+                num_correct_clusterL[i] <- num_correct_cluster
+                num_incorrect_clusterL[i] <- count_incorrect_cluster
+                num_missed_clusterL[i] <- num_missedEffects_cluster
+                alpha_incorrect_undirectedL[i] <- alpha_incorrect_undirected
+                alpha_correct_undirectedL[i] <- alpha_correct_undirected
 
-            num_incorrect_alphaL[i] <- count_incorrectT1_alpha
-            num_correctInferencesL[i] <- num_correct
-            num_incorrectInferencesL[i] <- count_incorrectT1
-            num_missedEffects_alphaL[i] <- num_missedEffects_alpha
-            num_missedEffectsL[i] <- num_missedEffects
-            alpha_direction_mistakesL[i] <- alpha_direction_mistakes
-            num_correct_clusterL[i] <- num_correct_cluster
-            num_incorrect_clusterL[i] <- count_incorrect_cluster
-            num_missed_clusterL[i] <- num_missedEffects_cluster
-            alpha_incorrect_undirectedL[i] <- alpha_incorrect_undirected
-            alpha_correct_undirectedL[i] <- alpha_correct_undirected
-
-            if ("time" %in% names(inferredParms)) {
-                timeL[i] <- inferredParms$time
-            }
-            }
+                if ("time" %in% names(inferredParms)) {
+                    timeL[i] <- inferredParms$time
+                }
+                
+            
+        }
 
             # count total number of actual effects in the model
             num_actualEffects <- sum(abs(actualAlpha))
@@ -280,8 +289,8 @@ parmsDF$trial <- trialL
 fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
 
 #print(fulldf)
-if(dumb) {
-    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb.csv"))
+if (dumb) {
+    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb_cutoff", cutoff, ".csv"))
 } else {
-    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes.csv"))
+    write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_cutoff", cutoff, ".csv"))
 }
