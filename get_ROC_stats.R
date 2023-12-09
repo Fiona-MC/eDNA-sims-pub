@@ -9,10 +9,14 @@ resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infRe
               "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
 #ls /space/s1/fiona_callahan/multiSim_100
-logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
+logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
 log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_cutoff", x, ".csv")})
 resNames <- c("ecoCopula_res_noCov_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", 
             "logistic_mistakes.csv", "INLA_infResGathered.csv", log_resnames)
+
+#logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
+#log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_dumb_cutoff", x, ".csv")})
+resNames <- log_resnames
 
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 # load results into list
@@ -50,10 +54,13 @@ multiSimRes <- multiSimResL$logistic_mistakes.csv
 
 # if you need to check these later, look at obsidian ROC curve note
 # obsidian://open?vault=simulations&file=ROC%20curves
-get_TPR <- function(data = multiSimRes, cluster = FALSE) {
-    if (cluster) {
+get_TPR <- function(data = multiSimRes, mode = "ignore_sign") {
+    if (mode == "cluster") {
         TP <- data$num_correct_cluster 
         FN <- data$num_missed_cluster
+    } else if (mode == "ignore_sign") {
+        TP <- data$TP_ignoreSign
+        FN <- data$FN_ignoreSign
     } else {
         # tp/(tp+fn)
         TP <- data$num_correctInferences
@@ -63,11 +70,14 @@ get_TPR <- function(data = multiSimRes, cluster = FALSE) {
     return(TPR)
 }
 
-get_FPR <- function(data = multiSimRes, cluster = FALSE) {
-    if (cluster) {
-        FP <- data$num_incorrect_cluster
-        actual_neg <- data$num_possibleEffectsL - (data$num_correct_cluster + data$num_missed_cluster)
-        TN <- actual_neg - data$num_incorrect_cluster
+get_FPR <- function(data = multiSimRes, mode = "ignore_sign") {
+    if (mode == "cluster") {
+      FP <- data$num_incorrect_cluster
+      actual_neg <- data$num_possibleEffectsL - (data$num_correct_cluster + data$num_missed_cluster)
+      TN <- actual_neg - data$num_incorrect_cluster
+    } else if (mode == "ignore_sign") {
+      FP <- data$FP_ignoreSign
+      TN <- data$TN_ignoreSign
     } else {
         FP <- data$num_incorrectInferences
         actual_neg <- data$num_possibleEffectsL - data$num_actualEffects
@@ -99,8 +109,8 @@ for (i in seq_along(multiSimResL)) {
     #if (str_detect(names(multiSimResL)[i], "cutoff")) {
     #  thresholds[i] <- str_split(c(names(multiSimResL)[i]), pattern = ".")
     #}
-    avg_TPR[i] <- mean(get_TPR(data = multiSimRes, cluster = FALSE), na.rm = TRUE)
-    avg_FPR[i] <- mean(get_FPR(data = multiSimRes, cluster = FALSE), na.rm = TRUE)
+    avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+    avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
 }
 
 ROC_data <- data.frame(file = file, method = methods, threshold = thresholds, avg_FPR = as.numeric(avg_FPR), avg_TPR = as.numeric(avg_TPR))
@@ -114,8 +124,6 @@ ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method)) +
   labs(title = "ROC", x = "FPR", y = "TPR") +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line
   lims(x = c(0, 1), y = c(0, 1))  # Set x and y-axis limits
-
-
 
 
 ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot.png"))

@@ -39,6 +39,10 @@ num_missed_clusterL <- rep(NA, times = numRuns * numTrials)
 alpha_direction_mistakesL <- rep(NA, times = numRuns * numTrials)
 alpha_incorrect_undirectedL <- rep(NA, times = numRuns * numTrials)
 alpha_correct_undirectedL <- rep(NA, times = numRuns * numTrials)
+TP_ignoreSign <- rep(NA, times = numRuns * numTrials)
+FP_ignoreSign <- rep(NA, times = numRuns * numTrials)
+TN_ignoreSign <- rep(NA, times = numRuns * numTrials)
+FN_ignoreSign <- rep(NA, times = numRuns * numTrials)
 
 i <- 1
 for (run in 1:numRuns) {
@@ -123,6 +127,22 @@ for (run in 1:numRuns) {
                 num_missedEffects_betaL[i] <- num_missedEffects_beta
             } 
 
+            if (covs) {
+                TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1) + 
+                                    sum(abs(betaInferred) * abs(actualBeta) == 1)
+                FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) + 
+                                    sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0))
+                FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
+                TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
+            } else {
+                TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1) 
+                FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) 
+                FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) 
+                TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) 
+            }
+
             # add to running lists
             num_incorrect_alphaL[i] <- count_incorrectT1_alpha
             num_correctInferencesL[i] <- num_correct
@@ -186,7 +206,11 @@ df <- data.frame(sim_run = runL,
             num_missed_cluster = num_missed_clusterL,
             alpha_direction_mistakes = alpha_direction_mistakesL,
             alpha_incorrect_undirected = alpha_incorrect_undirectedL,
-            alpha_correct_undirected = alpha_correct_undirectedL)
+            alpha_correct_undirected = alpha_correct_undirectedL,
+            TP_ignoreSign = TP_ignoreSign,
+            FP_ignoreSign = FP_ignoreSign,
+            TN_ignoreSign = TN_ignoreSign,
+            FN_ignoreSign = FN_ignoreSign)
 
 # print(df)
 

@@ -50,6 +50,10 @@ num_missed_clusterL <- rep(NA, times = numRuns * numTrials)
 alpha_direction_mistakesL <- rep(NA, times = numRuns * numTrials)
 alpha_incorrect_undirectedL <- rep(NA, times = numRuns * numTrials)
 alpha_correct_undirectedL <- rep(NA, times = numRuns * numTrials)
+TP_ignoreSign <- rep(NA, times = numRuns * numTrials)
+FP_ignoreSign <- rep(NA, times = numRuns * numTrials)
+TN_ignoreSign <- rep(NA, times = numRuns * numTrials)
+FN_ignoreSign <- rep(NA, times = numRuns * numTrials)
 
 # this is a hacky way to get the number of parms
 simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
@@ -95,9 +99,22 @@ for (cutoff in cutoffs) {
     avg_betInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numCovs - 1)
     nCompleteB <- 0
     nCompleteA <- 0
+
+    # TODO get df of actual and predicted values to test if I am making the confusion mx wrong
+    actual_predicted_vals <- data.frame()
+    alpha_actualL <- c()
+    alpha_predictedL <- c()
+    beta_actualL <- c()
+    beta_predictedL <- c()
+
     # initialize place to store parm values
+    simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
+    parmVals <- unlist(simParms)
+    parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
+    parmNames <- names(parmVals)
     parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
     names(parmsDF) <- parmNames
+    
     for (run in runs) {
         for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
             if (file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
@@ -230,6 +247,22 @@ for (cutoff in cutoffs) {
                     num_missedEffects_betaL[i] <- num_missedEffects_beta
                 } 
 
+                if (covs) {
+                    TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1) + 
+                                        sum(abs(betaInferred) * abs(actualBeta) == 1)
+                    FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) + 
+                                        sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0))
+                    FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) + 
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
+                    TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) + 
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
+                } else {
+                    TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1) 
+                    FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) 
+                    FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) 
+                    TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) 
+                }
+
                 num_incorrect_alphaL[i] <- count_incorrectT1_alpha
                 num_correctInferencesL[i] <- num_correct
                 num_incorrectInferencesL[i] <- count_incorrectT1
@@ -278,7 +311,11 @@ for (cutoff in cutoffs) {
                 num_missed_cluster = num_missed_clusterL,
                 alpha_direction_mistakes = alpha_direction_mistakesL,
                 alpha_incorrect_undirected = alpha_incorrect_undirectedL,
-                alpha_correct_undirected = alpha_correct_undirectedL)
+                alpha_correct_undirected = alpha_correct_undirectedL,
+                TP_ignoreSign = TP_ignoreSign,
+                FP_ignoreSign = FP_ignoreSign,
+                TN_ignoreSign = TN_ignoreSign,
+                FN_ignoreSign = FN_ignoreSign)
 
     #print(df)
 
