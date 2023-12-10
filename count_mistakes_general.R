@@ -17,6 +17,7 @@ covs <- TRUE # is beta inferred?
 data_dir <- args[1]
 outdir <- args[2]
 covs <- (as.numeric(args[3]) == 1)
+cutoff <- as.numeric(args[4])
 
 numRuns <- 1 # runs per folder (1 is correct)
 numTrials <- 1
@@ -70,7 +71,12 @@ for (run in 1:numRuns) {
         finished_trL[i] <- finished_tr
 
         if (finished_tr) {
-            inferredParms <- readRDS(paste0(outdir, "trial", trial, "/inferenceRes.Rdata"))
+            if (!is.na(cutoff)) {
+                inferredParms <- readRDS(paste0(outdir, "trial", trial, "/inferenceRes_cutoff", cutoff, ".Rdata"))
+
+            } else {
+                inferredParms <- readRDS(paste0(outdir, "trial", trial, "/inferenceRes.Rdata"))
+            }
             try(if (sum(diag(inferredParms$alphaInferred)) != 0) {stop("Elements of inferred alpha diagonal are not 0")})
             alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
             inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "undirected")
@@ -245,4 +251,9 @@ df <- data.frame(sim_run = runL,
 
 # print(df)
 
-write.csv(df, paste0(outdir, "mistakes.csv"))
+if (!is.na(cutoff)) {
+    write.csv(df, paste0(outdir, "mistakes", cutoff, ".csv"))
+} else {
+    write.csv(df, paste0(outdir, "mistakes.csv"))
+}
+

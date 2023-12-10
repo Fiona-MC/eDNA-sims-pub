@@ -16,6 +16,7 @@ thisDir <- args[1]
 numRuns <- as.numeric(args[2])
 numTrials <- as.numeric(args[3])
 resFolderName <- args[4]
+cutoff <- as.numeric(args[5])
 
 runs <- 1:numRuns
 trials <- 1:numTrials
@@ -36,11 +37,17 @@ for (run in runs) {
     #if (scramble) {
     #    sitetabName <- paste0(thisDir, "randomRun", run, "/sitetab_scrambled.csv")
     #}
-    if (file.exists(paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv")) 
+    if (!is.na(cutoff)) {
+        mistakes_file <- paste0(thisDir, "randomRun", run, "/", resFolderName, "mistakes", cutoff, ".csv")
+    } else {
+        mistakes_file <- paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv")
+    }
+
+    if (file.exists(mistakes_file) 
                 && file.exists(sitetabName)
-                && file.info(paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv"))$size > 0) {
+                && file.info(mistakes_file)$size > 0) {
         # load number of mistakes
-        mistakes <- read.csv(paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv"), header = TRUE)
+        mistakes <- read.csv(mistakes_file, header = TRUE)
         sim_sitetab_sampled <- read.csv(sitetabName, header = TRUE)
         # get percent presence per species
         percent_presence <- list()
@@ -64,5 +71,9 @@ for (run in runs) {
 # this will fail if the mistakes file was never made but I think that's ok
 colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(percent_presence), names(mistakes)) 
 
-write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered.csv"))
+if (!is.na(cutoff)) {
+    write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered_cutoff", cutoff, ".csv"))
+} else {
+    write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered.csv"))
+}
 # note -- beta1, beta2,..., beta9 (and same for alphas) are read off by column

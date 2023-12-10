@@ -34,7 +34,7 @@ for (run in runs) {
     # note there is already a check for this in the count_INLAmistakes, 
     # so this is just in case I wanna run this on a whole folder that I havent finished yet
     # load parameter values
-    if(file.exists(paste0(thisDir, "randomRun", run))) { # for runs that were sorted into the unrealistic folder
+    if (file.exists(paste0(thisDir, "randomRun", run))) { # for runs that were sorted into the unrealistic folder
         params <- readRDS(paste0(thisDir, "randomRun", run, "/params.Rdata"))
         parmVals <- unlist(params)
         # take out functions from parmVals

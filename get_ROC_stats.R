@@ -2,7 +2,7 @@ library(ggplot2)
 library(tidyr)
 library(stringr)
 
-cluster <- TRUE
+cluster <- FALSE
 
 dirName <- c("multiSim_100")
 multiSimRes <- data.frame()
@@ -11,14 +11,23 @@ resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infRe
               "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
 #ls /space/s1/fiona_callahan/multiSim_100
-logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
+logistic_cutoffs <- c(0.00000000000000001, 0.0000000000001, 0.00000000001, 0.0000000001, 0.000000001, 0.0000001, 0.000001, 0.00001,
+                     0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
+                      0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_cutoff", x, ".csv")})
-resNames <- c("ecoCopula_res_noCov_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", 
-            "logistic_mistakes.csv", "INLA_infResGathered.csv", log_resnames)
+
+inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
+inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_infResGathered_cutoff", x, ".csv")})
+
+resNames <- c("ecoCopula_res_noCov_infResGathered.csv", 
+              "spiecEasi_res_mb_infResGathered.csv", 
+              "INLA_res_paper_infResGathered.csv", 
+              #inla_resnames,
+              log_resnames)
 
 #logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
-log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_dumb_cutoff", x, ".csv")})
-resNames <- log_resnames
+#log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_dumb_cutoff", x, ".csv")})
+#resNames <- log_resnames
 
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 # load results into list
@@ -110,7 +119,7 @@ for (i in seq_along(multiSimResL)) {
     #if (str_detect(names(multiSimResL)[i], "cutoff")) {
     #  thresholds[i] <- str_split(c(names(multiSimResL)[i]), pattern = ".")
     #}
-    if (cluster == TRUE) {
+    if (cluster) {
       avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
       avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
     } else {
@@ -127,9 +136,11 @@ ROC_data$avg_TPR <- as.numeric(ROC_data$avg_TPR)
 ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method)) +
   geom_point(size = 3) +
   stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
-  labs(title = "ROC", x = "FPR", y = "TPR") +
+  labs(title = paste("ROC: cluster = ", cluster), x = "FPR", y = "TPR") +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line
-  lims(x = c(0, 1), y = c(0, 1))  # Set x and y-axis limits
+  lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
+  theme(text = element_text(size = 24))  # Set the base size for all text elements
+
 
 if (cluster) {
   ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster.png"))
