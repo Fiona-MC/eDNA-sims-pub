@@ -11,11 +11,12 @@ if (length(args) < 2) {
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
 outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/ecoCopula_res_noCov/"
+outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_paper/"
 covs <- TRUE # is beta inferred?
 
 data_dir <- args[1]
 outdir <- args[2]
-covs <- args[3]
+covs <- (as.numeric(args[3]) == 1)
 
 numRuns <- 1 # runs per folder (1 is correct)
 numTrials <- 1
@@ -30,6 +31,7 @@ num_incorrectInferencesL <- rep(NA, times = numRuns * numTrials) # false pos (or
 num_actualEffectsL <- rep(NA, times = numRuns * numTrials) # total actual effects
 num_possibleEffectsL <- rep(NA, times = numRuns * numTrials) # n^2 + n*p -n (minus n because of the diagonal of alpha)
 num_missedEffects_alphaL <- rep(NA, times = numRuns * numTrials)
+num_missedEffects_betaL <- rep(NA, times = numRuns * numTrials)
 num_missedEffectsL <- rep(NA, times = numRuns * numTrials)# false negatives
 timeL <- rep(NA, times = numRuns * numTrials)
 finished_trL <- rep(NA, times = numRuns * numTrials) # T or F whether this trial finished the INLA part
@@ -39,10 +41,15 @@ num_missed_clusterL <- rep(NA, times = numRuns * numTrials)
 alpha_direction_mistakesL <- rep(NA, times = numRuns * numTrials)
 alpha_incorrect_undirectedL <- rep(NA, times = numRuns * numTrials)
 alpha_correct_undirectedL <- rep(NA, times = numRuns * numTrials)
+num_incorrect_betaL <- rep(NA, times = numRuns * numTrials)
 TP_ignoreSign <- rep(NA, times = numRuns * numTrials)
 FP_ignoreSign <- rep(NA, times = numRuns * numTrials)
 TN_ignoreSign <- rep(NA, times = numRuns * numTrials)
 FN_ignoreSign <- rep(NA, times = numRuns * numTrials)
+TP_cluster <- rep(NA, times = numRuns * numTrials)
+FP_cluster <- rep(NA, times = numRuns * numTrials)
+TN_cluster <- rep(NA, times = numRuns * numTrials)
+FN_cluster <- rep(NA, times = numRuns * numTrials)
 
 i <- 1
 for (run in 1:numRuns) {
@@ -112,6 +119,24 @@ for (run in 1:numRuns) {
             }
 
             num_missedEffects_cluster <- sum(connected_alpha_actual != 0 & connected_alpha_inferred == 0)
+
+            alphaInferred <- inferredParms$alphaInferred
+            betaInferred <- inferredParms$betaInferred
+            if (covs) {
+                TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1) + 
+                                    sum(abs(betaInferred) * abs(actualBeta) == 1)
+                FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0)) + 
+                                    sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0))
+                FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
+                TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
+            } else {
+                TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1) 
+                FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0)) 
+                FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) 
+                TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) 
+            }
 
             # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
             undirected_alpha_actual <- distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
@@ -195,10 +220,12 @@ df <- data.frame(sim_run = runL,
             finished = finished_trL,
             runtime = timeL,
             num_incorrect_alpha = num_incorrect_alphaL,
+            num_incorrect_beta = num_incorrect_betaL,
             num_correctInferences = num_correctInferencesL, 
             num_incorrectInferences = num_incorrectInferencesL, 
             num_actualEffects = num_actualEffectsL,
             num_missedEffects_alpha = num_missedEffects_alphaL,
+            num_missedEffects_beta = num_missedEffects_betaL,
             num_missedEffectsL = num_missedEffectsL,
             num_possibleEffectsL = num_possibleEffectsL,
             num_correct_cluster = num_correct_clusterL,
@@ -210,7 +237,11 @@ df <- data.frame(sim_run = runL,
             TP_ignoreSign = TP_ignoreSign,
             FP_ignoreSign = FP_ignoreSign,
             TN_ignoreSign = TN_ignoreSign,
-            FN_ignoreSign = FN_ignoreSign)
+            FN_ignoreSign = FN_ignoreSign,
+            TP_cluster = TP_cluster,
+            FP_cluster = FP_cluster,
+            TN_cluster = TN_cluster,
+            FN_cluster = FN_cluster)
 
 # print(df)
 

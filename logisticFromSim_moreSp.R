@@ -54,6 +54,10 @@ TP_ignoreSign <- rep(NA, times = numRuns * numTrials)
 FP_ignoreSign <- rep(NA, times = numRuns * numTrials)
 TN_ignoreSign <- rep(NA, times = numRuns * numTrials)
 FN_ignoreSign <- rep(NA, times = numRuns * numTrials)
+TP_cluster <- rep(NA, times = numRuns * numTrials)
+FP_cluster <- rep(NA, times = numRuns * numTrials)
+TN_cluster <- rep(NA, times = numRuns * numTrials)
+FN_cluster <- rep(NA, times = numRuns * numTrials)
 
 # this is a hacky way to get the number of parms
 simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
@@ -114,7 +118,7 @@ for (cutoff in cutoffs) {
     parmNames <- names(parmVals)
     parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
     names(parmsDF) <- parmNames
-    
+
     for (run in runs) {
         for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
             if (file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
@@ -217,6 +221,22 @@ for (cutoff in cutoffs) {
                 count_incorrect_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == -1) + 
                                                 sum(connected_alpha_actual == 0 & connected_alpha_inferred != 0)
 
+                if (covs) {
+                TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1) + 
+                                    sum(abs(betaInferred) * abs(actualBeta) == 1)
+                FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0)) + 
+                                    sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0))
+                FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
+                TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
+                } else {
+                    TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1) 
+                    FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0)) 
+                    FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) 
+                    TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) 
+                }
+                
                 # type 2 error
                 # count missed effects (number of times that actual effect is 1 or -1 and inferred effect is 0)
                 num_missedEffects_alpha <- sum(actualAlpha != 0 & inferredParms$alphaInferred == 0)
@@ -315,7 +335,11 @@ for (cutoff in cutoffs) {
                 TP_ignoreSign = TP_ignoreSign,
                 FP_ignoreSign = FP_ignoreSign,
                 TN_ignoreSign = TN_ignoreSign,
-                FN_ignoreSign = FN_ignoreSign)
+                FN_ignoreSign = FN_ignoreSign,
+                TP_cluster = TP_cluster,
+                FP_cluster = FP_cluster,
+                TN_cluster = TN_cluster,
+                FN_cluster = FN_cluster)
 
     #print(df)
 

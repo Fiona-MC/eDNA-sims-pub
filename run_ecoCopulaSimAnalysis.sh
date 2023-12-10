@@ -5,7 +5,14 @@ sim_dir="/space/s1/fiona_callahan/multiSim_100"
 numRuns=100
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
-resDirName=ecoCopula_res_noCov
+covs=0
+
+if [ ${covs} == 1 ]
+then
+	resDirName=ecoCopula_res_cov
+else
+	resDirName=ecoCopula_res_noCov    
+fi
 #INLA_type="faster"
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
@@ -30,10 +37,10 @@ for folder in ${sim_dir}/randomRun*; do
         #if test ! -d "${folder}/${resDirName}/trial1" # if the folder is not already there NOT WORKING
         #then
             echo "starting task $folder.."
-            mkdir "$folder/${resDirName}/" 
+            #mkdir "$folder/${resDirName}/" 
             # run sim analysis
-            Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ 0
-            Rscript /home/fiona_callahan/eDNA_sims_code/countEcoCopulaMistakes.R ${folder}/ ${folder}/${resDirName}/
+            #Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ 0
+            Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ ${covs}
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
         #fi
     ) &
