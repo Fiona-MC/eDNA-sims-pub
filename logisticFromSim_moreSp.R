@@ -20,7 +20,7 @@ data_dir <- args[1]
 numRuns <- as.numeric(args[2])
 dumb <- as.numeric(args[3]) == 1
 
-covs <- TRUE
+covs <- FALSE
 
 # to run
 # Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000
@@ -29,9 +29,10 @@ runs <- 1:numRuns
 numTrials <- 1
 trials <- 1:1
 
-cutoffs <- c(0.000000001, 0.0000001, 0.000001, 0.00001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
+cutoffs <- c(0, 1, 0.000000001, 0.0000001, 0.000001, 0.00001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
              0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 #cutoffs <- c(0.00000000000000001, 0.0000000000001, 0.00000000001, 0.0000000001)
+#cutoffs <- c(0, 1)
 
 runL <- rep(NA, times = numRuns * numTrials)
 trialL <- rep(NA, times = numRuns * numTrials)
@@ -359,8 +360,16 @@ for (cutoff in cutoffs) {
 
     #print(fulldf)
     if (dumb) {
-        write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb_cutoff", cutoff, ".csv"))
+        if (covs) {
+            write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb_cutoff", cutoff, ".csv"))
+        } else {
+            write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb_noCov_cutoff", cutoff, ".csv"))
+        }
     } else {
-        write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_cutoff", cutoff, ".csv"))
+        if (covs) {
+            write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_cutoff", cutoff, ".csv"))
+        } else {
+            write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_noCov_cutoff", cutoff, ".csv"))
+        }
     }
 }

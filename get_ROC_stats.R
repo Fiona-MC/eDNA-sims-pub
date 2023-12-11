@@ -11,18 +11,19 @@ resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infRe
               "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
 #ls /space/s1/fiona_callahan/multiSim_100
-logistic_cutoffs <- c(0.00000000000000001, 0.0000000000001, 0.00000000001, 0.0000000001, 0.000000001, 0.0000001, 0.000001, 0.00001,
+logistic_cutoffs <- c(0, 1, 0.00000000000000001, 0.0000000000001, 0.00000000001, 0.0000000001, 0.000000001, 0.0000001, 0.000001, 0.00001,
                      0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
                       0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_cutoff", x, ".csv")})
 
-inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
+#inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
+inla_cutoffs <- c(0, 0.0000000000001, 0.0000001, 0.00001, .3, .5, .7, .9, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_infResGathered_cutoff", x, ".csv")})
 
 resNames <- c("ecoCopula_res_noCov_infResGathered.csv", 
               "spiecEasi_res_mb_infResGathered.csv", 
               "INLA_res_paper_infResGathered.csv", 
-              #inla_resnames,
+              inla_resnames,
               log_resnames)
 
 #logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
@@ -97,12 +98,38 @@ get_FPR <- function(data = multiSimRes, mode = "ignore_sign") {
     return(FPR)
 }
 
+get_precision <- function(data = multiSimRes, mode = "ignore_sign") {
+    if (mode == "cluster") {
+        TP <- data$TP_cluster 
+        FP <- data$FP_cluster
+    } else if (mode == "ignore_sign") {
+        TP <- data$TP_ignoreSign
+        FP <- data$FP_ignoreSign
+    } 
+    prec <- TP / (TP + FP)
+    return(prec)
+}
+
+get_recall <- function(data = multiSimRes, mode = "ignore_sign") {
+    if (mode == "cluster") {
+      TP <- data$TP_cluster
+      FN <- data$FN_cluster
+    } else if (mode == "ignore_sign") {
+      TP <- data$TP_ignoreSign
+      FN <- data$FN_ignoreSign
+    } 
+    recall <- TP / (TP + FN)
+    return(recall)
+}
+
 # method | threshold | avg_TPR | avg_FPR 
 file <- rep(NA, times = length(multiSimResL))
 methods <- rep(NA, times = length(multiSimResL))
 thresholds <- rep(NA, times = length(multiSimResL))
 avg_TPR <- rep(NA, times = length(multiSimResL))
 avg_FPR <- rep(NA, times = length(multiSimResL))
+avg_precision <- rep(NA, times = length(multiSimResL))
+avg_recall <- rep(NA, times = length(multiSimResL))
 
 for (i in seq_along(multiSimResL)) {
     multiSimRes <- multiSimResL[[i]]
@@ -122,13 +149,19 @@ for (i in seq_along(multiSimResL)) {
     if (cluster) {
       avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
       avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
+      avg_precision[i] <- mean(get_precision(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
+      avg_recall[i] <- mean(get_recall(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
     } else {
       avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
       avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+      avg_precision[i] <- mean(get_precision(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+      avg_recall[i] <- mean(get_recall(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
     }
 }
 
-ROC_data <- data.frame(file = file, method = methods, threshold = thresholds, avg_FPR = as.numeric(avg_FPR), avg_TPR = as.numeric(avg_TPR))
+ROC_data <- data.frame(file = file, method = methods, threshold = thresholds, 
+                      avg_FPR = as.numeric(avg_FPR), avg_TPR = as.numeric(avg_TPR),
+                      avg_precision = as.numeric(avg_precision), avg_recall = as.numeric(avg_recall))
 
 ROC_data$avg_FPR <- as.numeric(ROC_data$avg_FPR)
 ROC_data$avg_TPR <- as.numeric(ROC_data$avg_TPR)
@@ -136,8 +169,16 @@ ROC_data$avg_TPR <- as.numeric(ROC_data$avg_TPR)
 ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method)) +
   geom_point(size = 3) +
   stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
-  labs(title = paste("ROC: cluster = ", cluster), x = "FPR", y = "TPR") +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line
+  labs(title = paste("ROC: cluster = ", cluster), x = "FPR = FP/(FP+TN)", y = "TPR = TP/(TP+FN)") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line (no skill)
+  lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
+  theme(text = element_text(size = 24))  # Set the base size for all text elements
+
+PR_plot <- ggplot(ROC_data, aes(x = avg_recall, y = avg_precision, color = method)) +
+  geom_point(size = 3) +
+  stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
+  labs(title = paste("P-R: cluster = ", cluster), x = "Recall = TP/(TP+FN)", y = "Precision = TP/(TP+FP)") +
+  geom_abline(intercept = 0.5, slope = 0, linetype = "dashed", color = "gray") +   # Add y=0.5 line (no skill)
   lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
   theme(text = element_text(size = 24))  # Set the base size for all text elements
 
@@ -146,4 +187,10 @@ if (cluster) {
   ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster.png"))
 } else {
   ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot.png"))
+}
+
+if (cluster) {
+  ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster.png"))
+} else {
+  ggsave(PR_plot, filename = paste0(thisDir, "PR_plot.png"))
 }

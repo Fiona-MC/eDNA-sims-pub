@@ -7,10 +7,11 @@ if (length(args) < 3) {
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 5 1
 
-thisDir="/space/s1/fiona_callahan/multiSim_manySp_testing2/"
-numRuns=10
+thisDir="/space/s1/fiona_callahan/multiSim_100/"
+numRuns=100
 numTrials=1
-resFolderName <- "spiecEasi_res_mb"
+resFolderName <- "INLA_res_paper"
+cutoff=0.05
 
 thisDir <- args[1]
 numRuns <- as.numeric(args[2])
@@ -38,7 +39,7 @@ for (run in runs) {
     #    sitetabName <- paste0(thisDir, "randomRun", run, "/sitetab_scrambled.csv")
     #}
     if (!is.na(cutoff)) {
-        mistakes_file <- paste0(thisDir, "randomRun", run, "/", resFolderName, "mistakes", cutoff, ".csv")
+        mistakes_file <- paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes", cutoff, ".csv")
     } else {
         mistakes_file <- paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv")
     }
