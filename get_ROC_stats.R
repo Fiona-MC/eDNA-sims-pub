@@ -11,14 +11,12 @@ resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infRe
               "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
 #ls /space/s1/fiona_callahan/multiSim_100
-logistic_cutoffs <- c(0, 1, 0.00000000000000001, 0.0000000000001, 0.00000000001, 0.0000000001, 0.000000001, 0.0000001, 0.000001, 0.00001,
-                     0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-                      0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+logistic_cutoffs <- c(0, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
 log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_cutoff", x, ".csv")})
 
-logistic_cutoffs_noCov <- c(0, 1, 0.000000001, 0.0000001, 0.000001, 0.00001, 0.001, 0.01, 0.02, 
-                          0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-                           0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+logistic_cutoffs_noCov <- c(0, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
 log_resnames_noCov <- sapply(X = logistic_cutoffs_noCov, FUN = function(x) {paste0("logistic_mistakes_noCov_cutoff", x, ".csv")})
 
 #inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
