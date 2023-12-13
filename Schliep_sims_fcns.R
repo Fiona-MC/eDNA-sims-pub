@@ -2,6 +2,8 @@ library(ggplot2) # plotting
 library(coda) # test convergence
 library(stats)
 
+# Note: if you loop back to this, you probably need to refactor it to not use sim_data_raw because you arent storing that
+
 configureDataSchliep <- function(subdir, sim_data_raw, locList, params, mode = "N", timePts = timePts, locIndices = locIndices) {
   #timePts<-1:params$numGens #time points to "collect"
   #timePts <- seq(from = 1, to = params$numGens, by = 1000/num_samples)

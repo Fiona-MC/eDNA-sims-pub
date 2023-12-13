@@ -1,5 +1,7 @@
 library(dplyr)
 
+#Note: when you re-write this -- need to make it so that it doesnt need sim_data.Rdata
+
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) < 2) {

@@ -21,7 +21,7 @@ proj <- FALSE
 numTrials <- 2
 
 # load data
-sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
+# sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
 #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
@@ -100,7 +100,7 @@ for (trial in 1:numTrials){
   saveRDS(sim_lists, paste0(subdir, "sim_lists-iid-", trial, ".Rdata"))
   run_data <- list()
   run_data$params <- params
-  run_data$sim_data_raw <- sim_data_raw
+  # run_data$sim_data_raw <- sim_data_raw
   run_data$sitetab <- sitetab
 
   saveRDS(run_data, paste0(subdir, "rundata-iid-", trial, ".Rdata"))

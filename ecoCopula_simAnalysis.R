@@ -24,8 +24,6 @@ plot <- FALSE
 numTrials <- 1
 prec <- TRUE
 
-# load data
-sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 #sitetab <- read.csv(paste0(data_dir, "sitetab_dumb.csv"))
 #sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
 sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))

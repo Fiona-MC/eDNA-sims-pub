@@ -31,6 +31,7 @@ spNumMode <- "many"
 #nSp <- 2
 nSp <- 100
 readAbdMode <- TRUE
+saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
 
 thisdir <- "/space/s1/fiona_callahan/multiSim_100sp/"
 thisdir <- args[1]
@@ -316,7 +317,9 @@ for (run in runs) {
               sitetab_sampled = sim_sitetab_sampled, spList = c(1, 2, 3))
     }
   }
+  if (saveMore) {
   saveRDS(sim_data, paste0(subdir, "sim_data.Rdata"))
+  }
   saveRDS(locList, paste0(subdir, "locList.Rdata"))
   saveRDS(covList, paste0(subdir, "covList.Rdata"))
   fwrite(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_sampled.csv"))
@@ -385,7 +388,9 @@ for (run in runs) {
                                     ncol = 4 + params$numCovs + params$numSpecies, byrow = TRUE)) 
     names(sim_sitetab_sampled) <- c("labID", "Age", "Lat", "Long", params$names_all_cov, params$names_species)
 
-    saveRDS(sim_data, paste0(subdir, "sim_data_abd.Rdata"))
+    if (saveMore) {
+     saveRDS(sim_data, paste0(subdir, "sim_data_abd.Rdata"))
+    }
     fwrite(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_readAbd_sampled.csv"))
     #write.csv(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_readAbd_sampled.csv"))
 

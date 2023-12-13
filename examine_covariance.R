@@ -7,6 +7,7 @@ library(data.table)
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun5/"
 
+# Note: the sim_data thing is only needed for the first two parts with the spatiotemporal part
 sim_data <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 
