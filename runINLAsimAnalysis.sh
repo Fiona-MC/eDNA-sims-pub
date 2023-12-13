@@ -2,7 +2,7 @@
 export OMP_NUM_THREADS=5
 
 sim_dir="/space/s1/fiona_callahan/multiSim_100"
-numRuns=90
+numRuns=100
 numTrials=1
 INLA_type="paper"
 resDirName=INLA_res_${INLA_type}
@@ -25,7 +25,7 @@ covs=1
 #done < ${sim_dir}/unrealistic_runNums.csv
 
 
-N=3 # N=10 resulted in average usage around 30 cores
+N=10 # N=10 resulted in average usage around 30 cores
 # based on current rate with N=10 -- this should take ~6 days for 1000 runs (2 trials each)
 
 for folder in ${sim_dir}/randomRun*; do

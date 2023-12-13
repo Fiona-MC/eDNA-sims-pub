@@ -159,8 +159,8 @@ for (run in 1:numRuns) {
             } 
 
             if (covs) {
-                TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1) + 
-                                    sum(abs(betaInferred) * abs(actualBeta) == 1)
+                TP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 1)) + 
+                                    sum((abs(betaInferred) == 1) & (abs(actualBeta) == 1))
                 FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) + 
                                     sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0))
                 FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) + 
@@ -168,7 +168,7 @@ for (run in 1:numRuns) {
                 TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) + 
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
             } else {
-                TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1) 
+                TP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 1))
                 FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) 
                 FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) 
                 TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) 
