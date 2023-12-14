@@ -58,6 +58,8 @@ for (trial in 1:numTrials) {
         res.graph <- Matrix(res.graph, sparse = TRUE)
     } 
 
+    saveRDS(res, file = paste0(subdir, "se_rawRes.Rdata"))
+
     # get inferred alpha and beta (just 1's -1's and 0's )
     inferenceRes <- list()
     inferenceRes$alphaInferred <- as.matrix(res.graph)

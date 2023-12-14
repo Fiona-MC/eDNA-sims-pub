@@ -16,7 +16,7 @@ if (length(args) < 2) {
 #save_dir <- "/home/fiona_callahan/simData/testing/INLAres/"
 data_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/"
 save_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/"
-sitetab <- "sim_sitetab_sampled.csv"
+sitetabName <- "sim_sitetab_sampled.csv"
 #${folder}/ ${folder}/INLA_res_${INLA_type}/#
 data_dir <- args[1]
 save_dir <- args[2]
@@ -30,7 +30,7 @@ numTrials <- 2
 
 # load data
 # sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
-sitetab <- read.csv(paste0(data_dir, sitetab))
+sitetab <- read.csv(paste0(data_dir, sitetabName))
 #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 
