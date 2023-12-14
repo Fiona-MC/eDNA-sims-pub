@@ -170,6 +170,28 @@ for (i in seq_along(multiSimResL)) {
     }
 }
 
+library(SpiecEasi)
+library(igraph)
+if (!cluster) {
+  # for spiec-easi, just put separate lines for a couple of individual sims rather than average
+  for (run in sample(1:100, size = 5)) {
+    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/spiecEasi_res_mb/trial1/")
+    se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
+    params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
+    actualAlpha <- params$alpha
+    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+    # theta = true_interactions
+    se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
+    avg_TPR <- c(avg_TPR, se.roc$tp)
+    avg_FPR <- c(avg_FPR, se.roc$fp)
+    avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
+    avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
+    methods <- c(methods, rep(paste0("SpiecEasi", run), times = length(se.roc$fp)))
+    file <- c(file, rep(NA, times = length(se.roc$fp)))
+    thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
+  } 
+}
+
 ROC_data <- data.frame(file = file, method = methods, threshold = thresholds, 
                       avg_FPR = as.numeric(avg_FPR), avg_TPR = as.numeric(avg_TPR),
                       avg_precision = as.numeric(avg_precision), avg_recall = as.numeric(avg_recall))
