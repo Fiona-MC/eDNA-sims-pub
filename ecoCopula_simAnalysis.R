@@ -10,8 +10,8 @@ if (length(args) < 2) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
-#save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/ecoCopula_res_noCov_test/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/ecoCopula_res_noCov/"
 
 data_dir <- args[1]
 save_dir <- args[2]
@@ -52,7 +52,10 @@ for (trial in 1:numTrials) {
     fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~1, 
                           data = data.frame(intercept = rep(1, times = dim(sitetab)[1])), family = "binomial", ncores = 1) 
   }
+  # vvv changing these within reason did not reduce the number of inferred edges by much
+  #cgr_sim <- cgr(fit0, n.lambda = 100, n.samp = 1000, method = "BIC")
   cgr_sim <- cgr(fit0)
+
   #plot(cgr_sim, pad = 1)
  
   if (prec == TRUE) {
@@ -69,5 +72,4 @@ for (trial in 1:numTrials) {
   inferenceRes$alphaInferred <- inferenceRes$alphaInferred * as.integer(diag(nrow = params$numSpecies, ncol = params$numSpecies) == 0)
 
   saveRDS(inferenceRes, paste0(subdir, "inferenceRes.Rdata"))
-
 }

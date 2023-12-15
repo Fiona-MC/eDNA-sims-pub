@@ -7,10 +7,10 @@ args <- commandArgs(trailingOnly = TRUE)
 # Rscript dumbSim_covMx.R /space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/
 
 # bash code to do this for all subfolders within this folder
-#sim_dir="/space/s1/fiona_callahan/multiSim_100"
+#sim_dir="/space/s1/fiona_callahan/multiSim_50sp"
 #for folder in ${sim_dir}/randomRun*; do (Rscript dumbSim_covMx.R ${folder}/) done
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_50/randomRun1/"
 data_dir <- args[1]
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 
@@ -22,7 +22,7 @@ sim_covs <- TRUE
 samples <- params$num_samples_time * params$num_samples_space
 
 sigma <- 1 # variance of read counts [per species]
-rho <- 0.45 # covariance of species with interaction 
+rho <- 0.25 # covariance of species with interaction 
 
 corrMx <- matrix(0, nrow = params$numSpecies, ncol = params$numSpecies)
 for (i in 1:params$numSpecies) {
@@ -49,13 +49,13 @@ if (prec) {
 }
 #covarMx <- makePsd(corrMx, method = "covariance")
 
-sum(covarMx == 0)
-sum(covarMx != 0)
-sum(abs(covarMx) < 0.001)
-sum(abs(covarMx) > 0.001)
+#sum(covarMx == 0)
+#sum(covarMx != 0)
+#sum(abs(covarMx) < 0.001)
+#sum(abs(covarMx) > 0.001)
 
-sum(actualAlpha != 0)
-sum(precMx != 0)
+##sum(actualAlpha != 0)
+#sum(precMx != 0)
 #96 * 2 + 100
 
 # this is not going to work because covarMx is not positive semidefinite -- 

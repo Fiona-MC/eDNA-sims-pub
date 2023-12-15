@@ -15,7 +15,7 @@ logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.
              0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
 log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_cutoff", x, ".csv")})
 
-logistic_cutoffs_noCov <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
+logistic_cutoffs_noCov <- c(0, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
              0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
 log_resnames_noCov <- sapply(X = logistic_cutoffs_noCov, FUN = function(x) {paste0("logistic_mistakes_noCov_cutoff", x, ".csv")})
 
@@ -39,7 +39,7 @@ resNames <- c("ecoCopula_res_noCov_infResGathered.csv",
 
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 # load results into list
-multiSimResL <- c()
+multiSimResL <- list()
 for (i in seq_along(resNames)) {
   thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
   thisMultiSimRes$totalMistakes <- thisMultiSimRes$num_incorrectInferences + thisMultiSimRes$num_missedEffectsL
@@ -172,6 +172,8 @@ for (i in seq_along(multiSimResL)) {
 
 library(SpiecEasi)
 library(igraph)
+multiples <- FALSE
+if(multiples) {
 if (!cluster) {
   # for spiec-easi, just put separate lines for a couple of individual sims rather than average
   for (run in sample(1:100, size = 5)) {
@@ -190,6 +192,33 @@ if (!cluster) {
     file <- c(file, rep(NA, times = length(se.roc$fp)))
     thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
   } 
+}
+}
+
+if (!cluster) {
+  TPRs <- matrix(nrow = 100, ncol = 100) # rows are lambda values, columns are runs
+  FPRs <- matrix(nrow = 100, ncol = 100)
+  # for spiec-easi, just put separate lines for a couple of individual sims rather than average
+  for (run in 1:100) {
+    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/spiecEasi_res_mb/trial1/")
+    se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
+    params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
+    actualAlpha <- params$alpha
+    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+    # theta = true_interactions
+    se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
+    TPRs[, run] <- se.roc$tp
+    FPRs[, run] <- se.roc$fp
+  } 
+  this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = mean)
+  this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = mean)
+  avg_TPR <- c(avg_TPR, this_avg_tpr)
+  avg_FPR <- c(avg_FPR, this_avg_fpr)
+  avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
+  avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
+  methods <- c(methods, rep(paste0("SpiecEasi_avg"), times = length(se.roc$fp)))
+  file <- c(file, rep(NA, times = length(se.roc$fp)))
+  thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
 }
 
 ROC_data <- data.frame(file = file, method = methods, threshold = thresholds, 
