@@ -72,7 +72,7 @@ for (i in seq_along(resNames)) {
   multiSimResL[[resNames[i]]] <- thisMultiSimRes
 }
 
-multiSimRes <- multiSimResL$logistic_mistakes.csv
+multiSimRes <- multiSimResL$INLA_res_faster_infResGathered_cutoff1.csv
 
 # if you need to check these later, look at obsidian ROC curve note
 # obsidian://open?vault=simulations&file=ROC%20curves
@@ -286,3 +286,4 @@ if (cluster) {
 } else {
   ggsave(PR_plot, filename = paste0(thisDir, "PR_plot.png"))
 }
+
