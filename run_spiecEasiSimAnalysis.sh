@@ -10,8 +10,9 @@ seMethod=mb
 random=1
 plot=1
 covs=0
+sitetab_name="sim_sitetab_readAbd_sampled500.csv"
 
-resDirName=spiecEasi_res_${seMethod}
+resDirName=spiecEasi_res_${seMethod}_500
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
@@ -37,7 +38,7 @@ for folder in ${sim_dir}/randomRun*; do
             mkdir "${folder}/${resDirName}/" 
             # process as abundance
             # run INLA sim analysis
-            Rscript spiecEasi_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${seMethod} ${numTrials}
+            Rscript spiecEasi_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${seMethod} ${numTrials} ${sitetab_name}
             # this ecoCopula one should work I think
             Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ ${covs}
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why

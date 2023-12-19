@@ -21,6 +21,7 @@ save_dir <- args[2]
 se.method <- "mb"
 se.method <- args[3]
 numTrials <- args[4]
+sitetab_name <- args[5]
 #se.method <- "mb"
 dir.create(save_dir)
 
@@ -30,7 +31,7 @@ locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 #sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb.csv"))
 #sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_dumb_dir.csv"))
-sitetab_data <- read.csv(paste0(data_dir, "sim_sitetab_readAbd_sampled.csv"))
+sitetab_data <- read.csv(paste0(data_dir, sitetab_name))
 
 names_cov <- params$names_cov
 names_species <- params$names_species

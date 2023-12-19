@@ -79,15 +79,17 @@ abundanceEffectTransform <- function(mx, type = "none") {
 
 
 
-makePlots <- function(sim_data = sim_data, params = params, locList = locList, locPlots = c(19, 8, 6, 37, 64, 46), outDir, sitetab_sampled, spList = c(1, 2, 3)) { # nolint: line_length_linter.
-    detProbP <- ggplot(data.frame(x = 0:500, y = unlist(lapply(X = as.list(0:500), 
-                                  FUN = function(x) { 
-                                    (x^params$det_prob_exp) / (params$det_prob_add + x^params$det_prob_exp)}))),  # nolint: object_usage_linter.
-                                    aes(x, y)) + # nolint: object_usage_linter.
-                                    geom_point() +
-                                    labs(x = "Abundance -- N(s,t)", y = "Detection Probability")
-    
-    ggsave(detProbP, file = paste0(outDir, "detProbPlot.png"), width = 7, height = 7)
+makePlots <- function(sim_data = sim_data, params = params, locList = locList, locPlots = c(19, 8, 6, 37, 64, 46), outDir, sitetab_sampled, spList = c(1, 2, 3), readAbdMode = TRUE) { # nolint: line_length_linter.
+    if (!readAbdMode) {
+      detProbP <- ggplot(data.frame(x = 0:500, y = unlist(lapply(X = as.list(0:500), 
+                                    FUN = function(x) { 
+                                      (x^params$det_prob_exp) / (params$det_prob_add + x^params$det_prob_exp)}))),  # nolint: object_usage_linter.
+                                      aes(x, y)) + # nolint: object_usage_linter.
+                                      geom_point() +
+                                      labs(x = "Abundance -- N(s,t)", y = "Detection Probability")
+      
+      ggsave(detProbP, file = paste0(outDir, "detProbPlot.png"), width = 7, height = 7)
+    }
     ######################################################################
     #wrangle data
     ######################################################################

@@ -5,6 +5,6 @@
 sim_dir="/space/s1/fiona_callahan/multiSim_100"
 
 for folder in ${sim_dir}/randomRun*; do
-   echo $folder/INLA_res_paper/
+   rm -r $folder/INLA_res_paper/
 done
 

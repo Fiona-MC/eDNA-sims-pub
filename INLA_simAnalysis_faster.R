@@ -14,9 +14,9 @@ if (length(args) < 2) {
 
 #data_dir <- "/home/fiona_callahan/simData/testing/run1/"
 #save_dir <- "/home/fiona_callahan/simData/testing/INLAres/"
-data_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/"
-sitetab <- "sim_sitetab_sampled.csv"
+data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun10/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun10/INLA_res_faster/"
+sitetabName <- "sim_sitetab_sampled.csv"
 #${folder}/ ${folder}/INLA_res_${INLA_type}/#
 data_dir <- args[1]
 save_dir <- args[2]
@@ -85,11 +85,13 @@ for (trial in 1:numTrials){
   
   # save results for later
   saveRDS(sim_lists, paste0(subdir, "sim_lists-", trial, ".Rdata"))
+  #readRDS(paste0(subdir, "sim_lists-", trial, ".Rdata"))
   run_data <- list()
   run_data$params <- params
   # run_data$sim_data_raw <- sim_data_raw
   run_data$sitetab <- sitetab
   saveRDS(run_data, paste0(subdir, "rundata", trial, ".Rdata"))
+  #readRDS(paste0(subdir, "rundata", trial, ".Rdata"))
 
   # CPO 
   modelcands <- names(sim_lists)
@@ -100,11 +102,11 @@ for (trial in 1:numTrials){
     return(sapply(modelcands, function(modelname) {
                 sim_lists[[modelname]][[response]]$waic$waic}))
   })
-  rownames(waictab) <- modelcands
-  waictabmelted <- melt(waictab)
-  colnames(waictabmelted) <- c("Model", "Animal", "WAIC")
+  #rownames(waictab) <- modelcands
+  #waictabmelted <- melt(waictab)
+  #colnames(waictabmelted) <- c("Model", "Animal", "WAIC")
 
-  if (plot) { 
+  if (plot) { #this doesnt work for only one model
     waicplot <- ggplot(waictabmelted) +
       geom_point(aes(x = Model, y = WAIC, group = Animal, colour = Animal)) +
       geom_line(aes(x = Model, y = WAIC, group = Animal, colour = Animal)) +
@@ -128,7 +130,11 @@ for (trial in 1:numTrials){
   inferenceRes$alphaInferred <- matrix(data = 0, nrow = length(names_species), ncol = length(names_species))
   inferenceRes$betaInferred <- matrix(data = 0, nrow = length(names_species), ncol = params$numCovs)
   for (sp_index in seq_along(names_species)) {
-    this_best_model <- modelcands[which.min(waictab[, sp_index])]
+    if (length(modelcands) > 1) {
+      this_best_model <- modelcands[which.min(waictab[, sp_index])]
+    } else {
+      this_best_model <- modelcands[1]
+    }
     best_model_res <- sim_lists[[this_best_model]][[names_species[sp_index]]]
     significant_pos_vars <- row.names(best_model_res$summary.fixed)[best_model_res$summary.fixed$`0.025quant` > 0]
     significant_neg_vars <- row.names(best_model_res$summary.fixed)[best_model_res$summary.fixed$`0.975quant` < 0]

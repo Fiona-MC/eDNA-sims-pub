@@ -18,9 +18,12 @@ if (length(args) < 2) {
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])
-dumb <- as.numeric(args[3]) == 1
+covs <- as.numeric(args[3]) == 1
+dumb <- as.numeric(args[4]) == 1
+sitetab_name <- args[5]
+outName <- args[6]
 
-covs <- FALSE
+
 
 # to run
 # Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000
@@ -73,11 +76,7 @@ for (run in runs) {
 
             ############### DO LOGISTIC REGRESSION ######################
             # load sitetab
-            if (dumb) {
-                sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sitetab_dumb.csv"), header = TRUE)
-            } else {
-                sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/sim_sitetab_sampled.csv"), header = TRUE)
-            }
+            sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/", sitetab_name), header = TRUE)
             
             sp_glm_L <- list()
             for (speciesName in simParms$names_species) {
@@ -358,17 +357,6 @@ for (cutoff in cutoffs) {
     fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
 
     #print(fulldf)
-    if (dumb) {
-        if (covs) {
-            write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb_cutoff", cutoff, ".csv"))
-        } else {
-            write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_dumb_noCov_cutoff", cutoff, ".csv"))
-        }
-    } else {
-        if (covs) {
-            write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_cutoff", cutoff, ".csv"))
-        } else {
-            write.csv(fulldf, paste0(data_dir, "/logistic_mistakes_noCov_cutoff", cutoff, ".csv"))
-        }
-    }
+    write.csv(fulldf, paste0(data_dir, "/", outName, "_cutoff", cutoff, ".csv"))
+     
 }

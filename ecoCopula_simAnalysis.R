@@ -18,6 +18,8 @@ save_dir <- args[2]
 dir.create(save_dir)
 scramble <- FALSE
 scramble <- (as.numeric(args[3]) == 1)
+sitetab_name <- "sim_sitetab_sampled.csv"
+sitetab_name <- args[4]
 
 
 plot <- FALSE
@@ -26,11 +28,11 @@ prec <- TRUE
 
 #sitetab <- read.csv(paste0(data_dir, "sitetab_dumb.csv"))
 #sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
-sitetab <- read.csv(paste0(data_dir, "sim_sitetab_sampled.csv"))
+sitetab <- read.csv(paste0(data_dir, sitetab_name))
 #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 if (scramble == TRUE) {
-  sitetab <- read.csv(paste0(data_dir, "sitetab_scrambled.csv"))
+  sitetab <- read.csv(paste0(data_dir, sitetab_name))
 }
 
 names_cov <- params$names_cov
@@ -55,6 +57,8 @@ for (trial in 1:numTrials) {
   # vvv changing these within reason did not reduce the number of inferred edges by much
   #cgr_sim <- cgr(fit0, n.lambda = 100, n.samp = 1000, method = "BIC")
   cgr_sim <- cgr(fit0)
+
+  saveRDS(cgr_sim, file = paste0(subdir, "EC_res.Rdata"))
 
   #plot(cgr_sim, pad = 1)
  

@@ -26,6 +26,9 @@ inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_pa
 inla_cutoffs <- c(0, 0.0000000000001, 0.0000001, 0.00001, .3, .5, .7, .9, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_infResGathered_cutoff", x, ".csv")})
 
+inla_cutoffs <- c(0, 1, 0.0000001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, .3, .5)
+inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_faster_infResGathered_cutoff", x, ".csv")})
+
 resNames <- c("ecoCopula_res_noCov_infResGathered.csv", 
               "spiecEasi_res_mb_infResGathered.csv", 
               "INLA_res_paper_infResGathered.csv", 
@@ -198,7 +201,6 @@ if (!cluster) {
 if (!cluster) {
   TPRs <- matrix(nrow = 100, ncol = 100) # rows are lambda values, columns are runs
   FPRs <- matrix(nrow = 100, ncol = 100)
-  # for spiec-easi, just put separate lines for a couple of individual sims rather than average
   for (run in 1:100) {
     subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/spiecEasi_res_mb/trial1/")
     se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
@@ -210,6 +212,7 @@ if (!cluster) {
     TPRs[, run] <- se.roc$tp
     FPRs[, run] <- se.roc$fp
   } 
+  # average over ordered lambdas -- NOT SAME LAMBDAS
   this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = mean)
   this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = mean)
   avg_TPR <- c(avg_TPR, this_avg_tpr)
@@ -219,6 +222,33 @@ if (!cluster) {
   methods <- c(methods, rep(paste0("SpiecEasi_avg"), times = length(se.roc$fp)))
   file <- c(file, rep(NA, times = length(se.roc$fp)))
   thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
+}
+
+# this is not working yet for ec
+ecAdjust <- FALSE
+if (ecAdjust) {
+  TPRs <- matrix(nrow = 100, ncol = 100) # rows are lambda values, columns are runs
+  FPRs <- matrix(nrow = 100, ncol = 100)
+  for (run in 1:100) {
+    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/ecoCopula_res_noCov/trial1/")
+    ec <- readRDS(paste0(subdir, "EC_res.Rdata"))
+    params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
+    actualAlpha <- params$alpha
+    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+    # TODO
+    #ec.roc <- 
+    #TPRs[, run] <- 
+    #FPRs[, run] <- 
+  } 
+  this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = mean)
+  this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = mean)
+  avg_TPR <- c(avg_TPR, this_avg_tpr)
+  avg_FPR <- c(avg_FPR, this_avg_fpr)
+  avg_precision <- c(avg_precision, rep(NA, times = dim(TPRs)[1]))
+  avg_recall <- c(avg_recall, rep(NA, times = dim(TPRs)[1]))
+  methods <- c(methods, rep(paste0("SpiecEasi_avg"), times = dim(TPRs)[1]))
+  file <- c(file, rep(NA, times = dim(TPRs)[1]))
+  thresholds <- c(thresholds, rep(NA, times = dim(TPRs)[1]))
 }
 
 ROC_data <- data.frame(file = file, method = methods, threshold = thresholds, 
