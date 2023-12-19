@@ -9,10 +9,17 @@ if (length(args) < 2) {
   stop("input folders need to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
-outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/ecoCopula_res_noCov/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
+outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/"
 outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
 covs <- TRUE # is beta inferred?
+
+#echo ${folder}/ ${folder}/${resDirName}/ ${covs} ${cutoff}
+#/space/s1/fiona_callahan/multiSim_100/randomRun1/ /space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/ 1
+data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
+outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/"
+covs <- (as.numeric(0) == 1)
+cutoff <- as.numeric(NA)
 
 data_dir <- args[1]
 outdir <- args[2]
@@ -21,7 +28,7 @@ cutoff <- as.numeric(args[4]) # MUST BE LAST ARGUMENT because of if(!is.na(cutof
 
 numRuns <- 1 # runs per folder (1 is correct)
 numTrials <- 1
-cluster <- TRUE #just controls cluster plotting
+cluster <- FALSE #just controls cluster plotting
 
 
 runL <- rep(NA, times = numRuns * numTrials)
@@ -51,6 +58,10 @@ TP_cluster <- rep(NA, times = numRuns * numTrials)
 FP_cluster <- rep(NA, times = numRuns * numTrials)
 TN_cluster <- rep(NA, times = numRuns * numTrials)
 FN_cluster <- rep(NA, times = numRuns * numTrials)
+TP_sign <- rep(NA, times = numRuns * numTrials)
+FP_sign <- rep(NA, times = numRuns * numTrials)
+TN_sign <- rep(NA, times = numRuns * numTrials)
+FN_sign <- rep(NA, times = numRuns * numTrials)
 
 i <- 1
 for (run in 1:numRuns) {
@@ -65,7 +76,9 @@ for (run in 1:numRuns) {
         if (covs) {
             actualBeta <- sign(simParms$beta)
             covTypes <- unlist(lapply(simParms$covVars, FUN = function(x) {return(x[["type"]])}))
-            actualBeta <- actualBeta[, covTypes != "constant"]
+            if (dim(actualBeta)[2] == length(covTypes)) {
+                actualBeta <- actualBeta[, covTypes != "constant"]
+            }
         }
 
         # check if the inference for this trial finished and store info
@@ -82,7 +95,9 @@ for (run in 1:numRuns) {
             
             if (covs) { # take out constant covariate
                 covTypes <- unlist(lapply(simParms$covVars, FUN = function(x) {return(x[["type"]])}))
-                inferredParms$betaInferred <- inferredParms$betaInferred[, covTypes != "constant"]
+                if (dim(inferredParms$betaInferred)[2] == length(covTypes)) {
+                    inferredParms$betaInferred <- inferredParms$betaInferred[, covTypes != "constant"]
+                }
             }
 
             try(if (sum(diag(inferredParms$alphaInferred)) != 0) {stop("Elements of inferred alpha diagonal are not 0")})
@@ -146,6 +161,9 @@ for (run in 1:numRuns) {
                 TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) + 
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0)) -
                                     simParms$numSpecies # subtract diagonal
+                try(if (TP_cluster[i] + FP_cluster[i] + FN_cluster[i] + TN_cluster[i] != 
+                        (simParms$numSpecies^2 - simParms$numSpecies + simParms$numSpecies * (simParms$numCovs - 1))) 
+                            {stop("count_mistakes_general.R something is wrong with the confusion mx in cluster")})
 
             } else {
                 TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1) 
@@ -153,6 +171,8 @@ for (run in 1:numRuns) {
                 FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) 
                 TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) -
                                     simParms$numSpecies # subtract diagonal
+                try(if (TP_cluster[i] + FP_cluster[i] + FN_cluster[i] + TN_cluster[i] != simParms$numSpecies^2 - simParms$numSpecies) 
+                            {stop("count_mistakes_general.R something is wrong with the confusion mx in cluster")})
             }
 
             # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
@@ -179,6 +199,9 @@ for (run in 1:numRuns) {
                 TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) + 
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0)) -
                                     simParms$numSpecies # subtract diagonal
+                try(if (TN_ignoreSign[i] + FN_ignoreSign[i] + FP_ignoreSign[i] + TP_ignoreSign[i] != 
+                        (simParms$numSpecies^2 - simParms$numSpecies + simParms$numSpecies * (simParms$numCovs - 1))) 
+                            {stop("count_mistakes_general.R something is wrong with the confusion mx")})
 
             } else {
                 TP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 1))
@@ -186,7 +209,40 @@ for (run in 1:numRuns) {
                 FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) 
                 TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) -
                                         simParms$numSpecies # subtract diagonal
+                try(if (TP_ignoreSign[i] + FP_ignoreSign[i] + FN_ignoreSign[i] + TN_ignoreSign[i] != simParms$numSpecies^2 - simParms$numSpecies) 
+                            {stop("count_mistakes_general.R something is wrong with the confusion mx")})
+            }
 
+            if (covs) {
+                TP_sign[i] <- sum(alphaInferred == 1 & actualAlpha == 1) + 
+                                    sum(betaInferred == 1 & actualBeta == 1) +
+                                    sum(alphaInferred == -1 & actualAlpha == -1) + 
+                                    sum(betaInferred == -1 & actualBeta == -1)
+                FP_sign[i] <- sum(alphaInferred != 0 & actualAlpha == 0) + 
+                                    sum(betaInferred != 0 & actualBeta == 0) +
+                                    sum(alphaInferred == 1 & actualAlpha == -1) + 
+                                    sum(betaInferred == 1 & actualBeta == -1) +
+                                    sum(alphaInferred == -1 & actualAlpha == 1) + 
+                                    sum(betaInferred == -1 & actualBeta == 1) 
+                FN_sign[i] <- sum(alphaInferred == 0 & actualAlpha != 0) + 
+                                    sum(betaInferred == 0 & actualBeta != 0)
+                TN_sign[i] <- sum(alphaInferred == 0 & actualAlpha == 0) + 
+                                    sum(betaInferred == 0 & actualBeta == 0) -
+                                    simParms$numSpecies # subtract diagonal
+                try(if (TP_sign[i] + FP_sign[i] + FN_sign[i] + TN_sign[i] != 
+                        (simParms$numSpecies^2 - simParms$numSpecies + simParms$numSpecies * (simParms$numCovs - 1))) 
+                            {stop("count_mistakes_general.R something is wrong with the confusion mx")})
+
+            } else {
+                TP_sign[i] <- sum(alphaInferred != 0 & actualAlpha == alphaInferred)
+                FP_sign[i] <- sum(alphaInferred != 0 & actualAlpha == 0) +
+                                sum(alphaInferred == 1 & actualAlpha == -1) + 
+                                sum(alphaInferred == -1 & actualAlpha == 1) 
+                FN_sign[i] <- sum(alphaInferred == 0 & actualAlpha != 0)
+                TN_sign[i] <- sum(alphaInferred == 0 & actualAlpha == 0) -
+                                    simParms$numSpecies # subtract diagonal
+                try(if (TP_sign[i] + FP_sign[i] + FN_sign[i] + TN_sign[i] != simParms$numSpecies^2 - simParms$numSpecies) 
+                            {stop("count_mistakes_general.R something is wrong with the confusion mx")})
             }
 
             # add to running lists
@@ -262,7 +318,11 @@ df <- data.frame(sim_run = runL,
             TP_cluster = TP_cluster,
             FP_cluster = FP_cluster,
             TN_cluster = TN_cluster,
-            FN_cluster = FN_cluster)
+            FN_cluster = FN_cluster,
+            TP_sign = TP_sign,
+            FP_sign = FP_sign,
+            TN_sign = TN_sign,
+            FN_sign = FN_sign)
 
 # print(df)
 

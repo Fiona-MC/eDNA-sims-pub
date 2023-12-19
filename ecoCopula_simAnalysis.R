@@ -20,6 +20,7 @@ scramble <- FALSE
 scramble <- (as.numeric(args[3]) == 1)
 sitetab_name <- "sim_sitetab_sampled.csv"
 sitetab_name <- args[4]
+cov <- args[5]
 
 
 plot <- FALSE
@@ -37,7 +38,7 @@ if (scramble == TRUE) {
 
 names_cov <- params$names_cov
 names_species <- params$names_species
-cov <- FALSE
+
 
 
 for (trial in 1:numTrials) {

@@ -72,7 +72,13 @@ for (i in seq_along(resNames)) {
   multiSimResL[[resNames[i]]] <- thisMultiSimRes
 }
 
-multiSimRes <- multiSimResL$INLA_res_faster_infResGathered_cutoff1.csv
+# default ones
+multiSimRes <- multiSimResL$INLA_res_faster_infResGathered_cutoff0.05.csv
+multiSimRes <- multiSimResL$spiecEasi_res_mb_infResGathered.csv
+multiSimRes <- multiSimResL$ecoCopula_res_noCov_infResGathered.csv
+multiSimRes <- multiSimResL$logistic_mistakes_cutoff0.05.csv
+multiSimRes <- multiSimResL$logistic_mistakes_noCov_cutoff0.05.csv
+#mean(get_falseDiscovery(data = multiSimRes, mode = "ignore_sign"), na.rm=T)
 
 # if you need to check these later, look at obsidian ROC curve note
 # obsidian://open?vault=simulations&file=ROC%20curves
@@ -85,8 +91,8 @@ get_TPR <- function(data = multiSimRes, mode = "ignore_sign") {
         FN <- data$FN_ignoreSign
     } else {
         # tp/(tp+fn)
-        TP <- data$num_correctInferences
-        FN <- data$num_missedEffectsL
+        TP <- data$TP_sign
+        FN <- data$FN_sign
     } 
     TPR <- TP / (TP + FN)
     return(TPR)
@@ -100,9 +106,8 @@ get_FPR <- function(data = multiSimRes, mode = "ignore_sign") {
       FP <- data$FP_ignoreSign
       TN <- data$TN_ignoreSign
     } else {
-        FP <- data$num_incorrectInferences
-        actual_neg <- data$num_possibleEffectsL - data$num_actualEffects
-        TN <- actual_neg - data$num_incorrectInferences
+      FP <- data$FP_sign
+      TN <- data$TN_sign
     } 
     FPR <- FP / (FP + TN)
     return(FPR)
@@ -115,7 +120,10 @@ get_precision <- function(data = multiSimRes, mode = "ignore_sign") {
     } else if (mode == "ignore_sign") {
         TP <- data$TP_ignoreSign
         FP <- data$FP_ignoreSign
-    } 
+    } else {
+      TP <- data$TP_sign
+      FP <- data$FP_sign
+    }
     prec <- TP / (TP + FP)
     return(prec)
 }
@@ -126,10 +134,28 @@ get_recall <- function(data = multiSimRes, mode = "ignore_sign") {
       FN <- data$FN_cluster
     } else if (mode == "ignore_sign") {
       TP <- data$TP_ignoreSign
-      FN <- data$FN_ignoreSign
-    } 
+      FN <- data$FN_ignoreSign 
+    } else {      
+      TP <- data$TP_sign
+      FN <- data$FN_sign 
+    }
     recall <- TP / (TP + FN)
     return(recall)
+}
+
+get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign") {
+    if (mode == "cluster") {
+      TP <- data$TP_cluster
+      FP <- data$FP_cluster
+    } else if (mode == "ignore_sign") {
+      TP <- data$TP_ignoreSign
+      FP <- data$FP_ignoreSign 
+    } else {      
+      TP <- data$TP_sign
+      FP <- data$FP_sign 
+    }
+    FDR <- FP / (FP + TP)
+    return(FDR)
 }
 
 # method | threshold | avg_TPR | avg_FPR 

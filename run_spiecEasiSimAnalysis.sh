@@ -10,9 +10,9 @@ seMethod=mb
 random=1
 plot=1
 covs=0
-sitetab_name="sim_sitetab_readAbd_sampled500.csv"
+sitetab_name="sim_sitetab_readAbd_sampled.csv"
 
-resDirName=spiecEasi_res_${seMethod}_500
+resDirName=spiecEasi_res_${seMethod}
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/

@@ -1,8 +1,12 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_test"
-numRuns=3
+#./scratch.sh /space/s1/fiona_callahan/multiSim_10sp 100
+
+sim_dir=$1
+#sim_dir="/space/s1/fiona_callahan/multiSim_100sp"
+#numRuns=100
+numRuns=$2
 numTrials=1
 INLA_type="paper"
 resDirName=INLA_res_${INLA_type}
