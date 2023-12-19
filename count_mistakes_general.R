@@ -11,7 +11,7 @@ if (length(args) < 2) {
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
 outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/ecoCopula_res_noCov/"
-outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_paper/"
+outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
 covs <- TRUE # is beta inferred?
 
 data_dir <- args[1]
@@ -64,6 +64,8 @@ for (run in 1:numRuns) {
 
         if (covs) {
             actualBeta <- sign(simParms$beta)
+            covTypes <- unlist(lapply(simParms$covVars, FUN = function(x) {return(x[["type"]])}))
+            actualBeta <- actualBeta[, covTypes != "constant"]
         }
 
         # check if the inference for this trial finished and store info
@@ -77,6 +79,12 @@ for (run in 1:numRuns) {
             } else {
                 inferredParms <- readRDS(paste0(outdir, "trial", trial, "/inferenceRes.Rdata"))
             }
+            
+            if (covs) { # take out constant covariate
+                covTypes <- unlist(lapply(simParms$covVars, FUN = function(x) {return(x[["type"]])}))
+                inferredParms$betaInferred <- inferredParms$betaInferred[, covTypes != "constant"]
+            }
+
             try(if (sum(diag(inferredParms$alphaInferred)) != 0) {stop("Elements of inferred alpha diagonal are not 0")})
             alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
             inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "undirected")
@@ -136,12 +144,15 @@ for (run in 1:numRuns) {
                 FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) + 
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
                 TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) + 
-                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0)) -
+                                    simParms$numSpecies # subtract diagonal
+
             } else {
                 TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1) 
                 FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0)) 
                 FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) 
-                TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) 
+                TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) -
+                                    simParms$numSpecies # subtract diagonal
             }
 
             # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
@@ -157,7 +168,7 @@ for (run in 1:numRuns) {
                 num_incorrect_betaL[i] <- count_incorrectT1_beta
                 num_missedEffects_betaL[i] <- num_missedEffects_beta
             } 
-
+            
             if (covs) {
                 TP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 1)) + 
                                     sum((abs(betaInferred) == 1) & (abs(actualBeta) == 1))
@@ -166,12 +177,16 @@ for (run in 1:numRuns) {
                 FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) + 
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
                 TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) + 
-                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0)) -
+                                    simParms$numSpecies # subtract diagonal
+
             } else {
                 TP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 1))
                 FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) 
                 FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) 
-                TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) 
+                TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) -
+                                        simParms$numSpecies # subtract diagonal
+
             }
 
             # add to running lists
