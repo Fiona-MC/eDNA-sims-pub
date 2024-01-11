@@ -6,13 +6,21 @@ library(plyr)
 library(gridExtra)
 library(tidyr)
 
-dirName <- c("multiSim_100")
+dirName <- c("multiSim_100sp")
 multiSimRes <- data.frame()
 resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
 resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
 #ls /space/s1/fiona_callahan/multiSim_100
 resNames <- c("ecoCopula_res_noCov_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "logistic_mistakes.csv", "INLA_infResGathered.csv")
+
+resNames <- c("INLA_res_paper_infResGathered_cutoff0.05.csv")
+#x<-readRDS("/space/s1/fiona_callahan/multiSim_10sp/randomRun10/INLA_res_paper/trial1/inferenceRes.Rdata")
+
+#res_500 <- read.csv("/space/s1/fiona_callahan/multiSim_100/INLA_res_paper_sampled500_infResGathered_cutoff0.05.csv")
+#res_100sp <- read.csv("/space/s1/fiona_callahan/multiSim_100sp/INLA_res_paper_infResGathered_cutoff1e-07.csv")
+res_10sp <- read.csv("/space/s1/fiona_callahan/multiSim_10sp/INLA_res_paper_infResGathered_cutoff1e-07.csv")
+res_50sp <- read.csv("/space/s1/fiona_callahan/multiSim_50sp/INLA_res_paper_infResGathered_cutoff1e-07.csv")
 
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 # load results into list
@@ -54,6 +62,8 @@ multiSimRes <- multiSimResL$logistic_mistakes.csv
 
 multiSimRes <- multiSimResL$ecoCopula_res_noCov_infResGathered.csv
 multiSimRes <- multiSimResL$spiecEasi_res_mb_infResGathered.csv
+
+multiSimRes <- multiSimResL$INLA_res_paper_infResGathered_cutoff0.05.csv
 
 mean(multiSimRes$alpha_incorrect_undirected + multiSimRes$alpha_correct_undirected)
 mean(multiSimRes$num_incorrectInferences + multiSimRes$num_correctInferences, na.rm = TRUE)

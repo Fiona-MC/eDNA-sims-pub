@@ -26,7 +26,7 @@ sitetab <- args[3]
 
 plot <- FALSE
 proj <- FALSE
-numTrials <- 2
+numTrials <- 1
 
 # load data
 # sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))

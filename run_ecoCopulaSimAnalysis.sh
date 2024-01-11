@@ -1,11 +1,19 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_100"
-numRuns=100
+# ./run_ecoCopulaSimAnalysis.sh /space/s1/fiona_callahan/multiSim_100sp 100 0
+
+#sim_dir="/space/s1/fiona_callahan/multiSim_100"
+#numRuns=100
+#covs=0
+
+sim_dir=$1
+numRuns=$2
+covs=$3
+
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
-covs=0
+
 #cutoff=NA
 #sitetab_name="sim_sitetab_sampled.csv"
 sitetab_name="sim_sitetab_sampled.csv"
@@ -32,7 +40,7 @@ fi
 
 
 
-N=3 # N=10 resulted in average usage around 30 cores
+N=1 # N=10 resulted in average usage around 30 cores
 # based on current rate with N=10 -- this should take ~6 days for 1000 runs (2 trials each)
 
 for folder in ${sim_dir}/randomRun*; do

@@ -1,10 +1,17 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_100"
-numRuns=100
+# ./run_spiecEasiSimAnalysis.sh /space/s1/fiona_callahan/multiSim_50sp 100 glasso
+
+#sim_dir="/space/s1/fiona_callahan/multiSim_100"
+#numRuns=100
+#seMethod=mb
+
+sim_dir=$1
+numRuns=$2
+seMethod=$3
+
 numTrials=1 # I think as this is implemented right now this needs to be 1
-seMethod=mb
 #seMethod=sparcc
 #seMethod=glasso
 random=1
@@ -28,7 +35,7 @@ resDirName=spiecEasi_res_${seMethod}
 
 
 
-N=5 # 
+N=1 # 
 
 for folder in ${sim_dir}/randomRun*; do 
     (

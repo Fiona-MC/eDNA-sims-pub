@@ -29,9 +29,12 @@ inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_pa
 inla_cutoffs <- c(0, 1, 0.0000001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, .3, .5)
 inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_faster_infResGathered_cutoff", x, ".csv")})
 
+
+inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
+inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
+
 resNames <- c("ecoCopula_res_noCov_infResGathered.csv", 
               "spiecEasi_res_mb_infResGathered.csv", 
-              "INLA_res_paper_infResGathered.csv", 
               inla_resnames,
               log_resnames,
               log_resnames_noCov)
