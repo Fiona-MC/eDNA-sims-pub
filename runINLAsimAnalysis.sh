@@ -1,19 +1,35 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100
+#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_100sp 100 500
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/multiSim_100sp"
 #numRuns=100
 numRuns=$2
+numSamples=$3
+
 numTrials=1
 INLA_type="paper"
-resDirName=INLA_res_${INLA_type}
+
+if [ ${numSamples} == "None" ]
+then
+	resDirName=INLA_res_${INLA_type}
+else
+	resDirName=INLA_res_${INLA_type}_sampled${numSamples}
+fi
+
 scramble=0
 covs=1
+
 #sitetab="sim_sitetab_sampled.csv"
-sitetab="sim_sitetab_sampled.csv"
+if [ ${numSamples} == "None" ]
+then
+	sitetab="sim_sitetab_sampled.csv"
+else
+	sitetab=sim_sitetab_sampled${numSamples}.csv
+fi
+
 ROC_mode="noModelSelect" # this will mean there is no WAIC selection for the ones where the cutoff changes
 
 #INLA_type="faster"
@@ -39,7 +55,7 @@ for folder in ${sim_dir}/randomRun*; do
         #if test ! -d "${folder}/INLA_res_${INLA_type}/trial1" # if the folder is not already there 
         #then
             echo "starting task $folder.."
-            mkdir "$folder/INLA_res_${INLA_type}/" 
+            mkdir "$folder/$resDirName/" 
             # run INLA sim analysis
             timeout -k 10 10h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ $sitetab
             #for cutoff in 0.01;

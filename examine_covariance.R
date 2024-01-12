@@ -5,7 +5,7 @@ library(igraph)
 library(ppcor)
 library(data.table)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun5/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
 
 # Note: the sim_data thing is only needed for the first two parts with the spatiotemporal part
 sim_data <- readRDS(paste0(data_dir, "sim_data.Rdata"))
@@ -236,8 +236,8 @@ getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, clus
     return(plotData_all)
 }
 
-data_dirs <- c("/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/")
-data_dirs <- sapply(X = 1:100, FUN = function(num) {paste0("/space/s1/fiona_callahan/multiSim_100/randomRun", num, "/")})
+data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
+data_dirs <- sapply(X = 1:100, FUN = function(num) {paste0(data_dir, "randomRun", num, "/")})
 plotData <- getCovarData(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
 # what if we do absolute value of covariance?
 #plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
@@ -249,12 +249,14 @@ ggplot(data = plotData[plotData$covariance < 1, ], aes(x = actual_interaction, y
             geom_boxplot() #+ 
             #ggtitle(paste0(data_dir))
 
-ggplot(data = plotData, aes(x = covariance, fill = actual_interaction)) +
+plot1 <- ggplot(data = plotData, aes(x = covariance, fill = actual_interaction)) +
             geom_histogram(position = "dodge", stat = "density") #+
             #ggtitle(paste0(data_dir))
+plot1
+ggsave(plot1, filename = paste0(data_dir, "empiricalCovariance_smooth.png"))
 
-ggplot(data = plotData, aes(x = covariance, fill = actual_interaction)) +
+plot2 <- ggplot(data = plotData, aes(x = covariance, fill = actual_interaction)) +
             geom_histogram(position = "dodge") #+
             #ggtitle(paste0(data_dir))
-
-
+plot2
+ggsave(plot2, filename = paste0(data_dir, "empiricalCovariance.png"))

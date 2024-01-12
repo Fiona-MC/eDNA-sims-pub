@@ -30,14 +30,20 @@ inla_cutoffs <- c(0, 1, 0.0000001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.
 inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_faster_infResGathered_cutoff", x, ".csv")})
 
 
+#inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
+#inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
+
 inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
-inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
+inla_resnames_500 <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
 
 resNames <- c("ecoCopula_res_noCov_infResGathered.csv", 
               "spiecEasi_res_mb_infResGathered.csv", 
               inla_resnames,
               log_resnames,
               log_resnames_noCov)
+
+resNames <- c(inla_resnames,
+              inla_resnames_500)
 
 #logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
 #log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_dumb_cutoff", x, ".csv")})
@@ -186,6 +192,10 @@ for (i in seq_along(multiSimResL)) {
     } else if (str_detect(names(multiSimResL)[i], "spiecEasi")) {
       methods[i] <- "spiecEasi"
     } 
+
+    if (str_detect(names(multiSimResL)[i], "500")) {
+      methods[i] <- paste0(methods[i], "_500")
+    }
     #if (str_detect(names(multiSimResL)[i], "cutoff")) {
     #  thresholds[i] <- str_split(c(names(multiSimResL)[i]), pattern = ".")
     #}
@@ -202,6 +212,8 @@ for (i in seq_along(multiSimResL)) {
     }
 }
 
+se_include <- FALSE
+if(se_include) {
 library(SpiecEasi)
 library(igraph)
 multiples <- FALSE
@@ -227,7 +239,7 @@ if (!cluster) {
 }
 }
 
-if (!cluster) {
+if (!cluster) { 
   TPRs <- matrix(nrow = 100, ncol = 100) # rows are lambda values, columns are runs
   FPRs <- matrix(nrow = 100, ncol = 100)
   for (run in 1:100) {
@@ -251,6 +263,7 @@ if (!cluster) {
   methods <- c(methods, rep(paste0("SpiecEasi_avg"), times = length(se.roc$fp)))
   file <- c(file, rep(NA, times = length(se.roc$fp)))
   thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
+}
 }
 
 # this is not working yet for ec

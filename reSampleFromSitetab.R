@@ -1,8 +1,8 @@
 # sample fewer data points randomly from sitetabs and save new
 library(data.table)
 
-sim_dir <- "/space/s1/fiona_callahan/multiSim_100/"
-nSamples <- 500
+sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+nSamples <- 100
 numRuns <- 100
 
 for (run in 1:numRuns) {
