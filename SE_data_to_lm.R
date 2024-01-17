@@ -96,8 +96,10 @@ for (cutoff in cutoffs) {
     ############### LOAD ACTUAL PARAMS ######################
 
     actualBeta <- NA
-    actualAlpha <- sign(Prec)
 
+    actualAlpha <- sign(Prec)
+    for(iii in seq_len(dim(actualAlpha)[1])) {actualAlpha[iii, iii] <- 0}
+    
     ############### GET INFERRED ALPHA AND BETA ######################
     betaInferred <- matrix(NA, nrow = simParms$numSpecies, ncol = (simParms$numCovs - 1))
     if (covs) {
@@ -129,6 +131,7 @@ for (cutoff in cutoffs) {
             }
         }
     }
+
 
     if(!is.na(sum(alphaInferred))) {
         avg_alphInferred <- avg_alphInferred + alphaInferred
@@ -287,6 +290,9 @@ TPRs <- rep(NA, times = 100)
 FPRs <- rep(NA, times = 100)
 
 se <- spiec.easi(X, method='mb', lambda.min.ratio=1e-2, nlambda=100)
+
+
+
 alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
 # theta = true_interactions
 se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
@@ -321,3 +327,15 @@ ROC_plot <- ggplot(ROC_data, aes(x = FPR, y = TPR, color = method)) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line (no skill)
   lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
   theme(text = element_text(size = 24))  # Set the base size for all text elements
+
+
+# huge roc example
+#generate data
+#L = huge::huge.generator(d = 200, graph = "cluster", prob = 0.3)
+#out1 = huge::huge(L$data)
+
+#draw ROC curve
+#Z1 = huge::huge.roc(out1$path,L$theta)
+
+#Maximum F1 score
+#max(Z1$F1)

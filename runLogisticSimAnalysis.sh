@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-# ./runLogisticSimAnalysis.sh /space/s1/fiona_callahan/multiSim_100sp 100 0
+# ./runLogisticSimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 0
 
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
@@ -16,9 +16,9 @@ dumb=0
 
 if [ ${covs} == 1 ]
 then
-	outname="logistic_mistakes_noCov"
+	outname="logistic_mistakes_cov"
 else
-	outname="logistic_mistakes"
+	outname="logistic_mistakes_noCov"
 fi
 
 if [ ${dumb} == 1 ]

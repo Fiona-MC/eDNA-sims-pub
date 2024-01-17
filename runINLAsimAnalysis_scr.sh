@@ -1,12 +1,44 @@
 #!/bin/bash
-export OMP_NUM_THREADS=15
-#this is for the scrambled ones
+export OMP_NUM_THREADS=5
 
-sim_dir="/space/s1/fiona_callahan/multiSim_rw3"
-numRuns=100
+#./runINLAsimAnalysis_scr.sh /space/s1/fiona_callahan/multiSim_100sp 100 None 1 1
+
+sim_dir=$1
+#sim_dir="/space/s1/fiona_callahan/multiSim_100sp"
+#numRuns=100
+numRuns=$2
+numSamples=$3
+covs=$4
+dumb=$5
+
 numTrials=1
 INLA_type="paper"
-scramble=1
+
+if [ ${numSamples} == "None" ]
+then
+	resDirName=INLA_res_${INLA_type}
+else
+	resDirName=INLA_res_${INLA_type}_sampled${numSamples}
+fi
+
+scramble=0
+
+#sitetab="sim_sitetab_sampled.csv"
+if [ ${numSamples} == "None" ]
+then
+	sitetab="sim_sitetab_sampled.csv"
+else
+	sitetab=sim_sitetab_sampled${numSamples}.csv
+fi
+
+if [ ${dumb} == "1" ]
+then
+	resDirName=INLA_res_dumb
+    sitetab=sitetab_dumb.csv
+fi
+
+ROC_mode="noModelSelect" # this will mean there is no WAIC selection for the ones where the cutoff changes
+
 #INLA_type="faster"
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
@@ -16,8 +48,8 @@ scramble=1
 #mkdir ${sim_dir}/unrealisticRuns
 #while IFS=',' read -r lineNum runNum reason; do
 #    if [ -e "${sim_dir}/randomRun${runNum}" ]; then
-#        cp -pR "${sim_dir}/randomRun${runNum}" "${sim_dir}/unrealisticRuns/randomRun${runNum}"
-#        rm -r "${sim_dir}/randomRun${runNum}"
+    #    cp -pR "${sim_dir}/randomRun${runNum}" "${sim_dir}/unrealisticRuns/randomRun${runNum}"
+    #    rm -r "${sim_dir}/randomRun${runNum}" #put this back when you edit the filtering criteria?
 #    fi
 #done < ${sim_dir}/unrealistic_runNums.csv
 
@@ -27,27 +59,21 @@ N=1 # N=10 resulted in average usage around 30 cores
 
 for folder in ${sim_dir}/randomRun*; do
     (
-        if test ! -d "${folder}/INLA_res_${INLA_type}/trial1" # if the folder is not already there NOT WORKING
-        then
+        #if test ! -d "${folder}/INLA_res_${INLA_type}/trial1" # if the folder is not already there 
+        #then
             echo "starting task $folder.."
-            mkdir "$folder/INLA_res_${INLA_type}/" 
+            mkdir "$folder/$resDirName/" 
             # run INLA sim analysis
-            # throwing error here vvv
-            #Try help(fields) to get started.
-            #Warning message:
-            #In dir.create(save_dir) :
-            #'/space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLA_res_paper' already exists
-            #Error in idx[!upper] <- do.the.split(knots[1:split], loc[!upper]) : 
-            #NAs are not allowed in subscripted assignments
-            #Calls: inla.mesh.1d -> inla.mesh.1d.bary -> do.the.split
-            #In addition: Warning message:
-            #In dir.create(subdir) :
-            #'/space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLA_res_paper/trial1' already exists
-            #Execution halted
-            timeout -k 10 2h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/INLA_res_${INLA_type}/ $scramble
-            Rscript /home/fiona_callahan/eDNA_sims_code/count_INLAmistakes.R ${folder}/ ${folder}/INLA_res_${INLA_type}/
+            timeout -k 10 10h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ $sitetab
+            #for cutoff in 0.01;
+            #for cutoff in 0 0.0000000000001 0.0000001 0.00001 .3 .5 .7 .9 1;
+            for cutoff in 0 1 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 .3 .5;
+            do
+                Rscript /home/fiona_callahan/eDNA_sims_code/INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${resDirName}/ ${ROC_mode}
+                Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ ${covs} ${cutoff}
+            done
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
-        fi
+       #fi
     ) &
 
     # allow to execute up to $N jobs in parallel
@@ -56,15 +82,17 @@ for folder in ${sim_dir}/randomRun*; do
         # to be finished so there is a place to start next one.
         wait -n
     fi
-
 done
 
 # no more jobs to be started but wait for pending jobs
 # (all need to be finished)
 wait
 
-Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes.R ${sim_dir}/ ${numRuns} ${numTrials} 1
-# output is ${sim_dir}/infResGathered.csv 
-# next script to run is count_specificMistakes.R or analyze_multiSim.R 
+#for cutoff in 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15;
+#for cutoff in 0.01;
+for cutoff in 0 1 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 .3 .5;
+do
+Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
+done
 
 echo "all done"
