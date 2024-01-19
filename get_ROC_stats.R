@@ -3,6 +3,7 @@ library(tidyr)
 library(stringr)
 
 cluster <- FALSE
+ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 
 dirName <- c("multiSim_10sp")
 multiSimRes <- data.frame()
@@ -94,7 +95,7 @@ multiSimRes <- multiSimResL$logistic_mistakes_noCov_cutoff0.05.csv
 
 # if you need to check these later, look at obsidian ROC curve note
 # obsidian://open?vault=simulations&file=ROC%20curves
-get_TPR <- function(data = multiSimRes, mode = "ignore_sign") {
+get_TPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
     if (mode == "cluster") {
         TP <- data$TP_cluster 
         FN <- data$FN_cluster
@@ -107,10 +108,14 @@ get_TPR <- function(data = multiSimRes, mode = "ignore_sign") {
         FN <- data$FN_sign
     } 
     TPR <- TP / (TP + FN)
-    return(TPR)
+    if (return_components) {
+      return(list(TPR = TPR, TP = TP, FN = FN))
+    } else {
+      return(TPR)
+    }
 }
 
-get_FPR <- function(data = multiSimRes, mode = "ignore_sign") {
+get_FPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
     if (mode == "cluster") {
       FP <- data$FP_cluster
       TN <- data$TN_cluster
@@ -122,10 +127,14 @@ get_FPR <- function(data = multiSimRes, mode = "ignore_sign") {
       TN <- data$TN_sign
     } 
     FPR <- FP / (FP + TN)
-    return(FPR)
+    if (return_components) {
+      return(list(FPR = FPR, FP = FP, TN = TN))
+    } else {
+      return(FPR)
+    }
 }
 
-get_precision <- function(data = multiSimRes, mode = "ignore_sign") {
+get_precision <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
     if (mode == "cluster") {
         TP <- data$TP_cluster 
         FP <- data$FP_cluster
@@ -137,10 +146,14 @@ get_precision <- function(data = multiSimRes, mode = "ignore_sign") {
       FP <- data$FP_sign
     }
     prec <- TP / (TP + FP)
-    return(prec)
+    if (return_components) {
+      return(list(prec = prec, TP = TP, FP = FP))
+    } else {
+      return(prec)
+    }
 }
 
-get_recall <- function(data = multiSimRes, mode = "ignore_sign") {
+get_recall <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
     if (mode == "cluster") {
       TP <- data$TP_cluster
       FN <- data$FN_cluster
@@ -152,10 +165,14 @@ get_recall <- function(data = multiSimRes, mode = "ignore_sign") {
       FN <- data$FN_sign 
     }
     recall <- TP / (TP + FN)
-    return(recall)
+    if (return_components) {
+      return(list(recall = recall, TP = TP, FN = FN))
+    } else {
+      return(recall)
+    }
 }
 
-get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign") {
+get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
     if (mode == "cluster") {
       TP <- data$TP_cluster
       FP <- data$FP_cluster
@@ -167,7 +184,11 @@ get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign") {
       FP <- data$FP_sign 
     }
     FDR <- FP / (FP + TP)
-    return(FDR)
+    if (return_components) {
+      return(list(FDR = FDR, FP = FP, TP = TP))
+    } else {
+      return(FDR)
+    }
 }
 
 # method | threshold | avg_TPR | avg_FPR 
@@ -213,15 +234,53 @@ for (i in seq_along(multiSimResL)) {
     #  thresholds[i] <- str_split(c(names(multiSimResL)[i]), pattern = ".")
     #}
     if (cluster) {
-      avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
-      avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
-      avg_precision[i] <- mean(get_precision(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
-      avg_recall[i] <- mean(get_recall(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
+      if(ratio_of_avg) {
+        # TPR <- TP / (TP + FN)
+        avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "cluster", return_components = TRUE)$TP, na.rm = TRUE) / 
+                      (mean(get_TPR(data = multiSimRes, mode = "cluster", return_components = TRUE)$TP, na.rm = TRUE) + 
+                            mean(get_TPR(data = multiSimRes, mode = "cluster", return_components = TRUE)$FN, na.rm = TRUE))
+        # FPR <- FP / (FP + TN)
+        avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "cluster", return_components = TRUE)$FP, na.rm = TRUE) / 
+                      (mean(get_FPR(data = multiSimRes, mode = "cluster", return_components = TRUE)$FP, na.rm = TRUE) + 
+                            mean(get_FPR(data = multiSimRes, mode = "cluster", return_components = TRUE)$TN, na.rm = TRUE))
+        # prec <- TP / (TP + FP)
+        avg_precision[i] <-  mean(get_precision(data = multiSimRes, mode = "cluster", return_components = TRUE)$TP, na.rm = TRUE) / 
+                      (mean(get_precision(data = multiSimRes, mode = "cluster", return_components = TRUE)$TP, na.rm = TRUE) + 
+                            mean(get_precision(data = multiSimRes, mode = "cluster", return_components = TRUE)$FP, na.rm = TRUE))
+        # recall <- TP / (TP + FN)
+        avg_recall[i] <-  mean(get_recall(data = multiSimRes, mode = "cluster", return_components = TRUE)$TP, na.rm = TRUE) / 
+                      (mean(get_recall(data = multiSimRes, mode = "cluster", return_components = TRUE)$TP, na.rm = TRUE) + 
+                            mean(get_recall(data = multiSimRes, mode = "cluster", return_components = TRUE)$FN, na.rm = TRUE)) 
+      } else {
+        avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
+        avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
+        avg_precision[i] <- mean(get_precision(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
+        avg_recall[i] <- mean(get_recall(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
+      }
     } else {
-      avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
-      avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
-      avg_precision[i] <- mean(get_precision(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
-      avg_recall[i] <- mean(get_recall(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+      if(ratio_of_avg) {
+        # TPR <- TP / (TP + FN)
+        avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$TP, na.rm = TRUE) / 
+                      (mean(get_TPR(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$TP, na.rm = TRUE) + 
+                            mean(get_TPR(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$FN, na.rm = TRUE))
+        # FPR <- FP / (FP + TN)
+        avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$FP, na.rm = TRUE) / 
+                      (mean(get_FPR(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$FP, na.rm = TRUE) + 
+                            mean(get_FPR(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$TN, na.rm = TRUE))
+        # prec <- TP / (TP + FP)
+        avg_precision[i] <-  mean(get_precision(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$TP, na.rm = TRUE) / 
+                      (mean(get_precision(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$TP, na.rm = TRUE) + 
+                            mean(get_precision(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$FP, na.rm = TRUE))
+        # recall <- TP / (TP + FN)
+        avg_recall[i] <-  mean(get_recall(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$TP, na.rm = TRUE) / 
+                      (mean(get_recall(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$TP, na.rm = TRUE) + 
+                            mean(get_recall(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$FN, na.rm = TRUE)) 
+      } else {
+        avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+        avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+        avg_precision[i] <- mean(get_precision(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+        avg_recall[i] <- mean(get_recall(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+      }
     }
 }
 
@@ -374,15 +433,33 @@ PR_plot <- ggplot(ROC_data, aes(x = avg_recall, y = avg_precision, color = metho
 
 
 if (cluster) {
-  ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster.png"))
-  write.csv(ROC_data, file = paste0(thisDir, "ROC_data_cluster.csv"))
+  if (ratio_of_avg) {
+    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster_ratioOfAv.png"))
+    write.csv(ROC_data, file = paste0(thisDir, "ROC_data_cluster_ratioOfAv.csv"))
+  } else {
+    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster.png"))
+    write.csv(ROC_data, file = paste0(thisDir, "ROC_data_cluster.csv"))
+  }
 } else {
-  ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot.png"))
-  write.csv(ROC_data, file = paste0(thisDir, "ROC_data.csv"))
+  if (ratio_of_avg) {
+    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_ratioOfAv.png"))
+    write.csv(ROC_data, file = paste0(thisDir, "ROC_data_ratioOfAv.csv"))
+  } else {
+    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot.png"))
+    write.csv(ROC_data, file = paste0(thisDir, "ROC_data.csv"))
+  }
 }
 
 if (cluster) {
-  ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster.png"))
+  if(ratio_of_avg) {
+    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster_ratioOfAvg.png"))
+  } else {
+    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster.png"))
+  }
 } else {
-  ggsave(PR_plot, filename = paste0(thisDir, "PR_plot.png"))
+  if(ratio_of_avg) {
+    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_ratioOfAvg.png"))
+  } else {
+    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot.png"))
+  }
 }
