@@ -2,10 +2,10 @@ library(data.table)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-sim_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
-cutoff <- 1
-save_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
-ROC_mode <- "noModelSelect"
+#sim_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
+#cutoff <- 1
+#save_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
+#ROC_mode <- "noModelSelect"
 
 sim_dir <- args[1]
 cutoff <- as.numeric(args[2])

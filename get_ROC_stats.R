@@ -4,7 +4,7 @@ library(stringr)
 
 cluster <- FALSE
 
-dirName <- c("multiSim_100sp")
+dirName <- c("multiSim_10sp")
 multiSimRes <- data.frame()
 resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
 resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", 
@@ -341,15 +341,30 @@ ROC_data <- data.frame(file = file, method = methods, threshold = thresholds,
 ROC_data$avg_FPR <- as.numeric(ROC_data$avg_FPR)
 ROC_data$avg_TPR <- as.numeric(ROC_data$avg_TPR)
 
-ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method)) +
-  geom_point(size = 3) +
+####################
+#thisDir <-  paste0("/space/s1/fiona_callahan/multiSim_50sp/")
+#ROC_data <- read.csv(paste0(thisDir, "ROC_data_cluster.csv"))
+#cluster <- FALSE
+#if (cluster) {
+#  ROC_data <- read.csv(paste0(thisDir, "ROC_data_cluster.csv"))
+#} else {
+#  ROC_data <- read.csv(paste0(thisDir, "ROC_data.csv"))
+#}
+####################
+
+ROC_data$method <- as.factor(ROC_data$method)
+
+ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method, group = method)) +
+  scale_shape_manual(values = 1:12) +
+  geom_point(size = 5, aes(shape = method)) +
   stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
   labs(title = paste("ROC: cluster = ", cluster), x = "FPR = FP/(FP+TN)", y = "TPR = TP/(TP+FN)") +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line (no skill)
   lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
   theme(text = element_text(size = 24))  # Set the base size for all text elements
 
-PR_plot <- ggplot(ROC_data, aes(x = avg_recall, y = avg_precision, color = method)) +
+PR_plot <- ggplot(ROC_data, aes(x = avg_recall, y = avg_precision, color = method, shape = method)) +
+  scale_shape_manual(values = 1:12) +
   geom_point(size = 3) +
   stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
   labs(title = paste("P-R: cluster = ", cluster), x = "Recall = TP/(TP+FN)", y = "Precision = TP/(TP+FP)") +

@@ -12,13 +12,13 @@ if (length(args) < 2) {
 data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
 outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/"
 outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
-covs <- TRUE # is beta inferred?
+#covs <- TRUE # is beta inferred?
 
 #echo ${folder}/ ${folder}/${resDirName}/ ${covs} ${cutoff}
 #/space/s1/fiona_callahan/multiSim_100/randomRun1/ /space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/ 1
 data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
 outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/"
-covs <- (as.numeric(0) == 1)
+#covs <- (as.numeric(0) == 1)
 cutoff <- as.numeric(NA)
 
 data_dir <- args[1]
