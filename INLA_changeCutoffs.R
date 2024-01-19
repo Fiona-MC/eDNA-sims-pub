@@ -16,7 +16,14 @@ ROC_mode <- args[4] #"noModelSelect" or "modelSelect"
 trial <- 1
 subdir <- paste0(save_dir, "trial", trial, "/")
 params <- readRDS(paste0(sim_dir, "params.Rdata"))
-sim_lists <- readRDS(paste0(subdir, "sim_lists-", trial, ".Rdata"))
+
+modelParmsL <- c("none", "cov", "sp", "spCov")
+
+# load inla results
+sim_lists <- list()
+for (modelParms in modelParmsL) {
+    sim_lists[[model]] <- readRDS(paste0(subdir, "resList_", modelParms, ".Rdata"))
+}
 
 modelcands <- names(sim_lists)
 
@@ -39,7 +46,7 @@ inferenceRes$betaInferred <- matrix(data = 0, nrow = length(names_species), ncol
 for (sp_index in seq_along(names_species)) {
     if (ROC_mode == "noModelSelect") {
         if (length(modelcands) > 1) {
-            this_best_model <- "Cov+Animal"
+            this_best_model <- "spCov"
         } else {
             this_best_model <- modelcands[1]
         }

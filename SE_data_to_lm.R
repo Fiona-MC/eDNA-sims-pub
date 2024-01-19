@@ -1,6 +1,5 @@
 # the idea here was to run a regression on the data simulated in the spiecEasi package 
 # to see if that does better than SE
-
 library(SpiecEasi)
 library(stats)
 library(igraph)
