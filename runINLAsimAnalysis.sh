@@ -4,7 +4,7 @@ export OMP_NUM_THREADS=5
 #./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_test 3 None
 
 sim_dir=$1
-sim_dir="/space/s1/fiona_callahan/multiSim_100"
+#sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
 numRuns=$2
 numSamples=$3
