@@ -19,7 +19,7 @@ for (trial in 1:numTrials) {
     # load inla results
     sim_lists <- list()
     for (modelParms in modelParmsL) {
-        sim_lists[[model]] <- readRDS(paste0(subdir, "resList_", modelParms, ".Rdata"))
+        sim_lists[[modelParms]] <- readRDS(paste0(subdir, "resList_", modelParms, ".Rdata"))
     }
 
     # CPO 

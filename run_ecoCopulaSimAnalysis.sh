@@ -10,19 +10,27 @@ export OMP_NUM_THREADS=5
 sim_dir=$1
 numRuns=$2
 covs=$3
+numSamples=$4
 
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
 
+if [ ${numSamples} == "None" ]
+then
+	resDirName=ecoCopula_res
+    sitetab_name="sim_sitetab_sampled.csv"
+else
+	resDirName=ecoCopula_res_sampled${numSamples}
+    sitetab_name=sim_sitetab_sampled${numSamples}.csv
+fi
+
 #cutoff=NA
-#sitetab_name="sim_sitetab_sampled.csv"
-sitetab_name="sim_sitetab_sampled.csv"
 
 if [ ${covs} == 1 ]
 then
-	resDirName="ecoCopula_res_cov"
+	resDirName=${resDirName}_cov
 else
-	resDirName="ecoCopula_res_noCov"
+	resDirName=${resDirName}_noCov
 fi
 #INLA_type="faster"
 
@@ -43,7 +51,16 @@ fi
 N=1 # N=10 resulted in average usage around 30 cores
 # based on current rate with N=10 -- this should take ~6 days for 1000 runs (2 trials each)
 
-for folder in ${sim_dir}/randomRun*; do
+
+# Declare an array to store the names
+folderNames=()
+
+# Populate the array with the names
+for ((i=1; i<=$numRuns; i++)); do
+  folderNames+=(${sim_dir}/randomRun$i)
+done
+
+for folder in ${folderNames[@]}; do
     (
         #if test ! -d "${folder}/${resDirName}/trial1" # if the folder is not already there NOT WORKING
         #then

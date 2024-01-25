@@ -1,17 +1,32 @@
 # sample fewer data points randomly from sitetabs and save new
 library(data.table)
 
-sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
-nSamples <- 100
-numRuns <- 100
+#sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
+sim_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/"
+numRuns <- 2
 
-for (run in 1:numRuns) {
-    save_dir <- paste0(sim_dir, "randomRun", run, "/")
-    full_sitetab <- fread(file = paste0(save_dir, "sim_sitetab_sampled.csv"))
-    full_sitetab_abd <- fread(file = paste0(save_dir, "sim_sitetab_readAbd_sampled.csv"))
-    sample <- sample(x = 1:dim(full_sitetab)[1], size = nSamples, replace = FALSE) # nolint: seq_linter.
-    sitetab_reSampled <- full_sitetab[sample, ]
-    sitetab_reSampled_abd <- full_sitetab_abd[sample, ]
-    fwrite(sitetab_reSampled, file = paste0(save_dir, "sim_sitetab_sampled", nSamples, ".csv"))
-    fwrite(sitetab_reSampled_abd, file = paste0(save_dir, "sim_sitetab_readAbd_sampled", nSamples, ".csv"))
+resample <- TRUE # do you want to just copy the stuff or resample it?
+nSamplesL <- c(50, 100, 500, 1000, 10000, 25000)
+nSamplesL <- c(100)
+
+dir.create(save_dir)
+
+for (nSamples in nSamplesL) {
+    for (run in 1:numRuns) {
+        save_subdir <- paste0(save_dir, "randomRun", run, "/")
+        sim_subdir <- paste0(sim_dir, "randomRun", run, "/")
+        if(!dir.exists(save_subdir)) {dir.create(save_subdir)}
+        file.copy(from = paste0(sim_subdir, "params.Rdata"), to = paste0(save_subdir, "params.Rdata"))
+        file.copy(from = paste0(sim_subdir, "covList.Rdata"), to = paste0(save_subdir, "covList.Rdata"))
+        file.copy(from = paste0(sim_subdir, "locList.Rdata"), to = paste0(save_subdir, "locList.Rdata"))
+        full_sitetab <- fread(file = paste0(sim_subdir, "sim_sitetab_sampled.csv"))
+        full_sitetab_abd <- fread(file = paste0(sim_subdir, "sim_sitetab_readAbd_sampled.csv"))
+        sample <- sample(x = 1:dim(full_sitetab)[1], size = nSamples, replace = FALSE) # nolint: seq_linter.
+        sitetab_reSampled <- full_sitetab[sample, ]
+        sitetab_reSampled_abd <- full_sitetab_abd[sample, ]
+        fwrite(sitetab_reSampled, file = paste0(save_subdir, "sim_sitetab_sampled", nSamples, ".csv"))
+        fwrite(sitetab_reSampled_abd, file = paste0(save_subdir, "sim_sitetab_readAbd_sampled", nSamples, ".csv"))
+    }
 }

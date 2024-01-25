@@ -1,8 +1,12 @@
 
-for i in 1 2 3;
+for i in 2 2 2;
 do
 (
-Rscript testFor.R $i 
-) &
+echo $i &
+((j=i+1))
+echo $j &
+sleep 3 &
+wait
+)
 done
 

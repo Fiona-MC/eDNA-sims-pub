@@ -394,7 +394,8 @@ if (ecAdjust) {
 }
 
 ROC_data <- data.frame(file = file, method = methods, threshold = thresholds, 
-                      avg_FPR = as.numeric(avg_FPR), avg_TPR = as.numeric(avg_TPR),
+                      avg_FPR = as.numeric(avg_FPR), avg_TPR = as.numeric(avg_TPR), 
+                      FPR_sd = as.numeric(FPR_sd), TPR_sd = as.numeric(TPR_sd),
                       avg_precision = as.numeric(avg_precision), avg_recall = as.numeric(avg_recall))
 
 ROC_data$avg_FPR <- as.numeric(ROC_data$avg_FPR)

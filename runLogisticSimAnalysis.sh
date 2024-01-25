@@ -10,25 +10,35 @@ export OMP_NUM_THREADS=15
 sim_dir=$1
 numRuns=$2
 covs=$3
+numSamples=$4
 
-sitetab_name="sim_sitetab_sampled.csv"
+echo "Starting logistic"
+echo $sim_dir
+echo $numRuns
+echo $covs
+echo $numSamples
+
+if [ ${numSamples} == "None" ]
+then
+	sitetab="sim_sitetab_sampled.csv"
+	outname="logistic_mistakes"
+else
+	sitetab=sim_sitetab_sampled${numSamples}.csv
+	outname=logistic_mistakes_sampled${numSamples}
+fi
+
 dumb=0
 
 if [ ${covs} == 1 ]
 then
-	outname="logistic_mistakes_cov"
+	outname=${outname}_cov
 else
-	outname="logistic_mistakes_noCov"
+	outname=${outname}_noCov
 fi
 
 if [ ${dumb} == 1 ]
 then
 	outname=${outname}_dumb
-fi
-
-if [ ${sitetab_name} == "sim_sitetab_sampled500.csv" ]
-then
-    outname=${outname}_500
 fi
 
 Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R ${sim_dir}/ ${numRuns} ${covs} ${dumb} ${sitetab_name} ${outname}

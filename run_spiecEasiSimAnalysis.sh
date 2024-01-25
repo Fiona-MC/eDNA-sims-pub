@@ -5,21 +5,31 @@ export OMP_NUM_THREADS=5
 
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
-#seMethod=mb
+#seMethod=mb #glasso sparcc
 
 sim_dir=$1
 numRuns=$2
 seMethod=$3
+numSamples=$4
+
+if [ ${numSamples} == "None" ]
+then
+	resDirName=spiecEasi_res
+    sitetab_name=sim_sitetab_readAbd_sampled.csv
+else
+	resDirName=spiecEasi_res_sampled${numSamples}
+    sitetab_name=sim_sitetab_readAbd_sampled${numSamples}.csv
+fi
+
 
 numTrials=1 # I think as this is implemented right now this needs to be 1
 #seMethod=sparcc
 #seMethod=glasso
 random=1
 plot=1
-covs=0
-sitetab_name="sim_sitetab_readAbd_sampled.csv"
+covs=0 # not a real option here
 
-resDirName=spiecEasi_res_${seMethod}
+resDirName=${resDirName}_${seMethod}
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
@@ -33,11 +43,18 @@ resDirName=spiecEasi_res_${seMethod}
 #    fi
 #done < ${sim_dir}/unrealistic_runNums.csv
 
-
-
 N=1 # 
 
-for folder in ${sim_dir}/randomRun*; do 
+
+# Declare an array to store the names
+folderNames=()
+
+# Populate the array with the names
+for ((i=1; i<=$numRuns; i++)); do
+  folderNames+=(${sim_dir}/randomRun$i)
+done
+
+for folder in ${folderNames[@]}; do
     (
         #if test ! -d "${folder}/${resDirName}/trial1" # if the folder is not already there NOT WORKING
         #then

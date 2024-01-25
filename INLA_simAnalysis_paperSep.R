@@ -14,14 +14,14 @@ if (length(args) < 2) {
 
 #data_dir <- "/home/fiona_callahan/simData/testing/run1/"
 #save_dir <- "/home/fiona_callahan/simData/testing/INLAres/"
-data_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/"
-sitetabName <- "sim_sitetab_sampled.csv"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/"
+#sitetabName <- "sim_sitetab_sampled.csv"
 #${folder}/ ${folder}/INLA_res_${INLA_type}/#
 data_dir <- args[1]
 save_dir <- args[2]
-dir.create(save_dir)
-sitetab <- args[3]
+#dir.create(save_dir)
+sitetabName <- args[3]
 modelParms <- args[4] # "none" "cov" "sp" "spCov"
 
 
