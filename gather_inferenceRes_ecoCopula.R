@@ -7,11 +7,11 @@ if (length(args) < 3) {
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 5 1
 
-thisDir="/space/s1/fiona_callahan/multiSim_100/"
-numRuns=100
-numTrials=1
-resFolderName <- "INLA_res_paper"
-cutoff=0.05
+#thisDir="/space/s1/fiona_callahan/multiSim_100/"
+#numRuns=100
+#numTrials=1
+#resFolderName <- "INLA_res_paper"
+#cutoff=0.05
 
 thisDir <- args[1]
 numRuns <- as.numeric(args[2])
@@ -73,8 +73,8 @@ for (run in runs) {
 colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(percent_presence), names(mistakes)) 
 
 if (!is.na(cutoff)) {
-    write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered_cutoff", cutoff, ".csv"))
+    write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv"))
 } else {
-    write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered.csv"))
+    write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered_", numRuns, "sims.csv"))
 }
 # note -- beta1, beta2,..., beta9 (and same for alphas) are read off by column
