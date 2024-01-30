@@ -81,8 +81,12 @@ for (run in 1:numRuns) {
             }
         }
 
-        # check if the inference for this trial finished and store info
-        finished_tr <- file.exists(paste0(outdir, "trial", trial, "/inferenceRes.Rdata"))
+        if (!is.na(cutoff)) {
+            # check if the inference for this trial finished and store info
+            finished_tr <- file.exists(paste0(outdir, "trial", trial, "/inferenceRes_cutoff", cutoff, ".Rdata"))
+        } else {
+            finished_tr <- file.exists(paste0(outdir, "trial", trial, "/inferenceRes.Rdata"))
+        }
         finished_trL[i] <- finished_tr
 
         if (finished_tr) {

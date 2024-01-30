@@ -16,12 +16,12 @@ args <- commandArgs(trailingOnly = TRUE)
 sim_dir <- args[1]
 cutoff <- as.numeric(args[2])
 save_dir <- args[3]
-ROC_mode <- args[4] #"noModelSelect" or "modelSelect"
-cov <- args[5]
-
+res_dir <- args[4]
+ROC_mode <- args[5] #"noModelSelect" or "modelSelect"
+cov <- args[6]
 
 trial <- 1
-subdir <- paste0(save_dir, "trial", trial, "/")
+subdir <- paste0(res_dir, "trial", trial, "/")
 params <- readRDS(paste0(sim_dir, "params.Rdata"))
 
 modelParmsL <- c("none", "cov", "sp", "spCov")
@@ -87,4 +87,4 @@ for (sp_index in seq_along(names_species)) {
     }
 }
 
-saveRDS(inferenceRes, paste0(subdir, "inferenceRes_cutoff", cutoff, ".Rdata"))
+saveRDS(inferenceRes, paste0(save_dir, "trial", trial, "/inferenceRes_cutoff", cutoff, ".Rdata"))

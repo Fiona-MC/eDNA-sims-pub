@@ -43,6 +43,6 @@ fi
 
 outname=${outname}_${numRuns}runs
 
-Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R ${sim_dir}/ ${numRuns} ${covs} ${dumb} ${sitetab_name} ${outname}
+Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R ${sim_dir}/ ${numRuns} ${covs} ${dumb} ${sitetab} ${outname}
 
 echo "all done"

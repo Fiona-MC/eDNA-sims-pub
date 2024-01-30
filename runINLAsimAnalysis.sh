@@ -7,14 +7,13 @@ sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
 numRuns=$2
-covs=$3
-numSamples=$4
+numSamples=$3
 
 echo "Starting INLA"
 echo $sim_dir
 echo $numRuns
-echo $covs
 echo $numSamples
+
 
 numTrials=1
 INLA_type="paperSep"
@@ -26,13 +25,6 @@ then
 	resDirName=INLA_res_${INLA_type}
 else
 	resDirName=INLA_res_${INLA_type}_sampled${numSamples}
-fi
-
-if [ ${cov} == 1 ]
-then
-resDirName=${resDirName}_cov
-else
-resDirName=${resDirName}_noCov
 fi
 
 scramble=0
@@ -82,12 +74,19 @@ for folder in ${folderNames[@]}; do
             done
             Rscript INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/
             ./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2}
+            Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 1
+
             #for cutoff in 0.01;
             #for cutoff in 0 0.0000000000001 0.0000001 0.00001 .3 .5 .7 .9 1;
             for cutoff in 0 1 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 .3 .5;
             do
-                Rscript /home/fiona_callahan/eDNA_sims_code/INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${resDirName}/ ${ROC_mode} ${covs}
-                Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ ${covs} ${cutoff}
+                saveDirName=${resDirName}_cov
+                Rscript /home/fiona_callahan/eDNA_sims_code/INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1
+                Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 1 ${cutoff}
+
+                saveDirName=${resDirName}_noCov
+                Rscript /home/fiona_callahan/eDNA_sims_code/INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 0
+                Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
             done
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
        #fi
@@ -111,5 +110,7 @@ for cutoff in 0 1 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0
 do
 Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
 done
+
+Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
 
 echo "all done"

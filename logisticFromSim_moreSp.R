@@ -12,8 +12,8 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_100/"
-#numRuns <- 100
+#data_dir <- "/space/s1/fiona_callahan/multiSim_test2x10sp/"
+#numRuns <- 2
 #dumb <- (as.numeric("1") == 0)
 
 data_dir <- args[1]
