@@ -9,17 +9,17 @@ if (length(args) < 2) {
   stop("input folders need to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
-outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/"
-outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
+#outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/"
+#outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
 #covs <- TRUE # is beta inferred?
 
 #echo ${folder}/ ${folder}/${resDirName}/ ${covs} ${cutoff}
 #/space/s1/fiona_callahan/multiSim_100/randomRun1/ /space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/ 1
-data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
-outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/"
+#outdir <- "/space/s1/fiona_callahan/multiSim_100/randomRun1/ecoCopula_res_cov500/"
 #covs <- (as.numeric(0) == 1)
-cutoff <- as.numeric(NA)
+#cutoff <- as.numeric(NA)
 
 data_dir <- args[1]
 outdir <- args[2]
@@ -88,7 +88,6 @@ for (run in 1:numRuns) {
         if (finished_tr) {
             if (!is.na(cutoff)) {
                 inferredParms <- readRDS(paste0(outdir, "trial", trial, "/inferenceRes_cutoff", cutoff, ".Rdata"))
-
             } else {
                 inferredParms <- readRDS(paste0(outdir, "trial", trial, "/inferenceRes.Rdata"))
             }
@@ -331,4 +330,3 @@ if (!is.na(cutoff)) {
 } else {
     write.csv(df, paste0(outdir, "mistakes.csv"))
 }
-

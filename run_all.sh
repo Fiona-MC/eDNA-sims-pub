@@ -10,7 +10,8 @@ numRuns=$2
 
 # where are they going when I send them to the background?? 
 
-for numSamples in 50 100 500 1000 10000 25000;
+#for numSamples in 50 100 500 1000 10000 25000;
+for numSamples in 100;
 do
 ./runINLAsimAnalysis.sh $1 $2 1 $numSamples > ${sim_dir}/inlaCov${numSamples}Out.log 2> ${sim_dir}/inlaCov${numSamples}Err.log &
 #./runINLAsimAnalysis.sh $1 $2 0 $numSamples > ${sim_dir}/inla${numSamples}Out.log 2> ${sim_dir}/inla${numSamples}Err.log &

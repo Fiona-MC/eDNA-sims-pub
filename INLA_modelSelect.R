@@ -6,6 +6,9 @@ if (length(args) < 2) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
+#data_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/INLA_res_paperSep_sampled100/"
+
 data_dir <- args[1]
 save_dir <- args[2]
 
@@ -24,6 +27,10 @@ for (trial in 1:numTrials) {
 
     # CPO 
     modelcands <- names(sim_lists)
+
+    params <- readRDS(paste0(data_dir, "params.Rdata"))
+    names_species <- params$names_species
+    names_cov <- params$names_cov
     
     cpotab <- sapply(names_species, function(response) {
         return(sapply(modelcands, function(modelname) { 

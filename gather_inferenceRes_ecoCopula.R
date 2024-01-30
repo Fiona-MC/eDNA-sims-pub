@@ -34,7 +34,7 @@ for (run in runs) {
         parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
         parmNames <- names(parmVals)
     }
-    sitetabName <- paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled.csv")
+    sitetabName <- paste0(thisDir, "randomRun", run, "/sim_sitetab_sampled25000.csv")
     #if (scramble) {
     #    sitetabName <- paste0(thisDir, "randomRun", run, "/sitetab_scrambled.csv")
     #}
@@ -43,7 +43,9 @@ for (run in runs) {
     } else {
         mistakes_file <- paste0(thisDir, "randomRun", run, "/", resFolderName, "/mistakes.csv")
     }
-
+    if (!file.exists(mistakes_file)) {
+        print(paste("for", sitetabName, ":", "no file exists called", mistakes_file))
+    }
     if (file.exists(mistakes_file) 
                 && file.exists(sitetabName)
                 && file.info(mistakes_file)$size > 0) {

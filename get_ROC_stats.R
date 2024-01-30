@@ -93,6 +93,7 @@ multiSimRes <- multiSimResL$logistic_mistakes_cutoff0.05.csv
 multiSimRes <- multiSimResL$logistic_mistakes_noCov_cutoff0.05.csv
 #mean(get_falseDiscovery(data = multiSimRes, mode = "ignore_sign"), na.rm=T)
 
+
 # if you need to check these later, look at obsidian ROC curve note
 # obsidian://open?vault=simulations&file=ROC%20curves
 get_TPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
@@ -197,6 +198,8 @@ methods <- rep(NA, times = length(multiSimResL))
 thresholds <- rep(NA, times = length(multiSimResL))
 avg_TPR <- rep(NA, times = length(multiSimResL))
 avg_FPR <- rep(NA, times = length(multiSimResL))
+TPR_sd <- rep(NA, times = length(multiSimResL))
+FPR_sd <- rep(NA, times = length(multiSimResL))
 avg_precision <- rep(NA, times = length(multiSimResL))
 avg_recall <- rep(NA, times = length(multiSimResL))
 
@@ -252,8 +255,12 @@ for (i in seq_along(multiSimResL)) {
                       (mean(get_recall(data = multiSimRes, mode = "cluster", return_components = TRUE)$TP, na.rm = TRUE) + 
                             mean(get_recall(data = multiSimRes, mode = "cluster", return_components = TRUE)$FN, na.rm = TRUE)) 
       } else {
-        avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
-        avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
+        TPR_temp <- get_TPR(data = multiSimRes, mode = "cluster")
+        avg_TPR[i] <- mean(TPR_temp, na.rm = TRUE)
+        TPR_sd[i] <- sqrt(var(TPR_temp, na.rm = TRUE) / 100)#length(TPR_temp))
+        FPR_temp <- get_FPR(data = multiSimRes, mode = "cluster")
+        avg_FPR[i] <- mean(FPR_temp, na.rm = TRUE)
+        FPR_sd[i] <- sqrt(var(FPR_temp, na.rm = TRUE) / 100)#length(FPR_temp))
         avg_precision[i] <- mean(get_precision(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
         avg_recall[i] <- mean(get_recall(data = multiSimRes, mode = "cluster"), na.rm = TRUE)
       }
@@ -276,8 +283,12 @@ for (i in seq_along(multiSimResL)) {
                       (mean(get_recall(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$TP, na.rm = TRUE) + 
                             mean(get_recall(data = multiSimRes, mode = "ignore_sign", return_components = TRUE)$FN, na.rm = TRUE)) 
       } else {
-        avg_TPR[i] <- mean(get_TPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
-        avg_FPR[i] <- mean(get_FPR(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
+        TPR_temp <- get_TPR(data = multiSimRes, mode = "ignore_sign")
+        avg_TPR[i] <- mean(TPR_temp, na.rm = TRUE)
+        TPR_sd[i] <- sqrt(var(TPR_temp, na.rm = TRUE) / 100)#length(TPR_temp))
+        FPR_temp <- get_FPR(data = multiSimRes, mode = "ignore_sign")
+        avg_FPR[i] <- mean(FPR_temp, na.rm = TRUE)
+        FPR_sd[i] <- sqrt(var(FPR_temp, na.rm = TRUE) / 100)#length(FPR_temp))
         avg_precision[i] <- mean(get_precision(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
         avg_recall[i] <- mean(get_recall(data = multiSimRes, mode = "ignore_sign"), na.rm = TRUE)
       }
@@ -329,8 +340,12 @@ if (!cluster) {
   # average over ordered lambdas -- NOT SAME LAMBDAS
   this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = mean)
   this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = mean)
+  this_tpr_sd <- sqrt(apply(TPRs, MARGIN = 1, FUN = var) / 100)#apply(TPRs, MARGIN = 1, FUN = length))
+  this_fpr_sd <- sqrt(apply(FPRs, MARGIN = 1, FUN = var) / 100)#apply(FPRs, MARGIN = 1, FUN = length))
   avg_TPR <- c(avg_TPR, this_avg_tpr)
   avg_FPR <- c(avg_FPR, this_avg_fpr)
+  TPR_sd <- c(TPR_sd, this_tpr_sd) 
+  FPR_sd <- c(FPR_sd, this_fpr_sd)
   avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
   avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
   methods <- c(methods, rep(paste0("SpiecEasi_avg_mb"), times = length(se.roc$fp)))
@@ -356,8 +371,12 @@ if (!cluster) {
   # average over ordered lambdas -- NOT SAME LAMBDAS
   this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = mean)
   this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = mean)
+  this_tpr_sd <- sqrt(apply(TPRs, MARGIN = 1, FUN = var) / 100)#apply(TPRs, MARGIN = 1, FUN = length))
+  this_fpr_sd <- sqrt(apply(FPRs, MARGIN = 1, FUN = var) / 100)#apply(FPRs, MARGIN = 1, FUN = length))
   avg_TPR <- c(avg_TPR, this_avg_tpr)
   avg_FPR <- c(avg_FPR, this_avg_fpr)
+  TPR_sd <- c(TPR_sd, this_tpr_sd)
+  FPR_sd <- c(FPR_sd, this_fpr_sd)
   avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
   avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
   methods <- c(methods, rep(paste0("SpiecEasi_avg_glasso"), times = length(se.roc$fp)))
@@ -393,13 +412,10 @@ if (ecAdjust) {
   thresholds <- c(thresholds, rep(NA, times = dim(TPRs)[1]))
 }
 
-ROC_data <- data.frame(file = file, method = methods, threshold = thresholds, 
+ROC_data <- data.frame(file = file, method = as.factor(methods), threshold = thresholds, 
                       avg_FPR = as.numeric(avg_FPR), avg_TPR = as.numeric(avg_TPR), 
                       FPR_sd = as.numeric(FPR_sd), TPR_sd = as.numeric(TPR_sd),
                       avg_precision = as.numeric(avg_precision), avg_recall = as.numeric(avg_recall))
-
-ROC_data$avg_FPR <- as.numeric(ROC_data$avg_FPR)
-ROC_data$avg_TPR <- as.numeric(ROC_data$avg_TPR)
 
 ####################
 #thisDir <-  paste0("/space/s1/fiona_callahan/multiSim_50sp/")
@@ -420,6 +436,8 @@ ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method, group
   stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
   labs(title = paste("ROC: cluster = ", cluster), x = "FPR = FP/(FP+TN)", y = "TPR = TP/(TP+FN)") +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line (no skill)
+  geom_errorbar(aes(ymin = pmax(0, avg_TPR - TPR_sd), ymax = pmin(1, avg_TPR + TPR_sd)), width = 0.03) +  # Add TPR error bars
+  geom_errorbarh(aes(xmin = pmax(0, avg_FPR - FPR_sd), xmax = pmin(1, avg_FPR + FPR_sd)), height = 0.03) +  # Add FPR error bars
   lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
   theme(text = element_text(size = 24))  # Set the base size for all text elements
 
@@ -437,30 +455,22 @@ if (cluster) {
   if (ratio_of_avg) {
     ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster_ratioOfAv.png"))
     write.csv(ROC_data, file = paste0(thisDir, "ROC_data_cluster_ratioOfAv.csv"))
+    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster_ratioOfAvg.png"))
   } else {
     ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster.png"))
     write.csv(ROC_data, file = paste0(thisDir, "ROC_data_cluster.csv"))
+    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster.png"))
+
   }
 } else {
   if (ratio_of_avg) {
     ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_ratioOfAv.png"))
     write.csv(ROC_data, file = paste0(thisDir, "ROC_data_ratioOfAv.csv"))
-  } else {
-    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot.png"))
-    write.csv(ROC_data, file = paste0(thisDir, "ROC_data.csv"))
-  }
-}
-
-if (cluster) {
-  if(ratio_of_avg) {
-    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster_ratioOfAvg.png"))
-  } else {
-    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster.png"))
-  }
-} else {
-  if(ratio_of_avg) {
     ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_ratioOfAvg.png"))
+
   } else {
+    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_errBar_d100.png"))
+    write.csv(ROC_data, file = paste0(thisDir, "ROC_data_errBar_d100.csv"))
     ggsave(PR_plot, filename = paste0(thisDir, "PR_plot.png"))
   }
 }

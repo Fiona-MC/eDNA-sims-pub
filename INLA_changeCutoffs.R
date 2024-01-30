@@ -3,14 +3,21 @@ library(data.table)
 args <- commandArgs(trailingOnly = TRUE)
 
 #sim_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
-#cutoff <- 1
+#cutoff <- .1
+#ROC_mode <- "noModelSelect"
 #save_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
 #ROC_mode <- "noModelSelect"
+
+#sim_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/INLA_res_paperSep_sampled100_noCov/"
+
+#cov <- 0
 
 sim_dir <- args[1]
 cutoff <- as.numeric(args[2])
 save_dir <- args[3]
 ROC_mode <- args[4] #"noModelSelect" or "modelSelect"
+cov <- args[5]
 
 
 trial <- 1
@@ -22,7 +29,7 @@ modelParmsL <- c("none", "cov", "sp", "spCov")
 # load inla results
 sim_lists <- list()
 for (modelParms in modelParmsL) {
-    sim_lists[[model]] <- readRDS(paste0(subdir, "resList_", modelParms, ".Rdata"))
+    sim_lists[[modelParms]] <- readRDS(paste0(subdir, "resList_", modelParms, ".Rdata"))
 }
 
 modelcands <- names(sim_lists)
@@ -46,9 +53,14 @@ inferenceRes$betaInferred <- matrix(data = 0, nrow = length(names_species), ncol
 for (sp_index in seq_along(names_species)) {
     if (ROC_mode == "noModelSelect") {
         if (length(modelcands) > 1) {
-            this_best_model <- "spCov"
+            if (cov) {
+                this_best_model <- "spCov"
+            } else {
+                this_best_model <- "sp"
+            }
         } else {
             this_best_model <- modelcands[1]
+            print("NOT ALL MODELS RAN IN INLA: using first one that ran!!!")
         }
     } else {
         if(length(modelcands) > 1) {
