@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-# ./run_all.sh /space/s1/fiona_callahan/multiSim_test2x10sp 2
+# ./run_all.sh /space/s1/fiona_callahan/multiSim_10sp 100
 
 sim_dir=$1
 numRuns=$2
@@ -13,7 +13,7 @@ numRuns=$2
 #for numSamples in 50 100 500 1000 10000 25000;
 for numSamples in 100;
 do
-./runINLAsimAnalysis.sh ${sim_dir} ${numRuns} $numSamples > ${sim_dir}/inlaCov${numSamples}Out.log 2> ${sim_dir}/inlaCov${numSamples}Err.log &
+./runINLAsimAnalysis.sh ${sim_dir} ${numRuns} ${numSamples} > ${sim_dir}/inlaCov${numSamples}Out.log 2> ${sim_dir}/inlaCov${numSamples}Err.log &
 
 ./runLogisticSimAnalysis.sh ${sim_dir} ${numRuns} 1 $numSamples > ${sim_dir}/logisticCov${numSamples}Out.log 2> ${sim_dir}/logisticCov${numSamples}Err.log &
 ./runLogisticSimAnalysis.sh ${sim_dir} ${numRuns} 0 $numSamples > ${sim_dir}/logistic${numSamples}Out.log 2> ${sim_dir}/logistic${numSamples}Err.log &

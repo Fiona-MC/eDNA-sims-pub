@@ -8,7 +8,7 @@ source("/home/fiona_callahan/Arctic_eDNA_2021/script/INLA_ST_functions.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) < 2) {
+if (length(args) < 4) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 

@@ -81,10 +81,12 @@ for folder in ${folderNames[@]}; do
             for cutoff in 0 1 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 .3 .5;
             do
                 saveDirName=${resDirName}_cov
+                mkdir "$folder/$saveDirName/"
                 Rscript /home/fiona_callahan/eDNA_sims_code/INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1
                 Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 1 ${cutoff}
 
                 saveDirName=${resDirName}_noCov
+                mkdir "$folder/$saveDirName/"
                 Rscript /home/fiona_callahan/eDNA_sims_code/INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 0
                 Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
             done
@@ -108,7 +110,11 @@ wait
 #for cutoff in 0.01;
 for cutoff in 0 1 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 .3 .5;
 do
-Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
+saveDirName=${resDirName}_cov
+Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
+
+saveDirName=${resDirName}_noCov
+Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
 done
 
 Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}

@@ -7,11 +7,11 @@ if (length(args) < 3) {
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 5 1
 
-#thisDir="/space/s1/fiona_callahan/multiSim_100/"
-#numRuns=100
-#numTrials=1
-#resFolderName <- "INLA_res_paper"
-#cutoff=0.05
+thisDir="/space/s1/fiona_callahan/multiSim_test2x10sp/"
+numRuns=2
+numTrials=1
+resFolderName <- "INLA_res_paperSep_sampled100_cov"
+cutoff=0.05
 
 thisDir <- args[1]
 numRuns <- as.numeric(args[2])
@@ -47,32 +47,42 @@ for (run in runs) {
         print(paste("for", sitetabName, ":", "no file exists called", mistakes_file))
     }
     if (file.exists(mistakes_file) 
-                && file.exists(sitetabName)
                 && file.info(mistakes_file)$size > 0) {
         # load number of mistakes
         mistakes <- read.csv(mistakes_file, header = TRUE)
-        sim_sitetab_sampled <- read.csv(sitetabName, header = TRUE)
-        # get percent presence per species
-        percent_presence <- list()
-        for(species in params$names_species) {
-            # get #presences/#totalDataPts
-            percent_presence[[paste0(species, "PercentPresence")]] <- sum(sim_sitetab_sampled[, species]) / length(sim_sitetab_sampled[, species])
+        if (file.exists(sitetabName)) {
+            sim_sitetab_sampled <- read.csv(sitetabName, header = TRUE)
+            # get percent presence per species
+            percent_presence <- list()
+            for(species in params$names_species) {
+                # get #presences/#totalDataPts
+                percent_presence[[paste0(species, "PercentPresence")]] <- sum(sim_sitetab_sampled[, species]) / length(sim_sitetab_sampled[, species])
+            }
+            percent_presence <- unlist(percent_presence)
         }
-        percent_presence <- unlist(percent_presence)
         for (trial in trials) {
             # load inference results (i think this is not necessary)
             mistakes_tr <- mistakes[mistakes$trial == trial, ]
-            # put data in DF
-            thisRow <- c(run, trial, parmVals, percent_presence, mistakes_tr)
+            if (file.exists(sitetabName)) {
+                # put data in DF
+                thisRow <- c(run, trial, parmVals, percent_presence, mistakes_tr)
+            } else {
+                thisRow <- c(run, trial, parmVals, mistakes_tr)
+            }
             infResDF <- rbind(infResDF, thisRow)
             colnames(infResDF) <- names(thisRow)
         }
     }
 }
 #saveRDS(parmNames, paste0(thisDir, "parmNames.Rdata"))
-
+if (file.exists(sitetabName)) {
 # this will fail if the mistakes file was never made but I think that's ok
 colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(percent_presence), names(mistakes)) 
+} else {
+# this will fail if the mistakes file was never made but I think that's ok
+colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(mistakes)) 
+}
+
 
 if (!is.na(cutoff)) {
     write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv"))

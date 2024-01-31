@@ -3,22 +3,24 @@ library(data.table)
 args <- commandArgs(trailingOnly = TRUE)
 
 #sim_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/"
-#cutoff <- .1
-#ROC_mode <- "noModelSelect"
+cutoff <- .1
+ROC_mode <- "noModelSelect"
 #save_dir <- "/space/s1/fiona_callahan/multiSim_100/randomRun2/INLA_res_faster/"
 #ROC_mode <- "noModelSelect"
 
-#sim_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/"
-#save_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/INLA_res_paperSep_sampled100_noCov/"
+sim_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/INLA_res_paperSep_sampled100_noCov/"
+res_dir <- "/space/s1/fiona_callahan/multiSim_2x50sp/randomRun1/INLA_res_paperSep_sampled100/"
 
-#cov <- 0
+
+cov <- TRUE
 
 sim_dir <- args[1]
 cutoff <- as.numeric(args[2])
 save_dir <- args[3]
 res_dir <- args[4]
 ROC_mode <- args[5] #"noModelSelect" or "modelSelect"
-cov <- args[6]
+cov <- (as.numeric(args[6]) == 1)
 
 trial <- 1
 subdir <- paste0(res_dir, "trial", trial, "/")
@@ -85,6 +87,10 @@ for (sp_index in seq_along(names_species)) {
     if (names_cov[cov_index] %in% significant_pos_vars) {inferenceRes$betaInferred[sp_index, cov_index] <- 1}
     if (names_cov[cov_index] %in% significant_neg_vars) {inferenceRes$betaInferred[sp_index, cov_index] <- -1}
     }
+}
+
+if (!dir.exists(paste0(save_dir, "trial", trial))) {
+    dir.create(paste0(save_dir, "trial", trial))
 }
 
 saveRDS(inferenceRes, paste0(save_dir, "trial", trial, "/inferenceRes_cutoff", cutoff, ".Rdata"))
