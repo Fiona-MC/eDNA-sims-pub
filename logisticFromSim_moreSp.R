@@ -357,6 +357,6 @@ for (cutoff in cutoffs) {
     fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
 
     #print(fulldf)
-    write.csv(fulldf, paste0(data_dir, "/", outName, "_cutoff", cutoff, ".csv"))
+    write.csv(fulldf, paste0(data_dir, "/", outName, "_cutoff", cutoff, "_", numRuns, "sims.csv"))
      
 }
