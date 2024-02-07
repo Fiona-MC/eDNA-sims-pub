@@ -21,7 +21,7 @@ if (length(args) < 3) {
 } 
 # Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_test2x10sp/ 1 2
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
-random <- FALSE
+random <- TRUE
 #parmSet <- "indep" # indep means that all alphas will be 0
 parmSet <- 1 # this is default
 # amount of generations to prime the sim before starting to record -- (not implemented TODO)
@@ -33,7 +33,7 @@ nSp <- 10
 readAbdMode <- TRUE
 saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
 
-thisdir <- "/space/s1/fiona_callahan/multiSim_test/"
+#thisdir <- "/space/s1/fiona_callahan/multiSim_test/"
 thisdir <- args[1]
 dir.create(thisdir)
 
@@ -55,10 +55,16 @@ for (run in runs) {
   subdir <- paste0(thisdir, "randomRun", run, "/")
   dir.create(subdir)
 
+  if (random) {
+    parmSetCov <- "random"
+  } else {
+    parmSetCov <- "indep"
+  }
+
   if(spNumMode == 5) {
     params <- getParms_5(random = random, parmSet = parmSet)
   } else if(spNumMode == "many") {
-    params <- getParms_many(random = random, parmSet = parmSet, numSpecies = nSp)
+    params <- getParms_many(random = random, parmSet = parmSet, numSpecies = nSp, parmSetCov = parmSetCov)
   } else {
     params <- getParms(random = random, parmSet = parmSet)
   }

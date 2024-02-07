@@ -14,8 +14,8 @@ getParms_json <- function(parmFile = "parameters.json") { #TODO this is not impl
   return(params)
 }
 
-
-getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
+#any number of species should work
+getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSetCov = "indep") { 
     if (random == TRUE) {
         num_samples_time <- sample(x = 5:50, size = 1) # sample times per location
         num_samples_space <- sample(5:50, size = 1) # sample locations per time
@@ -111,14 +111,15 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
     alpha <- matrix(0, nrow = numSpecies, ncol = numSpecies)
     beta <- matrix(0, nrow = numSpecies, ncol = numCovs)
 
-    if (parmSet != "indep") {
-      # choose species interactions
+    if (parmSet != "indep" && numSpecies > 5) { # if the species are independent, there should be 0 interactions
+      # choose species interactions for block 1
       for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
         for(jj in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
           alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
         }
       }
 
+      # choose species interactions for block 2
       for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
         for(jj in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
           alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
@@ -126,13 +127,39 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
       }
     }
 
-    # set environment interactions as independent
-    for(iii in 1:numSpecies) {
-      beta[iii, iii] <- 1 # one independent covariate per species
-      alpha[iii, iii] <- 0
-      beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
+    if (parmSet != "indep" && numSpecies == 3) {
+      alpha <- matrix(c(0, -1, 0, -1, 0, 0, 0, 0, 0), byrow = TRUE)
     }
-    
+
+    if (parmSetCov == "indep") { # if the species are independent, there should be 0 interactions
+      # set environment interactions as independent
+      for(iii in 1:numSpecies) {
+        beta[iii, iii] <- 1 # one independent covariate per species
+        alpha[iii, iii] <- 0
+        beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
+      }
+    } else if (parmSetCov == "random") {
+      #nrows is num species, ncol is number of covs
+      # choose species interactions for block 1
+      for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+        for(jj in sample(x = 1:(numCovs %/% 2), size = as.integer(sqrt(numCovs %/% 4)), replace = TRUE)) {
+          beta[ii, jj] <- runif(min = -1, max = 1, n = 1)
+        }
+      }
+
+      # choose species interactions for block 2
+      for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+        for(jj in sample(x = (numCovs %/% 2 + 1):numCovs, size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+          beta[ii, jj] <- runif(min = -1, max = 1, n = 1)
+        }
+      }
+
+      for(iii in 1:numSpecies) {
+        beta[iii, iii] <- 1 # one independent covariate per species
+        alpha[iii, iii] <- 0
+        beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
+      }
+    }
 
     #alpha and beta numbers respectively (for scaling purposes)
     #cov effect
@@ -167,7 +194,24 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100) {
     return(params)
 }
 
-getParms_5 <- function(random = FALSE, parmSet = 1) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+getParms_5 <- function(random = FALSE, parmSet = 1) { # only for 5 species
     if (random == TRUE) {
         num_samples_time <- sample(x = 2:50, size = 1) # sample times per location
         num_samples_space <- sample(2:50, size = 1) # sample locations per time
@@ -304,7 +348,16 @@ getParms_5 <- function(random = FALSE, parmSet = 1) {
 }
 
 
-getParms <- function(random = TRUE, parmSet = 1) {
+
+
+
+
+
+
+
+
+
+getParms <- function(random = TRUE, parmSet = 1) { # only for 3 species
     if (random == TRUE) {
         num_samples_time <- sample(x = 5:500, size = 1) # sample times per location
         num_samples_space <- sample(5:64, size = 1) # sample locations per time

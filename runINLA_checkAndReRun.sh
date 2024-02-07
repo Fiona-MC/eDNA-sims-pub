@@ -3,10 +3,12 @@ resDirName=$2 # INLA_res_paperSep_sampled100
 numRuns=$3 # 100
 reRun=$4
 timeout=$5
+INLA_type=$6
+sitetab=$7
 
 folderNames=() # array of names of randomRun* so that diff numbers of runs can be done 
 for ((i=1; i<=$numRuns; i++)); do
-  folderNames+=(${sim_dir}/randomRun$i)
+  folderNames+=(${sim_dir}/randomRun${i})
 done
 
 for folder in ${folderNames[@]}; do

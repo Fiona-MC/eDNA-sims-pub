@@ -73,7 +73,7 @@ for folder in ${folderNames[@]}; do
                 timeout -k 10 ${timeout1}h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
             done
             Rscript INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/
-            ./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2}
+            ./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
             Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 1
 
             #for cutoff in 0.01;
