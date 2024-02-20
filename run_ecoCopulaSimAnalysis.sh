@@ -11,17 +11,30 @@ sim_dir=$1
 numRuns=$2
 covs=$3
 numSamples=$4
+readAbd=$5
 
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
 
 if [ ${numSamples} == "None" ]
 then
-	resDirName=ecoCopula_res
-    sitetab_name="sim_sitetab_sampled.csv"
+    if [ ${readAbd} == 1 ]
+    then
+        resDirName=ecoCopula_res
+        sitetab_name="sim_sitetab_sampled.csv"
+    else 
+        resDirName=ecoCopula_readAbd_res
+        sitetab_name="sim_sitetab_readAbd_sampled.csv"
+    fi
 else
-	resDirName=ecoCopula_res_sampled${numSamples}
-    sitetab_name=sim_sitetab_sampled${numSamples}.csv
+    if [ ${readAbd} == 1 ]
+    then
+        resDirName=ecoCopula_res_readAbd_sampled${numSamples}
+        sitetab_name=sim_sitetab_readAbd_sampled${numSamples}.csv
+    else 
+        resDirName=ecoCopula_res_sampled${numSamples}
+        sitetab_name=sim_sitetab_sampled${numSamples}.csv
+    fi
 fi
 
 #cutoff=NA

@@ -7,11 +7,11 @@ if (length(args) < 3) {
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 5 1
 
-thisDir="/space/s1/fiona_callahan/multiSim_test2x10sp/"
-numRuns=2
-numTrials=1
-resFolderName <- "INLA_res_paperSep_sampled100_cov"
-cutoff=0.05
+#thisDir="/space/s1/fiona_callahan/multiSim_10sp/"
+#numRuns=100
+#numTrials=3
+#resFolderName <- "INLA_res_paperSep_sampled100_cov"
+#cutoff=0.05
 
 thisDir <- args[1]
 numRuns <- as.numeric(args[2])
@@ -46,8 +46,8 @@ for (run in runs) {
     if (!file.exists(mistakes_file)) {
         print(paste("for", sitetabName, ":", "no file exists called", mistakes_file))
     }
-    if (file.exists(mistakes_file) 
-                && file.info(mistakes_file)$size > 0) {
+    if (file.exists(mistakes_file) &&
+                file.info(mistakes_file)$size > 0) {
         # load number of mistakes
         mistakes <- read.csv(mistakes_file, header = TRUE)
         if (file.exists(sitetabName)) {
@@ -85,7 +85,7 @@ colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(mistakes))
 
 
 if (!is.na(cutoff)) {
-    write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv"))
+    write.csv(infResDF, file = paste0(thisDir, resFolderName, "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv"))
 } else {
     write.csv(infResDF, paste0(thisDir, resFolderName, "_infResGathered_", numRuns, "sims.csv"))
 }

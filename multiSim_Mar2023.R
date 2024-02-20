@@ -56,9 +56,9 @@ for (run in runs) {
   dir.create(subdir)
 
   if (random) {
-    parmSetCov <- "random"
+    parmSetCov <- "random" # this means that the covariate interactions are random
   } else {
-    parmSetCov <- "indep"
+    parmSetCov <- "indep" # this means there is one covariate per species and no other interactions
   }
 
   if(spNumMode == 5) {

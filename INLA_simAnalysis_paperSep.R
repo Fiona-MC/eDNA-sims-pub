@@ -12,12 +12,12 @@ if (length(args) < 4) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/home/fiona_callahan/simData/testing/run1/"
-#save_dir <- "/home/fiona_callahan/simData/testing/INLAres/"
-#data_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/"
-#save_dir <- "/space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/"
-#sitetabName <- "sim_sitetab_sampled.csv"
-#${folder}/ ${folder}/INLA_res_${INLA_type}/#
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/INLA_res_paperSep_sampled100_testingAGAIN/"
+#dir.create(save_dir)
+sitetabName <- "sim_sitetab_sampled100.csv"
+modelParms <- "cov" # "none" "cov" "sp" "spCov"
+
 data_dir <- args[1]
 save_dir <- args[2]
 #dir.create(save_dir)

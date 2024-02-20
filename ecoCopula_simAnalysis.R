@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 library(ecoCopula)
+library(stringr)
 
 # to run
 # Rscript ecoCopula_simAnalysis.R /space/s1/fiona_callahan/multiSim_10sp/randomRun1/ /space/s1/fiona_callahan/multiSim11a/randomRun10/ecoCopula_res/ 0
@@ -16,9 +17,9 @@ save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/ecoCopula_res_cov
 data_dir <- args[1]
 save_dir <- args[2]
 dir.create(save_dir)
-scramble <- FALSE
+#scramble <- FALSE
 scramble <- (as.numeric(args[3]) == 1)
-sitetab_name <- "sim_sitetab_sampled.csv"
+#sitetab_name <- "sim_sitetab_sampled.csv"
 sitetab_name <- args[4]
 cov <- as.numeric(args[5])
 
@@ -29,6 +30,12 @@ prec <- TRUE
 
 #sitetab <- read.csv(paste0(data_dir, "sitetab_dumb.csv"))
 #sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
+if (str_detect(sitetab_name, "readAbd")) {
+  abundance <- TRUE
+} else {
+  abundance <- FALSE
+}
+
 sitetab <- read.csv(paste0(data_dir, sitetab_name))
 #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
@@ -49,11 +56,21 @@ for (trial in 1:numTrials) {
   #formula <- as.formula(paste(" ~ ", paste(names_cov, collapse = "+")))
   if (cov) {
     formula <- as.formula(paste(" ~ ", paste(names_cov, collapse = "+")))
-    fit0 <- stackedsdm(sitetab[, names_species], formula_X = formula, 
+    if (abundance) {
+          fit0 <- stackedsdm(sitetab[, names_species], formula_X = formula, 
+                      data = sitetab[, names_cov], family = "negative.binomial", ncores = 1) 
+    } else {
+          fit0 <- stackedsdm(sitetab[, names_species], formula_X = formula, 
                       data = sitetab[, names_cov], family = "binomial", ncores = 1) 
+    }
   } else {
-    fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~1, 
-                          data = data.frame(intercept = rep(1, times = dim(sitetab)[1])), family = "binomial", ncores = 1) 
+    if (abundance) {
+      fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~1, 
+                          data = data.frame(intercept = rep(1, times = dim(sitetab)[1])), family = "negative.binomial", ncores = 1)
+    } else {
+      fit0 <- stackedsdm(sitetab[, names_species], formula_X = ~1, 
+                          data = data.frame(intercept = rep(1, times = dim(sitetab)[1])), family = "binomial", ncores = 1)
+    } 
   }
   # vvv changing these within reason did not reduce the number of inferred edges by much
   #cgr_sim <- cgr(fit0, n.lambda = 100, n.samp = 1000, method = "BIC")

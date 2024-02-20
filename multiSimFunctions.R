@@ -1,6 +1,8 @@
 library(ggplot2)
 library(reshape)
 library(gridExtra)
+library(fields)
+
 
 # Functions
 get_locations <- function(xdim = xdim1, ydim = ydim1, mode = "grid", xSplit = x_split, ySplit = y_split) {
@@ -25,6 +27,42 @@ get_locations <- function(xdim = xdim1, ydim = ydim1, mode = "grid", xSplit = x_
   }
   return(locList)
 }
+
+get_cov_gaussian <- function(locDF, time_points) {
+    # Define space and time points
+    space_points.x <- seq(0, 10, length.out = 100)  # Adjust based on your space range
+    space_points.y <- seq(0, 10, length.out = 100)  # Adjust based on your space range
+    time_points <- seq(0, 1, length.out = 50)    # Adjust based on your time range
+
+    # Create a meshgrid for space and time
+    input_points <- expand.grid(space.x = space_points.x, space.y = space_points.y, time = time_points)
+
+    # Define mean and covariance functions
+    # mean_function <- function(x) {0}  # You can customize the mean function
+
+    # Define spatiotemporal covariance function
+    # separable space-time covariance function
+    spatiotemporal_covariance <- function(point1, point2, covar_scale_space = 30, covar_scale_time = 100) {
+      #point2 = c(loc2x, loc2y, t2)
+      distance <- sqrt((point1[1] - point2[1])^2 + (point1[2] - point2[2])^2)
+      spatial_covariance <- exp(-1 * distance / covar_scale_space)  # exponential Spatial covariance
+      temporal_covariance <- exp(-1 * abs(point1[3] - point2[3]) / covar_scale_time) # exponential Temporal covariance
+      return(spatial_covariance * temporal_covariance)
+    }
+    
+    # Generate covariance matrix
+    # TODO this is not working because the input points have to apply along a margin or something like this
+    cov_matrix <- outer(split(input_points, row(input_points)), split(input_points, row(input_points)), FUN = spatiotemporal_covariance)
+
+    # Generate random samples
+    cov <- MASS::mvrnorm(1, mu = rep(0, nrow(input_points)), Sigma = cov_matrix)
+
+    return(cov)
+}
+
+testL <- c(1,2,3)
+testL2 <- c(1,2,3)
+apply(testL, testL2, FUN = sum)
 
 #TODO make it so that you can just read covs in from other place
 get_cov <- function(location, type = "peaks", coef1func = NA, coef2func = NA, t = NA, t_minus_1 = NA, params = params) {
@@ -61,6 +99,8 @@ get_cov <- function(location, type = "peaks", coef1func = NA, coef2func = NA, t 
     return(sin(temp1 * 3 * temp2 * 3)) # the times 3 is just to get the function to behave
   } else if (type == "randomWalk") { # not sure if I'm going to use this one--requires a little rearranging on the other end
     return(t_minus_1 + rnorm(n = 1, mean = 0, sd = 0.01))
+  } else if (type == "gaussianRF") {
+    
   } else {
     print("type invalid in function get_cov")
   }

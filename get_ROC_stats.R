@@ -4,11 +4,11 @@ library(stringr)
 
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
-numRuns <- 2
-numSamples <- 100
+numRuns <- 100
+numSamples <- 1000
 
 dirName <- c("multiSim_10sp")
-dirName <- c("multiSim_test2x10sp")
+#dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
 #resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", 
@@ -20,8 +20,16 @@ logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.
              0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
-log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled_cov_", numRuns, "runs_cutoff", x, ".csv")})
-log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled_noCov_", numRuns, "runs_cutoff", x, ".csv")})
+
+log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+                            paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+                            paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+
+#log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+#                            paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, ".csv")})
+#log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+#                            paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, ".csv")})
 
 #inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_cutoffs <- c(0, 0.0000000000001, 0.0000001, 0.00001, .3, .5, .7, .9, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
@@ -43,16 +51,38 @@ inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
 #inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_resnames_500 <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
 
+seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb")
+seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso")
+seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc")
+
+
 resNames <- c(paste0("ecoCopula_res_sampled", numSamples, "_noCov_infResGathered_", numRuns, "sims.csv"), 
               paste0("ecoCopula_res_sampled", numSamples, "_cov_infResGathered_", numRuns, "sims.csv"), 
-              paste0("spiecEasi_res_sampled", numSamples, "_mb_infResGathered_", numRuns, "sims.csv"), 
-              paste0("spiecEasi_res_sampled", numSamples, "_glasso_infResGathered_", numRuns, "sims.csv"), 
-              paste0("spiecEasi_res_sampled", numSamples, "_sparcc_infResGathered_", numRuns, "sims.csv"), 
-              paste0("INLA_res_paperSep_sampled", numSamples, "_infResGathered_", numRuns, "sims.csv"), 
-              inla_resnames_noCov,
-              inla_resnames_cov,
+              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(seName3, "_infResGathered_", numRuns, "sims.csv"),
+              #paste0("INLA_res_paperSep_sampled", numSamples, "_infResGathered_", numRuns, "sims.csv"), 
+              #inla_resnames_noCov,
+              #inla_resnames_cov,
               log_resnames_cov,
               log_resnames_noCov)
+
+# check if runs exist
+
+thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
+for (i in seq_along(resNames)) {
+  if(!file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
+    print("This file does not exist:")
+    print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
+  }
+}
+
+for (i in seq_along(resNames)) {
+  if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
+    print("This file exists:")
+    print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
+  }
+}
 
 #resNames <- c(inla_resnames,
  #             inla_resnames_500)
@@ -203,6 +233,10 @@ get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign", return_
 # method | threshold | avg_TPR | avg_FPR 
 file <- rep(NA, times = length(multiSimResL))
 methods <- rep(NA, times = length(multiSimResL))
+modelSelect <- rep(NA, times = length(multiSimResL))
+numSamples <- rep(NA, times = length(multiSimResL))
+numSims <- rep(NA, times = length(multiSimResL))
+numSp <- rep(NA, times = length(multiSimResL))
 thresholds <- rep(NA, times = length(multiSimResL))
 avg_TPR <- rep(NA, times = length(multiSimResL))
 avg_FPR <- rep(NA, times = length(multiSimResL))
@@ -217,8 +251,10 @@ for (i in seq_along(multiSimResL)) {
     if (str_detect(names(multiSimResL)[i], "logistic")) {
       if (str_detect(names(multiSimResL)[i], "noCov")) {
         methods[i] <- "logistic_noCov"
+        modelSelect[i] <- FALSE
       } else {
         methods[i] <- "logistic"
+        modelSelect[i] <- FALSE
       }
     } else if (str_detect(names(multiSimResL)[i], "INLA")) {
       if (str_detect(names(multiSimResL)[i], "noCov")) {
@@ -227,7 +263,9 @@ for (i in seq_along(multiSimResL)) {
          thisName <- "INLA_cov"
       }
       if (str_detect(names(multiSimResL)[i], "cutoff")) {
-        thisName <- paste0(thisName, "_adj")
+        modelSelect[i] <- FALSE
+      } else {
+        modelSelect[i] <- TRUE
       }
       methods[i] <- thisName
     } else if (str_detect(names(multiSimResL)[i], "ecoCopula")) {
@@ -236,6 +274,7 @@ for (i in seq_along(multiSimResL)) {
       } else {
          methods[i] <- "ecoCopula_cov"
       }
+      modelSelect[i] <- TRUE
     } else if (str_detect(names(multiSimResL)[i], "spiecEasi")) {
       if (str_detect(names(multiSimResL)[i], "mb")) {
         methods[i] <- "spiecEasi_mb"
@@ -244,11 +283,27 @@ for (i in seq_along(multiSimResL)) {
       } else {
         methods[i] <- "spiecEasi_sparcc"
       }
+      modelSelect[i] <- TRUE
     } 
 
-    if (str_detect(names(multiSimResL)[i], "500")) {
-      methods[i] <- paste0(methods[i], "_500")
-    }
+    if (str_detect(names(multiSimResL)[i], "sampled")) {
+      thisNumSamples <- str_extract(names(multiSimResL)[i], "sampled(\\d+)")
+      thisNumSamples <- str_extract(thisNumSamples, "\\d+")
+      numSamples[i] <- thisNumSamples
+    } 
+
+    if (str_detect(names(multiSimResL)[i], "sims")) {
+      thisNumSims <- str_extract(names(multiSimResL)[i], "(\\d+)sims")
+      thisNumSims <- str_extract(thisNumSims, "\\d+")
+      numSims[i] <- thisNumSims
+    } 
+
+    if (str_detect(names(multiSimResL)[i], "sp")) {
+      thisNumSp <- str_extract(names(multiSimResL)[i], "(\\d+)sp")
+      thisNumSp <- str_extract(thisNumSp, "\\d+")
+      numSp[i] <- thisNumSp
+    } 
+
     #if (str_detect(names(multiSimResL)[i], "cutoff")) {
     #  thresholds[i] <- str_split(c(names(multiSimResL)[i]), pattern = ".")
     #}
@@ -320,7 +375,7 @@ if(multiples) {
 if (!cluster) {
   # for spiec-easi, just put separate lines for a couple of individual sims rather than average
   for (run in sample(1:numRuns, size = 5)) {
-    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/spiecEasi_res_mb/trial1/")
+    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName1, "/trial1/")
     se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
     params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
     actualAlpha <- params$alpha
@@ -329,6 +384,12 @@ if (!cluster) {
     se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
     avg_TPR <- c(avg_TPR, se.roc$tp)
     avg_FPR <- c(avg_FPR, se.roc$fp)
+
+    modelSelect <- c(modelSelect, rep(FALSE, times = length(se.roc$fp)))
+    numSamples <- c(numSamples, rep(NA, times = length(se.roc$fp)))
+    numSims <- c(numSims, rep(NA, times = length(se.roc$fp)))
+    numSp <- c(numSp, rep(NA, times = length(se.roc$fp)))
+
     avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
     avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
     methods <- c(methods, rep(paste0("SpiecEasi", run), times = length(se.roc$fp)))
@@ -338,12 +399,14 @@ if (!cluster) {
 }
 }
 
-# for spiecEasi, get average for mb across a lot of lambdas
+
 if (!cluster) { 
+  # for spiecEasi, get average for mb across a lot of lambdas
+  ######################################
   TPRs <- matrix(nrow = 100, ncol = numRuns) # rows are lambda values, columns are runs
   FPRs <- matrix(nrow = 100, ncol = numRuns)
   for (run in 1:numRuns) {
-    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/spiecEasi_res_sampled", numSamples,"_mb/trial1/")
+    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName1, "/trial1/")
     se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
     params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
     actualAlpha <- params$alpha
@@ -364,17 +427,23 @@ if (!cluster) {
   FPR_sd <- c(FPR_sd, this_fpr_sd)
   avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
   avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
-  methods <- c(methods, rep(paste0("SpiecEasi_avg_mb"), times = length(se.roc$fp)))
+  methods <- c(methods, rep(paste0("SpiecEasi_mb"), times = length(se.roc$fp)))
+
+  modelSelect <- c(modelSelect, rep(FALSE, times = length(se.roc$fp)))
+  numSamples <- c(numSamples, rep(NA, times = length(se.roc$fp)))
+  numSims <- c(numSims, rep(NA, times = length(se.roc$fp)))
+  numSp <- c(numSp, rep(NA, times = length(se.roc$fp)))
+
   file <- c(file, rep(NA, times = length(se.roc$fp)))
   thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
-}
 
-# for spiecEasi, get average for glasso across a lot of lambdas
-if (!cluster) { 
+
+  # for spiecEasi, get average for glasso across a lot of lambdas
+  ######################################
   TPRs <- matrix(nrow = 100, ncol = numRuns) # rows are lambda values, columns are runs
   FPRs <- matrix(nrow = 100, ncol = numRuns)
   for (run in 1:numRuns) {
-    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/spiecEasi_res_sampled", numSamples, "_glasso/trial1/")
+    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName2, "/trial1/")
     se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
     params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
     actualAlpha <- params$alpha
@@ -395,7 +464,13 @@ if (!cluster) {
   FPR_sd <- c(FPR_sd, this_fpr_sd)
   avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
   avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
-  methods <- c(methods, rep(paste0("SpiecEasi_avg_glasso"), times = length(se.roc$fp)))
+  methods <- c(methods, rep(paste0("SpiecEasi_glasso"), times = length(se.roc$fp)))
+
+  modelSelect <- c(modelSelect, rep(FALSE, times = length(se.roc$fp)))
+  numSamples <- c(numSamples, rep(NA, times = length(se.roc$fp)))
+  numSims <- c(numSims, rep(NA, times = length(se.roc$fp)))
+  numSp <- c(numSp, rep(NA, times = length(se.roc$fp)))
+
   file <- c(file, rep(NA, times = length(se.roc$fp)))
   thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
 }
@@ -428,7 +503,8 @@ if (ecAdjust) {
   thresholds <- c(thresholds, rep(NA, times = dim(TPRs)[1]))
 }
 
-ROC_data <- data.frame(file = file, method = as.factor(methods), threshold = thresholds, 
+ROC_data <- data.frame(file = file, method = as.factor(methods), threshold = thresholds, modelSelect = modelSelect,
+                      numSamples = numSamples, numSims = numSims, numSp = numSp, 
                       avg_FPR = as.numeric(avg_FPR), avg_TPR = as.numeric(avg_TPR), 
                       FPR_sd = as.numeric(FPR_sd), TPR_sd = as.numeric(TPR_sd),
                       avg_precision = as.numeric(avg_precision), avg_recall = as.numeric(avg_recall))
@@ -446,7 +522,7 @@ ROC_data <- data.frame(file = file, method = as.factor(methods), threshold = thr
 
 ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method, group = method)) +
   scale_shape_manual(values = 1:12) +
-  geom_point(size = 5, aes(shape = method)) +
+  geom_point(size = 5, aes(shape = modelSelect)) +
   stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
   labs(title = paste("ROC: cluster = ", cluster), x = "FPR = FP/(FP+TN)", y = "TPR = TP/(TP+FN)") +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line (no skill)

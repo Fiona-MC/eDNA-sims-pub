@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_test 100 1 500
+#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 ${numSamples}
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
@@ -68,10 +68,10 @@ for folder in ${folderNames[@]}; do
         #then
             echo "starting task $folder.."
             mkdir "$folder/$resDirName/" 
-            for modelParms in none cov sp spCov; do
+            #for modelParms in none cov sp spCov; do
                 # run INLA sim analysis
-                timeout -k 10 ${timeout1}h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
-            done
+                #timeout -k 10 ${timeout1}h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
+            #done
             Rscript INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/
             ./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
             Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 1
