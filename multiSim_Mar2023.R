@@ -285,7 +285,7 @@ for (run in runs) {
   }
   
   # sample from full sitetab
-  time_pts_sample <- seq(from = 1, to = params$num_gens, by = round(1000 / params$num_samples_time))
+  time_pts_sample <- seq(from = 1, to = params$num_gens, by = round(params$num_gens / params$num_samples_time))
   locations_sample <- sort(sample(x = seq_along(locList), size = params$num_samples_space))
 
   # Wrangle data into format for analysis
