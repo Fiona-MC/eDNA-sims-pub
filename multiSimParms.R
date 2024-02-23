@@ -17,8 +17,8 @@ getParms_json <- function(parmFile = "parameters.json") { #TODO this is not impl
 #any number of species should work
 getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSetCov = "indep") { 
     if (random == TRUE) {
-        num_samples_time <- sample(x = 5:50, size = 1) # sample times per location
-        num_samples_space <- sample(5:50, size = 1) # sample locations per time
+        num_samples_time <- sample(500, size = 1) # sample times per location
+        num_samples_space <- sample(50, size = 1) # sample locations per time
         #radius <- 16
         radius <- runif(n = 1, min = 12, max = 50) # for neighborhoods: a little more the 
         # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
@@ -46,8 +46,94 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
         indivSampleProb <- runif(n = 1, 0.001, 0.02)
         readSampleRate <- runif(n = 1, 0.5, 100)
         corr_mode <- sample(c("independent")) # this is the only one implemented thus far
+        numCovs <- sample(1:numSpecies, size = 1)
+
+        covVars <- list()
+        for (i in 1:numCovs) {
+          period <- runif(1, min = 100, max = 10000)
+          covVars[[i]] <- list(type = "spatialRandomField", period = period)
+        }
+        covar_scale_space <- runif(n = 1, min = 1, max = 100)
+
+        covVars[[numCovs + 1]] <- list(type = "constant")
+
+        numCovs <- length(covVars)
+        names_cov <- sapply(1:numCovs, FUN = function(cov) {
+                        if (covVars[[cov]]$type != "constant") {
+                          return(paste0("Cov", cov))}}) 
+        names_cov <- unlist(names_cov)
+        names_all_cov <- unlist(sapply(1:numCovs, FUN = function(cov) {paste0("Cov", cov)}))
+        names_species <- sapply(1:numSpecies, FUN = function(sp) {paste0("Sp", sp)}) # nolint: brace_linter.
+
+        alpha <- matrix(0, nrow = numSpecies, ncol = numSpecies)
+        beta <- matrix(0, nrow = numSpecies, ncol = numCovs)
+
+        if (parmSet != "indep" && numSpecies > 5) { # if the species are independent, there should be 0 interactions
+          # choose species interactions for block 1
+          for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+            for(jj in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+              alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
+            }
+          }
+
+          # choose species interactions for block 2
+          for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+            for(jj in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+              alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
+            }
+          }
+        }
+
+        if (parmSet != "indep" && numSpecies == 3) {
+          alpha <- matrix(c(0, -1, 0, -1, 0, 0, 0, 0, 0), byrow = TRUE)
+        }
+
+        if (parmSetCov == "indep") { # if the species are independent, there should be 0 interactions
+          # set environment interactions as independent
+          for(iii in 1:numSpecies) {
+            beta[iii, iii] <- 1 # one independent covariate per species
+            alpha[iii, iii] <- 0
+            beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
+          }
+        } else if (parmSetCov == "random") {
+          #nrows is num species, ncol is number of covs
+          # choose species interactions for block 1
+          for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+            for(jj in sample(x = 1:(numCovs %/% 2), size = as.integer(sqrt(numCovs %/% 4)), replace = TRUE)) {
+              beta[ii, jj] <- runif(min = -1, max = 1, n = 1)
+            }
+          }
+
+          # choose species interactions for block 2
+          for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+            for(jj in sample(x = (numCovs %/% 2 + 1):numCovs, size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+              beta[ii, jj] <- runif(min = -1, max = 1, n = 1)
+            }
+          }
+
+          for(iiii in 1:numCovs) {
+            beta[iiii, iiii] <- 1 # one independent covariate per species
+            beta[iiii, numCovs] <- 1 # this is the intercept variable
+          }
+
+          for(iii in 1:numSpecies) {
+            alpha[iii, iii] <- 0
+          }
+        }
+
+        #alpha and beta numbers respectively (for scaling purposes)
+        #cov effect
+        c3 <- 200
+
+        alpha <- alpha * c2
+        beta <- beta * c3
+        
+        #mig_rates=rep(0.1, times=numSpecies) # OR vvv sample this from gamma per species
+        mig_rates <- rgamma(n = numSpecies, shape = mean_mig_rate / 0.01, scale = 0.01) # mean = 0.1, mode 0.09, variance 0.001
+        readThreshold <- sample(x = 1:50, size = 1)
+
     } else { 
-        num_samples_time <- 50 # sample times per location
+        num_samples_time <- 500 # sample times per location
         num_samples_space <- 50 # sample locations per time
         radius <- 16 # for neighborhoods: a little more the 
         # hypotenuse of 11.1 unit grid, to get neighbors be right for this setup
@@ -69,8 +155,90 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
         indivSampleProb <- 0.01
         readSampleRate <- 1
         corr_mode <- "independent"
+
+        covVars <- list()
+        for (i in 1:numSpecies) {
+          covVars[[i]] <- list(type = "randomWalk")
+        }
+        covVars[[numSpecies + 1]] <- list(type = "constant")
+
+        covar_scale_space <- 1
+
+        numCovs <- length(covVars)
+        names_cov <- sapply(1:numCovs, FUN = function(cov) {
+                        if (covVars[[cov]]$type != "constant") {
+                          return(paste0("Cov", cov))}}) 
+        names_cov <- unlist(names_cov)
+        names_all_cov <- unlist(sapply(1:numCovs, FUN = function(cov) {paste0("Cov", cov)}))
+        names_species <- sapply(1:numSpecies, FUN = function(sp) {paste0("Sp", sp)}) # nolint: brace_linter.
+
+        alpha <- matrix(0, nrow = numSpecies, ncol = numSpecies)
+        beta <- matrix(0, nrow = numSpecies, ncol = numCovs)
+
+        if (parmSet != "indep" && numSpecies > 5) { # if the species are independent, there should be 0 interactions
+          # choose species interactions for block 1
+          for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+            for(jj in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+              alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
+            }
+          }
+
+          # choose species interactions for block 2
+          for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+            for(jj in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
+              alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
+            }
+          }
+        }
+
+        if (parmSet != "indep" && numSpecies == 3) {
+          alpha <- matrix(c(0, -1, 0, -1, 0, 0, 0, 0, 0), byrow = TRUE)
+        }
+
+        if (parmSetCov == "indep") { # if the species are independent, there should be 0 interactions
+          # set environment interactions as independent
+          for(iii in 1:numSpecies) {
+            beta[iii, iii] <- 1 # one independent covariate per species
+            alpha[iii, iii] <- 0
+            beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
+          }
+        } else if (parmSetCov == "random") {
+          #nrows is num species, ncol is number of covs
+          # choose species interactions for block 1
+          for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+            for(jj in sample(x = 1:(numCovs %/% 2), size = as.integer(sqrt(numCovs %/% 4)), replace = TRUE)) {
+              beta[ii, jj] <- runif(min = -1, max = 1, n = 1)
+            }
+          }
+
+          # choose species interactions for block 2
+          for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+            for(jj in sample(x = (numCovs %/% 2 + 1):numCovs, size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
+              beta[ii, jj] <- runif(min = -1, max = 1, n = 1)
+            }
+          }
+
+          for(iii in 1:numSpecies) {
+            beta[iii, iii] <- 1 # one independent covariate per species
+            alpha[iii, iii] <- 0
+            beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
+          }
+        }
+
+        #alpha and beta numbers respectively (for scaling purposes)
+        #cov effect
+        c3 <- 200
+
+        alpha <- alpha * c2
+        beta <- beta * c3
+        
+        #mig_rates=rep(0.1, times=numSpecies) # OR vvv sample this from gamma per species
+        mig_rates <- rgamma(n = numSpecies, shape = mean_mig_rate / 0.01, scale = 0.01) # mean = 0.1, mode 0.09, variance 0.001
+        readThreshold <- 5
+        
     }
 
+    num_gens <- 10000
     N0_0 <- 10
     x_split <- 10
     y_split <- 10
@@ -85,7 +253,6 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
     #alpha_fpr <- (-beta_fpr * mean_fpr) / (mean_fpr - 1) # moment matching
     #fpr_mode = "dependent_sp" # "independent" "dependent_sp" "constant" "none"
 
-    num_gens <- 10000
     #detection prob param
 
     #det_prob_exp <- 2 # fix this at 2
@@ -93,85 +260,6 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
 
     abundanceEffectType <- "arctangent"
 
-    covVars <- list()
-    for (i in 1:numSpecies) {
-      covVars[[i]] <- list(type = "randomWalk")
-    }
-    covVars[[numSpecies + 1]] <- list(type = "constant")
-
-
-    numCovs <- length(covVars)
-    names_cov <- sapply(1:numCovs, FUN = function(cov) {
-                    if (covVars[[cov]]$type != "constant") {
-                      return(paste0("Cov", cov))}}) 
-    names_cov <- unlist(names_cov)
-    names_all_cov <- unlist(sapply(1:numCovs, FUN = function(cov) {paste0("Cov", cov)}))
-    names_species <- sapply(1:numSpecies, FUN = function(sp) {paste0("Sp", sp)}) # nolint: brace_linter.
-
-    alpha <- matrix(0, nrow = numSpecies, ncol = numSpecies)
-    beta <- matrix(0, nrow = numSpecies, ncol = numCovs)
-
-    if (parmSet != "indep" && numSpecies > 5) { # if the species are independent, there should be 0 interactions
-      # choose species interactions for block 1
-      for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
-        for(jj in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
-          alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
-        }
-      }
-
-      # choose species interactions for block 2
-      for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
-        for(jj in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 2)), replace = TRUE)) {
-          alpha[ii, jj] <- sample(x = c(-1, 1), size = 1)
-        }
-      }
-    }
-
-    if (parmSet != "indep" && numSpecies == 3) {
-      alpha <- matrix(c(0, -1, 0, -1, 0, 0, 0, 0, 0), byrow = TRUE)
-    }
-
-    if (parmSetCov == "indep") { # if the species are independent, there should be 0 interactions
-      # set environment interactions as independent
-      for(iii in 1:numSpecies) {
-        beta[iii, iii] <- 1 # one independent covariate per species
-        alpha[iii, iii] <- 0
-        beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
-      }
-    } else if (parmSetCov == "random") {
-      #nrows is num species, ncol is number of covs
-      # choose species interactions for block 1
-      for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
-        for(jj in sample(x = 1:(numCovs %/% 2), size = as.integer(sqrt(numCovs %/% 4)), replace = TRUE)) {
-          beta[ii, jj] <- runif(min = -1, max = 1, n = 1)
-        }
-      }
-
-      # choose species interactions for block 2
-      for(ii in sample(x = (numSpecies %/% 2 + 1):numSpecies, size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
-        for(jj in sample(x = (numCovs %/% 2 + 1):numCovs, size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
-          beta[ii, jj] <- runif(min = -1, max = 1, n = 1)
-        }
-      }
-
-      for(iii in 1:numSpecies) {
-        beta[iii, iii] <- 1 # one independent covariate per species
-        alpha[iii, iii] <- 0
-        beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
-      }
-    }
-
-    #alpha and beta numbers respectively (for scaling purposes)
-    #cov effect
-    c3 <- 200
-
-    alpha <- alpha * c2
-    beta <- beta * c3
-    
-    #mig_rates=rep(0.1, times=numSpecies) # OR vvv sample this from gamma per species
-    mig_rates <- rgamma(n = numSpecies, shape = mean_mig_rate / 0.01, scale = 0.01) # mean = 0.1, mode 0.09, variance 0.001
-    readThreshold <- 5
-    
     # parameters from old versions that dont exist in abundance version anymore
     det_prob_exp <- NA
     det_prob_add <- NA
@@ -190,7 +278,7 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
                alpha_fpr = alpha_fpr, beta_fpr = beta_fpr, constant_fpr = constant_fpr), names_cov = names_cov, names_all_cov = names_all_cov,
                names_species = names_species, N0_0 = N0_0, covNoise_sd = covNoise_sd, covMeasureNoise_sd = covMeasureNoise_sd, 
                num_samples_time = num_samples_time, num_samples_space = num_samples_space, radius = radius, indivSampleProb = indivSampleProb, 
-               readSampleRate = readSampleRate, corr_mode = corr_mode, readThreshold = readThreshold)
+               readSampleRate = readSampleRate, corr_mode = corr_mode, readThreshold = readThreshold, covar_scale_space = covar_scale_space)
     return(params)
 }
 

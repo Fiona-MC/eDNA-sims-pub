@@ -19,7 +19,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_test2x10sp/ 1 2
+# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_10sp_testingRF/ 1 2
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- TRUE
 #parmSet <- "indep" # indep means that all alphas will be 0
@@ -78,6 +78,18 @@ for (run in runs) {
   locDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = TRUE))
   distMx <- as.matrix(dist(locDF, diag = TRUE, upper = TRUE))
   
+  # note: this only gets used if there are gaussian RF covariates
+  # Generate covariance matrix
+  covar_matrix <- matrix(NA, nrow = nrow(locDF), ncol = nrow(locDF))
+  for (locindex1 in seq_len(nrow(locDF))) {
+    for (locindex2 in seq_len(nrow(locDF))) {
+      loc1 <- as.numeric(locDF[locindex1, ])
+      loc2 <- as.numeric(locDF[locindex2, ])
+      covar_matrix[locindex1, locindex2] <- spatial_covariance(loc1, loc2, covar_scale_space = params$covar_scale_space)
+    }
+  }
+  inv_covar_mx <- solve(covar_matrix)
+
   #Initialize abundances with all 10's
   N0 <- list()
   for (s_index in seq_along(locList)) {
@@ -131,6 +143,9 @@ for (run in runs) {
         }
       } else if (thisType == "randomNormal") {
         cov <- rnorm(n = length(locList), mean = 0, sd = 1)
+      } else if (thisType == "spatialRandomField") {
+        period <- params$covVars[[covNum]]$period
+        cov <- get_cov_spTime(locDF, time = t, inv_covar_mx = inv_covar_mx, temporalPeriod = period)
       } else {
       cov <- unlist(lapply(X = locList, FUN = 
                            function(loc) {return(get_cov(loc, type = thisType, 
