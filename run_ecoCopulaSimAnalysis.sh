@@ -12,6 +12,7 @@ numRuns=$2
 covs=$3
 numSamples=$4
 readAbd=$5
+dumb=$6
 
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
@@ -20,11 +21,11 @@ if [ ${numSamples} == "None" ]
 then
     if [ ${readAbd} == 1 ]
     then
-        resDirName=ecoCopula_res
-        sitetab_name="sim_sitetab_sampled.csv"
-    else 
         resDirName=ecoCopula_readAbd_res
         sitetab_name="sim_sitetab_readAbd_sampled.csv"
+    else 
+        resDirName=ecoCopula_res
+        sitetab_name="sim_sitetab_sampled.csv"
     fi
 else
     if [ ${readAbd} == 1 ]
@@ -44,6 +45,17 @@ then
 	resDirName=${resDirName}_cov
 else
 	resDirName=${resDirName}_noCov
+fi
+
+if [ ${dumb} == 1 ]
+then
+    if [ ${readAbd} == 1 ]
+    then
+        sitetab_name=logiSim_sitetab_readAbd_sampled${numSamples}.csv
+    else 
+        sitetab_name=logiSim_sitetab_sampled${numSamples}.csv
+    fi
+    resDirName=${resDirName}_dumb
 fi
 #INLA_type="faster"
 

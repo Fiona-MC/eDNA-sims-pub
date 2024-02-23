@@ -3,13 +3,22 @@ library(data.table)
 
 #sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 #save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
-sim_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
+sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 numRuns <- 100
 
 resample <- TRUE # do you want to just copy the stuff or resample it?
-nSamplesL <- c(50, 1000, 10000, 25000)
+nSamplesL <- c(50, 100, 500, 1000, 5000, 10000, 25000)
 #nSamplesL <- c(100)
+dumb <- TRUE
+
+if (dumb) {
+    full_sitetabName <- "sitetab_dumb.csv"
+    full_sitetabName_abd <- "sitetab_abd_dumb.csv"
+} else {
+    full_sitetabName <- "sim_sitetab_sampled.csv"
+    full_sitetabName_abd <- "sim_sitetab_readAbd_sampled.csv"
+}
 
 dir.create(save_dir)
 
@@ -21,12 +30,17 @@ for (nSamples in nSamplesL) {
         file.copy(from = paste0(sim_subdir, "params.Rdata"), to = paste0(save_subdir, "params.Rdata"))
         file.copy(from = paste0(sim_subdir, "covList.Rdata"), to = paste0(save_subdir, "covList.Rdata"))
         file.copy(from = paste0(sim_subdir, "locList.Rdata"), to = paste0(save_subdir, "locList.Rdata"))
-        full_sitetab <- fread(file = paste0(sim_subdir, "sim_sitetab_sampled.csv"))
-        full_sitetab_abd <- fread(file = paste0(sim_subdir, "sim_sitetab_readAbd_sampled.csv"))
+        full_sitetab <- fread(file = paste0(sim_subdir, full_sitetabName))
+        full_sitetab_abd <- fread(file = paste0(sim_subdir, full_sitetabName_abd))
         sample <- sample(x = 1:dim(full_sitetab)[1], size = nSamples, replace = FALSE) # nolint: seq_linter.
         sitetab_reSampled <- full_sitetab[sample, ]
         sitetab_reSampled_abd <- full_sitetab_abd[sample, ]
-        fwrite(sitetab_reSampled, file = paste0(save_subdir, "sim_sitetab_sampled", nSamples, ".csv"))
-        fwrite(sitetab_reSampled_abd, file = paste0(save_subdir, "sim_sitetab_readAbd_sampled", nSamples, ".csv"))
+        if (dumb) {
+            fwrite(sitetab_reSampled, file = paste0(save_subdir, "logiSim_sitetab_sampled", nSamples, ".csv"))
+            fwrite(sitetab_reSampled_abd, file = paste0(save_subdir, "logiSim_sitetab_readAbd_sampled", nSamples, ".csv"))
+        } else {
+            fwrite(sitetab_reSampled, file = paste0(save_subdir, "sim_sitetab_sampled", nSamples, ".csv"))
+            fwrite(sitetab_reSampled_abd, file = paste0(save_subdir, "sim_sitetab_readAbd_sampled", nSamples, ".csv"))
+        }
     }
 }

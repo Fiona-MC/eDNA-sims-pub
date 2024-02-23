@@ -11,6 +11,7 @@ sim_dir=$1
 numRuns=$2
 seMethod=$3
 numSamples=$4
+dumb=$5
 
 if [ ${numSamples} == "None" ]
 then
@@ -30,6 +31,12 @@ plot=1
 covs=0 # not a real option here
 
 resDirName=${resDirName}_${seMethod}
+
+if [ ${dumb} == 1 ]
+then
+    sitetab_name=logiSim_sitetab_readAbd_sampled${numSamples}.csv
+    resDirName=${resDirName}_dumb
+fi
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
 # Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/

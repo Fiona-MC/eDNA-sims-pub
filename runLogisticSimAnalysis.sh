@@ -11,12 +11,14 @@ sim_dir=$1
 numRuns=$2
 covs=$3
 numSamples=$4
+dumb=$5
 
 echo "Starting logistic"
 echo $sim_dir
 echo $numRuns
 echo $covs
 echo $numSamples
+echo dumb? $dumb
 
 if [ ${numSamples} == "None" ]
 then
@@ -27,8 +29,6 @@ else
 	outname=logistic_mistakes_sampled${numSamples}
 fi
 
-dumb=0
-
 if [ ${covs} == 1 ]
 then
 	outname=${outname}_cov
@@ -38,6 +38,7 @@ fi
 
 if [ ${dumb} == 1 ]
 then
+	sitetab=logisticSim_sitetab_sampled${numSamples}.csv
 	outname=${outname}_dumb
 fi
 
