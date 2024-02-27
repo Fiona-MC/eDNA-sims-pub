@@ -35,14 +35,11 @@ mvnorm_inverse_covariance <- function(n_samples = 1, mean, inv_covariance) {
     stop("Inverse covariance matrix must be symmetric positive definite.")
   }
 
-  # Cholesky decomposition of the inverse covariance matrix
-  chol_decomp <- chol(inv_covariance)
-
   # Generate standard normal samples
   standard_normal_samples <- matrix(rnorm(length(mean) * n_samples), nrow = n_samples)
 
   # Transform the samples to obtain multivariate normal samples
-  samples <- t(chol_decomp %*% t(standard_normal_samples)) + rep(mean, each = n_samples)
+  samples <- t(chol(inv_covariance) %*% t(standard_normal_samples)) + rep(mean, each = n_samples)
 
   return(samples)
 }

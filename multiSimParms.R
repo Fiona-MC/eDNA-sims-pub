@@ -113,11 +113,11 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
 
           for(iiii in 1:numCovs) {
             beta[iiii, iiii] <- 1 # one independent covariate per species
-            beta[iiii, numCovs] <- 1 # this is the intercept variable
           }
 
           for(iii in 1:numSpecies) {
             alpha[iii, iii] <- 0
+            beta[iii, numCovs] <- 1
           }
         }
 
