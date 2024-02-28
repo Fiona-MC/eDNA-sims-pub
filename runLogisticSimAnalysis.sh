@@ -38,7 +38,7 @@ fi
 
 if [ ${dumb} == 1 ]
 then
-	sitetab=logisticSim_sitetab_sampled${numSamples}.csv
+	sitetab=logiSim_sitetab_sampled${numSamples}.csv
 	outname=${outname}_dumb
 fi
 

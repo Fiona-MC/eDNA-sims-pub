@@ -3,12 +3,13 @@ library(data.table)
 
 #sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 #save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
-sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+sim_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
 numRuns <- 100
 
 resample <- TRUE # do you want to just copy the stuff or resample it?
-nSamplesL <- c(50, 100, 500, 1000, 5000, 10000, 25000)
+#nSamplesL <- c(50, 100, 500, 1000, 5000, 10000, 25000)
+nSamplesL <- c(50, 100, 500, 1000)
 #nSamplesL <- c(100)
 dumb <- TRUE
 

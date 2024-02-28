@@ -6,10 +6,11 @@ library(igraph)
 
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
-numRuns <- 10
-numSamples <- 500
+numRuns <- 100
+numSamples <- 50
+dumb <- TRUE
 
-dirName <- c("multiSim_10sp")
+dirName <- c("multiSim_50sp")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -19,22 +20,28 @@ multiSimRes <- data.frame()
 #ls /space/s1/fiona_callahan/multiSim_100
 
 logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1)
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999999, 1)
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
 
-log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                            paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
-log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                            paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
-
-if (numRuns == 100 && numSamples == 100 && dirName == c("multiSim_10sp")) {
+if (dumb) {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                            paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, ".csv")})
+                              paste0("logistic_mistakes_sampled", numSamples, "_cov_dumb_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                            paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, ".csv")})
-}
+                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_dumb_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+} else {
+  log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+                              paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+  log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 
+  if (numRuns == 100 && numSamples == 100 && dirName == c("multiSim_10sp")) {
+    log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+                              paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, ".csv")})
+    log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, ".csv")})
+  }
+}
 #inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_cutoffs <- c(0, 0.0000000000001, 0.0000001, 0.00001, .3, .5, .7, .9, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_infResGathered_cutoff", x, ".csv")})
@@ -43,34 +50,60 @@ if (numRuns == 100 && numSamples == 100 && dirName == c("multiSim_10sp")) {
 #inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paperSep_infResGathered_cutoff", x, ".csv")})
 
 inla_cutoffs <- c(0, 1, 0.0000001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, .3, .5)
-inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                      paste0("INLA_res_paperSep_sampled", numSamples, "_cov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                      paste0("INLA_res_paperSep_sampled", numSamples, "_noCov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-
+if (dumb) {
+  inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_cov_dumb_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+  inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_noCov_dumb_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+} else {
+  inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_cov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+  inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_noCov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+}
 
 #inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
 
 #inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_resnames_500 <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
+if(dumb) {
+  seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_dumb")
+  seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_dumb")
+  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_dumb")
+} else {
+  seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb")
+  seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso")
+  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc")
+}
 
-seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb")
-seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso")
-seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc")
+if (dumb) {
+  ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_dumb")
+  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov_dumb")
+} else {
+  ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov")
+  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov")
+}
 
+if(dumb) {
+  inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_dumb_infResGathered_", numRuns, "sims.csv")
+  jags1 <- paste0("JAGS_infresGathered_sampled", numSamples, "_dumb_", numRuns, "sims.csv")
+} else {
+  inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_infResGathered_", numRuns, "sims.csv")
+  jags1 <- paste0("JAGS_infresGathered_sampled", numSamples, "_", numRuns, "sims.csv")
+}
 
-resNames <- c(paste0("ecoCopula_res_sampled", numSamples, "_noCov_infResGathered_", numRuns, "sims.csv"), 
-              paste0("ecoCopula_res_sampled", numSamples, "_cov_infResGathered_", numRuns, "sims.csv"), 
+resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName3, "_infResGathered_", numRuns, "sims.csv"),
-              paste0("INLA_res_paperSep_sampled", numSamples, "_infResGathered_", numRuns, "sims.csv"), 
+              inla1, 
               inla_resnames_noCov,
               inla_resnames_cov,
               log_resnames_cov,
               log_resnames_noCov,
-              paste0("JAGS_infresGathered_sampled", numSamples, "_", numRuns, "sims.csv"))
+              jags1)
 
 # check if runs exist
 
@@ -139,11 +172,10 @@ for (i in seq_along(resNames)) {
   }
 
 }
-
 # default ones
-#multiSimRes <- multiSimResL$INLA_res_faster_infResGathered_cutoff0.05.csv
+multiSimRes <- multiSimResL$logistic_mistakes_sampled50_noCov_dumb_100runs_cutoff0.9_100sims.csv
 #multiSimRes <- multiSimResL$spiecEasi_res_mb_infResGathered.csv
-
+get_TPR(multiSimRes)
 # if you need to check these later, look at obsidian ROC curve note
 # obsidian://open?vault=simulations&file=ROC%20curves
 get_TPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
@@ -561,26 +593,23 @@ PR_plot <- ggplot(ROC_data, aes(x = avg_recall, y = avg_precision, color = metho
 
 if (cluster) {
   if (ratio_of_avg) {
-    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster_ratioOfAv.png"))
-    write.csv(ROC_data, file = paste0(thisDir, "ROC_data_cluster_ratioOfAv.csv"))
-    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster_ratioOfAvg.png"))
+    saveName <- paste0("_cluster_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
   } else {
-    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_cluster.png"))
-    write.csv(ROC_data, file = paste0(thisDir, "ROC_data_cluster.csv"))
-    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_cluster.png"))
-
+    saveName <- paste0("_cluster_", numSamples, "samples_", numRuns, "runs")
   }
 } else {
   if (ratio_of_avg) {
-    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_ratioOfAv_", numSamples, "samples_", numRuns, "runs.png"))
-    write.csv(ROC_data, file = paste0(thisDir, "ROC_data_ratioOfAv_", numSamples, "samples_", numRuns, "runs.csv"))
-    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_ratioOfAvg_", numSamples, "samples_", numRuns, "runs.png"))
-
+    saveName <- paste0("_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
   } else {
-    ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_errBar_", numSamples, "samples_", numRuns, "runs.png"))
-    write.csv(ROC_data, file = paste0(thisDir, "ROC_data_errBar_", numSamples, "samples_", numRuns, "runs.csv"))
-    ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_", numSamples, "samples_", numRuns, "runs.png"))
+    saveName <- paste0("_", numSamples, "samples_", numRuns, "runs")
   }
 }
 
+if (dumb) {
+  saveName <- paste0(saveName, "_dumb")
+}
 ROC_plot
+
+ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_", saveName, ".png"))
+write.csv(ROC_data, file = paste0(thisDir, "ROC_data_", saveName, ".csv"))
+ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_", saveName, ".png"))
