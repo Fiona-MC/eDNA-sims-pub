@@ -1,4 +1,4 @@
-source("/home/fiona_callahan/Arctic_eDNA_2021/script/INLA_ST_functions.R")
+source("./Arctic_eDNA_2021/script/INLA_ST_functions.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 
