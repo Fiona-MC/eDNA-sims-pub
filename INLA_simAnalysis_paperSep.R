@@ -4,7 +4,7 @@
 # Rscript INLA_simAnalysis_paperSep.R /space/s1/fiona_callahan/multiSim_rw3/randomRun1/ /space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/
 
 # NOTE this is the original unedited version!!!
-source("/home/fiona_callahan/Arctic_eDNA_2021/script/INLA_ST_functions.R")
+source("./Arctic_eDNA_2021/script/INLA_ST_functions.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -12,11 +12,11 @@ if (length(args) < 4) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/INLA_res_paperSep_sampled100_testingAGAIN/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/INLA_res_paperSep_sampled100_testingAGAIN/"
 #dir.create(save_dir)
-sitetabName <- "sim_sitetab_sampled100.csv"
-modelParms <- "cov" # "none" "cov" "sp" "spCov"
+#sitetabName <- "sim_sitetab_sampled100.csv"
+#modelParms <- "cov" # "none" "cov" "sp" "spCov"
 
 data_dir <- args[1]
 save_dir <- args[2]
