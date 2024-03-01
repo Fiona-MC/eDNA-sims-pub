@@ -95,7 +95,7 @@ for folder in ${folderNames[@]}; do
             # 0 in here is
             Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${scramble} ${sitetab_name} ${covs}
             # covs here should be 0 because this is whether it infers the covariates, whereas above it just controls for them
-            Rscript /home/fiona_callahan/eDNA_sims_code/count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 0 #recall that even if covs is true, beta is not inferred so this 0 is right
+            Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 0 #recall that even if covs is true, beta is not inferred so this 0 is right
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
         #fi
     ) &
@@ -113,6 +113,6 @@ done
 # (all need to be finished)
 wait
 
-Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
+Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
 
 echo "all done"

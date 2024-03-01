@@ -19,7 +19,7 @@ for folder in ${folderNames[@]}; do
             if [ ${reRun}==1 ]; then
             # run INLA sim analysis
             echo rerunning ${thisRes}...
-            timeout -k 10 ${timeout}h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
+            timeout -k 10 ${timeout}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
             fi
         fi
     done

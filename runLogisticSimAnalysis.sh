@@ -46,6 +46,6 @@ outname=${outname}_${numRuns}runs
 
 echo ${outname}
 
-Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R ${sim_dir}/ ${numRuns} ${covs} ${dumb} ${sitetab} ${outname}
+Rscript ./logisticFromSim_moreSp.R ${sim_dir}/ ${numRuns} ${covs} ${dumb} ${sitetab} ${outname}
 
 echo "all done"
