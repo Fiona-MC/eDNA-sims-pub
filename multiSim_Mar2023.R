@@ -8,8 +8,8 @@ library(gapminder)
 #install.packages("data.table")
 library(data.table)
 #library(gganimate)
-source("/home/fiona_callahan/eDNA_sims_code/multiSimFunctions.R")
-source("/home/fiona_callahan/eDNA_sims_code/multiSimParms.R")
+source("./multiSimFunctions.R")
+source("./multiSimParms.R")
 
 # Note to self about a bug you're going to create someday: 
 # count_INLAmistakes is going to fail if there is a constant covariate that is not the last one in the list
@@ -19,7 +19,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_10sp_testingRF/ 1 2
+# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_10sp_testingRF/ 1 2
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- TRUE
 #parmSet <- "indep" # indep means that all alphas will be 0

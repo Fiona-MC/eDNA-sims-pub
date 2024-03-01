@@ -93,10 +93,10 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
           for(iii in 1:numSpecies) {
             beta[iii, iii] <- 1 # one independent covariate per species
             alpha[iii, iii] <- 0
-            beta[iii, numSpecies + 1] <- 1 # this is the intercept variable
+            beta[iii, numSpecies + 1] <- 1 # this is the intercept variable (nspecies = ncov here)
           }
         } else if (parmSetCov == "random") {
-          #nrows is num species, ncol is number of covs
+          # nrows is num species, ncol is number of covs
           # choose species interactions for block 1
           for(ii in sample(x = 1:(numSpecies %/% 2), size = as.integer(sqrt(numSpecies %/% 4)), replace = TRUE)) {
             for(jj in sample(x = 1:(numCovs %/% 2), size = as.integer(sqrt(numCovs %/% 4)), replace = TRUE)) {
@@ -112,8 +112,8 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
           }
 
           for(iii in 1:numSpecies) {
-            alpha[iii, iii] <- 0
-            beta[iii, numCovs] <- 1
+            alpha[iii, iii] <- 0 # no species effect on itself
+            beta[iii, numCovs] <- 1 # intercept covariate
           }
         }
 
