@@ -70,7 +70,7 @@ for folder in ${folderNames[@]}; do
             mkdir "$folder/$resDirName/" 
             #for modelParms in none cov sp spCov; do
                 # run INLA sim analysis
-                #timeout -k 10 ${timeout1}h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
+                timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
             #done
             Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/
             ./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
