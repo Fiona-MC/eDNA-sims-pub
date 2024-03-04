@@ -2,6 +2,7 @@
 export OMP_NUM_THREADS=5
 
 #./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 ${numSamples}
+#./runINLAsimAnalysis.sh /global/scratch/users/fionacallahan/multiSim_10sp 100 ${numSamples}
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
@@ -62,16 +63,19 @@ for ((i=1; i<=$numRuns; i++)); do
   folderNames+=(${sim_dir}/randomRun$i)
 done
 
+#folder=(${sim_dir}/randomRun1)
+
 for folder in ${folderNames[@]}; do
     (
         #if test ! -d "${folder}/INLA_res_${INLA_type}/trial1" # if the folder is not already there 
         #then
             echo "starting task $folder.."
             mkdir "$folder/$resDirName/" 
-            #for modelParms in none cov sp spCov; do
+            for modelParms in none cov sp spCov; do
                 # run INLA sim analysis
+                echo $modelParms
                 timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
-            #done
+            done
             Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/
             ./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
             Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 1
