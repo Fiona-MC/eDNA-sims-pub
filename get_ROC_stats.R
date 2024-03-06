@@ -9,6 +9,7 @@ ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averag
 numRuns <- 100
 numSamples <- 1000
 dumb <- TRUE
+saveRes <- FALSE
 
 dirName <- c("multiSim_10sp")
 #dirName <- c("multiSim_test2x10sp")
@@ -175,7 +176,7 @@ for (i in seq_along(resNames)) {
 # default ones
 multiSimRes <- multiSimResL$logistic_mistakes_sampled50_noCov_dumb_100runs_cutoff0.9_100sims.csv
 #multiSimRes <- multiSimResL$spiecEasi_res_mb_infResGathered.csv
-get_TPR(multiSimRes)
+
 # if you need to check these later, look at obsidian ROC curve note
 # obsidian://open?vault=simulations&file=ROC%20curves
 get_TPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
@@ -273,6 +274,8 @@ get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign", return_
       return(FDR)
     }
 }
+
+get_TPR(multiSimRes)
 
 # method | threshold | avg_TPR | avg_FPR 
 file <- rep(NA, times = length(multiSimResL))
@@ -426,7 +429,8 @@ if (!cluster) {
     actualAlpha <- params$alpha 
     alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
     # theta = true_interactions
-    se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
+    se.roc <- huge::huge.roc(se$est$path, theta = 
+    G, verbose = FALSE)
     avg_TPR <- c(avg_TPR, se.roc$tp)
     avg_FPR <- c(avg_FPR, se.roc$fp)
 
@@ -456,6 +460,7 @@ if (!cluster) {
       se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
       params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
       actualAlpha <- params$alpha
+      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "undirected")
       alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
       # theta = true_interactions
       se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
@@ -465,8 +470,8 @@ if (!cluster) {
   } 
   
   # average over ordered lambdas -- NOT SAME LAMBDAS
-  this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = mean)
-  this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = mean)
+  this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = function(x) {mean(x, na.rm = TRUE)})
+  this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = function(x) {mean(x, na.rm = TRUE)})
   this_tpr_sd <- sqrt(apply(TPRs, MARGIN = 1, FUN = var) / apply(TPRs, MARGIN = 1, FUN = length))
   this_fpr_sd <- sqrt(apply(FPRs, MARGIN = 1, FUN = var) / apply(FPRs, MARGIN = 1, FUN = length))
   avg_TPR <- c(avg_TPR, this_avg_tpr)
@@ -496,8 +501,8 @@ if (!cluster) {
       se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
       params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
       actualAlpha <- params$alpha
+      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "undirected")
       alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
-      #alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "directed")
       # theta = true_interactions
       se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
       TPRs[, run] <- se.roc$tp
@@ -505,8 +510,8 @@ if (!cluster) {
     }
   } 
   # average over ordered lambdas -- NOT SAME LAMBDAS
-  this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = mean)
-  this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = mean)
+  this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = function(x) {mean(x, na.rm = TRUE)})
+  this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = function(x) {mean(x, na.rm = TRUE)})
   this_tpr_sd <- sqrt(apply(TPRs, MARGIN = 1, FUN = var) / apply(TPRs, MARGIN = 1, FUN = length))
   this_fpr_sd <- sqrt(apply(FPRs, MARGIN = 1, FUN = var) / apply(FPRs, MARGIN = 1, FUN = length))
   avg_TPR <- c(avg_TPR, this_avg_tpr)
@@ -582,6 +587,9 @@ ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method, group
   lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
   theme(text = element_text(size = 24))  # Set the base size for all text elements
 
+ROC_plot
+#ROC_data[ROC_data$method == "SpiecEasi_glasso",]
+
 PR_plot <- ggplot(ROC_data, aes(x = avg_recall, y = avg_precision, color = method, shape = method)) +
   scale_shape_manual(values = 1:12) +
   geom_point(size = 3) +
@@ -591,26 +599,27 @@ PR_plot <- ggplot(ROC_data, aes(x = avg_recall, y = avg_precision, color = metho
   lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
   theme(text = element_text(size = 24))  # Set the base size for all text elements
 
-
-if (cluster) {
-  if (ratio_of_avg) {
-    saveName <- paste0("_cluster_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
+if (saveRes) {
+  if (cluster) {
+    if (ratio_of_avg) {
+      saveName <- paste0("_cluster_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
+    } else {
+      saveName <- paste0("_cluster_", numSamples, "samples_", numRuns, "runs")
+    }
   } else {
-    saveName <- paste0("_cluster_", numSamples, "samples_", numRuns, "runs")
+    if (ratio_of_avg) {
+      saveName <- paste0("_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
+    } else {
+      saveName <- paste0("_", numSamples, "samples_", numRuns, "runs")
+    }
   }
-} else {
-  if (ratio_of_avg) {
-    saveName <- paste0("_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
-  } else {
-    saveName <- paste0("_", numSamples, "samples_", numRuns, "runs")
+
+  if (dumb) {
+    saveName <- paste0(saveName, "_dumb")
   }
-}
 
-if (dumb) {
-  saveName <- paste0(saveName, "_dumb")
-}
-ROC_plot
 
-ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_", saveName, ".png"))
-write.csv(ROC_data, file = paste0(thisDir, "ROC_data_", saveName, ".csv"))
-ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_", saveName, ".png"))
+  ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_", saveName, ".png"))
+  write.csv(ROC_data, file = paste0(thisDir, "ROC_data_", saveName, ".csv"))
+  ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_", saveName, ".png"))
+}

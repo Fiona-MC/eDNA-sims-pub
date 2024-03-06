@@ -8,13 +8,13 @@ library(igraph)
 # Rscript spiecEasi_simAnalysis.R /space/s1/fiona_callahan/multiSim_5sp_testing/randomRun2/ /space/s1/fiona_callahan/multiSim_5sp_testing/randomRun2/spiecEasi_res/ glasso 1
 #note -- so far not controlling for covs
 args <- commandArgs(trailingOnly = TRUE)
-data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/spiecEasi_res_dumbDir_mb/"
-data_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/spiecEasi_res_mb/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_manySp_testing2/randomRun4/spiecEasi_res_dumbDir_mb/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_2sp_test/randomRun1/spiecEasi_res_mb/"
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/spiecEasi_res_test/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/"
+#save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_dep/randomRun1/spiecEasi_res_test/"
 
 data_dir <- args[1]
 save_dir <- args[2]
