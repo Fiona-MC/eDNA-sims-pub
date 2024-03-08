@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=INLA_test1
 #SBATCH --partition=savio3_htc
-#SBATCH --account=fc_popgen
+#SBATCH --account=ac_popgen
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=10
 #SBATCH --ntasks-per-node=2

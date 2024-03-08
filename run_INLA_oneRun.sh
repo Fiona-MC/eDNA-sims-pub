@@ -47,7 +47,7 @@ for modelParms in none cov sp spCov; do
     timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
 done
 Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/
-./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
+#./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
 Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 1
 
 for cutoff in 0 1 0.0000000000001 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 .3 .5 .7 .9;
