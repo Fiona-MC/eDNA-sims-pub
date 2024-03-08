@@ -17,8 +17,10 @@ getParms_json <- function(parmFile = "parameters.json") { #TODO this is not impl
 #any number of species should work
 getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSetCov = "indep") { 
     if (random == TRUE) {
-        num_samples_time <- sample(500, size = 1) # sample times per location
-        num_samples_space <- sample(50, size = 1) # sample locations per time
+        #num_samples_time <- sample(500, size = 1) # sample times per location
+        #num_samples_space <- sample(50, size = 1) # sample locations per time
+        num_samples_time <- 500 # sample times per location
+        num_samples_space <- 50 # sample locations per time
         #radius <- 16
         radius <- runif(n = 1, min = 12, max = 50) # for neighborhoods: a little more the 
         # hypotenuse of 11.1 unit grid (16), to get neighbors be "right" for this setup
