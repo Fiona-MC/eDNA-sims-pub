@@ -427,7 +427,7 @@ if (!cluster) {
     se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
     params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
     actualAlpha <- params$alpha 
-    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
     # theta = true_interactions
     se.roc <- huge::huge.roc(se$est$path, theta = 
     G, verbose = FALSE)
@@ -460,8 +460,8 @@ if (!cluster) {
       se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
       params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
       actualAlpha <- params$alpha
-      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "undirected")
-      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
       # theta = true_interactions
       se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
       TPRs[, run] <- se.roc$tp
@@ -501,8 +501,8 @@ if (!cluster) {
       se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
       params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
       actualAlpha <- params$alpha
-      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "undirected")
-      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
       # theta = true_interactions
       se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
       TPRs[, run] <- se.roc$tp
@@ -542,7 +542,7 @@ if (ecAdjust) {
     ec <- readRDS(paste0(subdir, "EC_res.Rdata"))
     params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
     actualAlpha <- params$alpha
-    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
+    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
     # TODO
     #ec.roc <- 
     #TPRs[, run] <- 
