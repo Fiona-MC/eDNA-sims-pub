@@ -9,6 +9,4 @@
 #SBATCH --mail-type=START,END,FAIL
 #SBATCH --mail-user=fiona_callahan@berkeley.edu
 cd /global/scratch/users/fiona_callahan/eDNA-sims
-module load r
-module load rgdal
 ht_helper.sh -t /global/scratch/users/fiona_callahan/eDNA-sims/INLA_test_tasks/INLA_test1.tasks

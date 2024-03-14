@@ -105,7 +105,7 @@ for (run in 1:numRuns) {
 
             try(if (sum(diag(inferredParms$alphaInferred)) != 0) {stop("Elements of inferred alpha diagonal are not 0")})
             alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
-            inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "undirected")
+            inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "max")
             connected_alpha_actual <- (distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
                                         (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
             connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 

@@ -12,9 +12,12 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_test2x10sp/"
-#numRuns <- 2
-#dumb <- (as.numeric("1") == 0)
+data_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
+numRuns <- 2
+covs <- 0
+dumb <- (as.numeric("1") == 0)
+sitetab_name <- "sim_sitetab_sampled100.csv"
+outName <- "logistic_mistakes_sampled100_noCov_100runs"
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])
@@ -188,62 +191,62 @@ for (cutoff in cutoffs) {
                 inferredParms$betaInferred <- betaInferred
                 inferredParms$cutoff <- cutoff
 
-                alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "undirected")
-                inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "undirected")
+                alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+                inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "max")
                 connected_alpha_actual <- (distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
                                             (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
                 connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
                                             (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
                 # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
-                num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1)
+                num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1, na.rm = TRUE)
                 if (covs) {
-                    num_correct_beta <- sum(inferredParms$betaInferred * actualBeta == 1)
+                    num_correct_beta <- sum(inferredParms$betaInferred * actualBeta == 1, na.rm = TRUE)
                     num_correct <- num_correct_alpha + num_correct_beta
                 } else {
                     num_correct <- num_correct_alpha
                 }
 
-                num_correct_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == 1)
+                num_correct_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == 1, na.rm = TRUE)
 
                 # Note: here we want to add together inferrence in the wrong direction with saying there is an effect when it's actually 0
                 # type 1 error -- inferring an effect where there is none or wrong direction of effect
-                count_incorrectT1_alpha <- sum(inferredParms$alphaInferred * actualAlpha == -1) + 
-                                                sum(actualAlpha == 0 & inferredParms$alphaInferred != 0)
-                alpha_direction_mistakes <- sum(inferredParms$alphaInferred * actualAlpha == -1)
+                count_incorrectT1_alpha <- sum(inferredParms$alphaInferred * actualAlpha == -1, na.rm = TRUE) + 
+                                                sum(actualAlpha == 0 & inferredParms$alphaInferred != 0, na.rm = TRUE)
+                alpha_direction_mistakes <- sum(inferredParms$alphaInferred * actualAlpha == -1, na.rm = TRUE)
 
                 if (covs) {
-                    count_incorrectT1_beta <- sum(inferredParms$betaInferred * actualBeta == -1) + 
-                                                sum(actualBeta == 0 & inferredParms$betaInferred != 0)
+                    count_incorrectT1_beta <- sum(inferredParms$betaInferred * actualBeta == -1, na.rm = TRUE) + 
+                                                sum(actualBeta == 0 & inferredParms$betaInferred != 0, na.rm = TRUE)
                     count_incorrectT1 <- count_incorrectT1_beta + count_incorrectT1_alpha
                 } else {
                     count_incorrectT1 <- count_incorrectT1_alpha
                 }
 
-                count_incorrect_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == -1) + 
-                                                sum(connected_alpha_actual == 0 & connected_alpha_inferred != 0)
+                count_incorrect_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == -1, na.rm = TRUE) + 
+                                                sum(connected_alpha_actual == 0 & connected_alpha_inferred != 0, na.rm = TRUE)
 
                 if (covs) {
-                TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1) + 
-                                    sum(abs(betaInferred) * abs(actualBeta) == 1)
-                FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0)) + 
-                                    sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0))
-                FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) + 
-                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
-                TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) + 
-                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
+                TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1, na.rm = TRUE) + 
+                                    sum(abs(betaInferred) * abs(actualBeta) == 1, na.rm = TRUE)
+                FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) + 
+                                    sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0), na.rm = TRUE)
+                FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1), na.rm = TRUE) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1), na.rm = TRUE)
+                TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE)
                 } else {
-                    TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1) 
-                    FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0)) 
-                    FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) 
-                    TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) 
+                    TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1, na.rm = TRUE) 
+                    FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) 
+                    FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1), na.rm = TRUE) 
+                    TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) 
                 }
                 
                 # type 2 error
                 # count missed effects (number of times that actual effect is 1 or -1 and inferred effect is 0)
-                num_missedEffects_alpha <- sum(actualAlpha != 0 & inferredParms$alphaInferred == 0)
+                num_missedEffects_alpha <- sum(actualAlpha != 0 & inferredParms$alphaInferred == 0, na.rm = TRUE)
 
                 if (covs) {
-                    num_missedEffects_beta <- sum(actualBeta != 0 & inferredParms$betaInferred == 0)
+                    num_missedEffects_beta <- sum(actualBeta != 0 & inferredParms$betaInferred == 0, na.rm = TRUE)
                 }
 
                 if (covs) {
@@ -252,15 +255,15 @@ for (cutoff in cutoffs) {
                     num_missedEffects <- num_missedEffects_alpha 
                 }
 
-                num_missedEffects_cluster <- sum(connected_alpha_actual != 0 & connected_alpha_inferred == 0)
+                num_missedEffects_cluster <- sum(connected_alpha_actual != 0 & connected_alpha_inferred == 0, na.rm = TRUE)
 
                 # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
                 undirected_alpha_actual <- distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
                 undirected_alpha_inferred <- distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
 
-                alpha_incorrect_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == -1) + 
-                                                sum(undirected_alpha_actual == 0 & undirected_alpha_inferred != 0)
-                alpha_correct_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == 1)
+                alpha_incorrect_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == -1, na.rm = TRUE) + 
+                                                sum(undirected_alpha_actual == 0 & undirected_alpha_inferred != 0, na.rm = TRUE)
+                alpha_correct_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == 1, na.rm = TRUE)
 
                 # add to running lists
                 if (covs) {
@@ -269,19 +272,19 @@ for (cutoff in cutoffs) {
                 } 
 
                 if (covs) {
-                    TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1) + 
-                                        sum(abs(betaInferred) * abs(actualBeta) == 1)
-                    FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) + 
-                                        sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0))
-                    FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) + 
-                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
-                    TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) + 
-                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0))
+                    TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1, na.rm = TRUE) + 
+                                        sum(abs(betaInferred) * abs(actualBeta) == 1, na.rm = TRUE)
+                    FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0), na.rm = TRUE)
+                    FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1), na.rm = TRUE)
+                    TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE)
                 } else {
-                    TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1) 
-                    FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) 
-                    FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) 
-                    TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) 
+                    TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1, na.rm = TRUE) 
+                    FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0), na.rm = TRUE) 
+                    FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1), na.rm = TRUE) 
+                    TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) 
                 }
 
                 num_incorrect_alphaL[i] <- count_incorrectT1_alpha
