@@ -7,10 +7,10 @@ if (length(args) < 3) {
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 5 1
 
-#thisDir="/space/s1/fiona_callahan/multiSim_10sp/"
-#numRuns=100
-#numTrials=3
-#resFolderName <- "INLA_res_paperSep_sampled100_cov"
+thisDir="/space/s1/fiona_callahan/savio/multiSim_10sp_random/"
+numRuns=100
+numTrials=1
+resFolderName <- "INLA_res_paperSep_sampled100"
 #cutoff=0.05
 
 thisDir <- args[1]
@@ -69,11 +69,19 @@ for (run in runs) {
             } else {
                 thisRow <- c(run, trial, parmVals, mistakes_tr)
             }
+            infResDF <- infResDF[, !duplicated(names(infResDF))]
+            thisRow <- thisRow[!duplicated(names(thisRow))]
+            infResDF <- infResDF[, names(infResDF) %in% names(thisRow)]
+            thisRow <- thisRow[names(thisRow) %in% names(infResDF)]
+            if (!(all(names(infResDF) == names(thisRow)))) {
+                stop("rbind in gather_inferenceRes_ecoCopula is failing because the columns don't match")
+            }
             infResDF <- rbind(infResDF, thisRow)
             colnames(infResDF) <- names(thisRow)
         }
     }
 }
+
 #saveRDS(parmNames, paste0(thisDir, "parmNames.Rdata"))
 if (file.exists(sitetabName)) {
 # this will fail if the mistakes file was never made but I think that's ok
