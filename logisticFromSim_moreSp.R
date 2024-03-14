@@ -12,12 +12,12 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
-numRuns <- 2
-covs <- 0
-dumb <- (as.numeric("1") == 0)
-sitetab_name <- "sim_sitetab_sampled100.csv"
-outName <- "logistic_mistakes_sampled100_noCov_100runs"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
+#numRuns <- 2
+#covs <- 0
+#dumb <- (as.numeric("1") == 0)
+#sitetab_name <- "sim_sitetab_sampled100.csv"
+#outName <- "logistic_mistakes_sampled100_noCov_100runs"
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])

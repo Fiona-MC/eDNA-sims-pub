@@ -7,11 +7,11 @@ library(igraph)
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
-numSamples <- 1000
-dumb <- TRUE
+numSamples <- 50
+dumb <- FALSE
 saveRes <- FALSE
 
-dirName <- c("multiSim_10sp")
+dirName <- c("multiSim_100sp")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -36,12 +36,12 @@ if (dumb) {
   log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
                               paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 
-  if (numRuns == 100 && numSamples == 100 && dirName == c("multiSim_10sp")) {
-    log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, ".csv")})
-    log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, ".csv")})
-  }
+  #if (numRuns == 100 && numSamples == 100 && dirName == c("multiSim_10sp")) {
+  #  log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+  #                            paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, ".csv")})
+  #  log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+  #                            paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, ".csv")})
+  #}
 }
 #inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_cutoffs <- c(0, 0.0000000000001, 0.0000001, 0.00001, .3, .5, .7, .9, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
@@ -174,7 +174,7 @@ for (i in seq_along(resNames)) {
 
 }
 # default ones
-multiSimRes <- multiSimResL$logistic_mistakes_sampled50_noCov_dumb_100runs_cutoff0.9_100sims.csv
+multiSimRes <- multiSimResL$logistic_mistakes_sampled50_noCov_100runs_cutoff0.9999_100sims.csv
 #multiSimRes <- multiSimResL$spiecEasi_res_mb_infResGathered.csv
 
 # if you need to check these later, look at obsidian ROC curve note
