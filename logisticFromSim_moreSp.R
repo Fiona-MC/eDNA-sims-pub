@@ -5,6 +5,7 @@
 
 library(stats)
 library(igraph)
+library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -26,7 +27,7 @@ dumb <- as.numeric(args[4]) == 1
 sitetab_name <- args[5]
 outName <- args[6]
 
-
+randomSim <- str_detect(data_dir, "random")
 
 # to run
 # Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000
@@ -103,8 +104,11 @@ for (run in runs) {
 
 for (cutoff in cutoffs) {
     i <- 1
-    avg_alphInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
+    if(!randomSim) {
     avg_betInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numCovs - 1)
+    }
+
+    avg_alphInferred <- matrix(0, nrow = simParms$numSpecies, ncol = simParms$numSpecies)
     nCompleteB <- 0
     nCompleteA <- 0
 
@@ -164,7 +168,7 @@ for (cutoff in cutoffs) {
                             betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < cutoff) * sign(model_summary[covName, "Estimate"])
                         }
                     }
-                    if(!is.na(sum(betaInferred))) {
+                    if(!is.na(sum(betaInferred)) && !randomSim) {
                         avg_betInferred <- avg_betInferred + betaInferred
                         nCompleteB <- nCompleteB + 1
                     }   
@@ -353,7 +357,9 @@ for (cutoff in cutoffs) {
     #print(df)
 
     avg_alphInferred <- avg_alphInferred / nCompleteA
+    if(!randomSim) {
     avg_betInferred <- avg_betInferred / nCompleteB
+    }
 
     #round(avg_alphInferred, 4)
     #round(abs(avg_alphInferred), 4)
