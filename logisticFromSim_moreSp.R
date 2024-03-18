@@ -12,12 +12,12 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
-#numRuns <- 2
-#covs <- 0
-#dumb <- (as.numeric("1") == 0)
-#sitetab_name <- "sim_sitetab_sampled100.csv"
-#outName <- "logistic_mistakes_sampled100_noCov_100runs"
+data_dir <- "/space/s1/fiona_callahan/savio/multiSim_10sp_random/"
+numRuns <- 100
+covs <- FALSE
+dumb <- (as.numeric("1") == 0)
+sitetab_name <- "sim_sitetab_sampled100.csv"
+outName <- "logistic_mistakes_sampled100_noCov_100runs"
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])
@@ -36,7 +36,7 @@ numTrials <- 1
 trials <- 1:1
 
 cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999999, 1)
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1)
 #cutoffs <- c(1e-128)
 
 runL <- rep(NA, times = numRuns * numTrials)
@@ -116,12 +116,7 @@ for (cutoff in cutoffs) {
     beta_predictedL <- c()
 
     # initialize place to store parm values
-    simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
-    parmVals <- unlist(simParms)
-    parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
-    parmNames <- names(parmVals)
-    parmsDF <- data.frame(matrix(data = NA, nrow = numRuns * numTrials, ncol = length(parmNames)))
-    names(parmsDF) <- parmNames
+    parmsDF <- data.frame()
 
     for (run in runs) {
         for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
@@ -137,8 +132,18 @@ for (cutoff in cutoffs) {
                 parmVals <- unlist(simParms)
                 # take out functions from parmVals
                 parmVals <- parmVals[lapply(parmVals, FUN = class) != "function"]
-                parmNames <- names(parmVals)
-                parmsDF[i, ] <- parmVals
+                # take out parms that are not in all of the runs
+                if (run != runs[1]) {
+                    parmsDF <- parmsDF[, !duplicated(names(parmsDF))]
+                    parmVals <- parmVals[!duplicated(names(parmVals))]
+                    parmsDF <- parmsDF[, names(parmsDF) %in% names(parmVals)]
+                    parmVals <- parmVals[names(parmVals) %in% names(parmsDF)]
+                    if (!(all(names(parmsDF) == names(parmVals)))) {
+                        stop("rbind in logisticFromSim_moreSp is failing because the columns don't match")
+                    }
+                }
+                parmsDF <- rbind(parmsDF, parmVals)
+                colnames(parmsDF) <- names(parmVals)
 
                 # figure out which beta column to remove based on just being an intercept variable
                 covVars <- simParms$covVars
