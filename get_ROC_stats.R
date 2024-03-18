@@ -7,11 +7,12 @@ library(igraph)
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
-numSamples <- 50
+numSamples <- 100
 dumb <- FALSE
 saveRes <- FALSE
+se_include <- TRUE
 
-dirName <- c("multiSim_100sp")
+dirName <- c("savio/multiSim_10sp_random")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -19,9 +20,8 @@ multiSimRes <- data.frame()
 #              "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
 #ls /space/s1/fiona_callahan/multiSim_100
-
 logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999999, 1 - 1e-32, 1)
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1)
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
 
@@ -88,10 +88,10 @@ if (dumb) {
 
 if(dumb) {
   inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_dumb_infResGathered_", numRuns, "sims.csv")
-  jags1 <- paste0("JAGS_infresGathered_sampled", numSamples, "_dumb_", numRuns, "sims.csv")
+  jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_dumb_", numRuns, "sims.csv")
 } else {
   inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_infResGathered_", numRuns, "sims.csv")
-  jags1 <- paste0("JAGS_infresGathered_sampled", numSamples, "_", numRuns, "sims.csv")
+  jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_", numRuns, "sims.csv")
 }
 
 resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
@@ -107,7 +107,6 @@ resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"),
               jags1)
 
 # check if runs exist
-
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 for (i in seq_along(resNames)) {
   if(!file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
@@ -130,7 +129,7 @@ for (i in seq_along(resNames)) {
 #log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_dumb_cutoff", x, ".csv")})
 #resNames <- log_resnames
 
-file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", paste0("JAGS_infresGathered_sampled", numSamples, "_", numRuns, "sims.csv")))
+file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", paste0("JAGS_infResGathered_sampled", numSamples, "_", numRuns, "sims.csv")))
 
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 # load results into list
@@ -164,8 +163,8 @@ for (i in seq_along(resNames)) {
     } 
     thisMultiSimRes$actual_mean_fpr <- actual_mean_fpr
     if (str_detect(resNames[i], "JAGS")) {
-      for (cutoffIndex in unique(thisMultiSimRes$cutoffIndex)) {
-        multiSimResL[[paste0(resNames[i], "_cutoffIndex", cutoffIndex)]] <- thisMultiSimRes[thisMultiSimRes$cutoffIndex == cutoffIndex, ]
+      for (cutoffIndex in unique(thisMultiSimRes$cutoff_val)) {
+        multiSimResL[[paste0(resNames[i], "_cutoffIndex", cutoffIndex)]] <- thisMultiSimRes[thisMultiSimRes$cutoff_val == cutoffIndex, ]
       }
     } else {
       multiSimResL[[resNames[i]]] <- thisMultiSimRes
@@ -416,7 +415,6 @@ for (i in seq_along(multiSimResL)) {
     }
 }
 
-se_include <- TRUE
 if(se_include) {
 multiples <- FALSE
 if(multiples) {

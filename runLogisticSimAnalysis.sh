@@ -3,11 +3,11 @@ export OMP_NUM_THREADS=15
 
 # ./runLogisticSimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 0
 
-#sim_dir="/space/s1/fiona_callahan/multiSim_100sp"
-#numRuns=100
-#covs=0
-#numSamples=100
-#dumb=0
+sim_dir="/space/s1/fiona_callahan/savio/multiSim_10sp_random"
+numRuns=100
+covs=0
+numSamples=100
+dumb=0
 
 sim_dir=$1
 numRuns=$2

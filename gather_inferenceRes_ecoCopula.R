@@ -69,13 +69,15 @@ for (run in runs) {
             } else {
                 thisRow <- c(run, trial, parmVals, mistakes_tr)
             }
-            infResDF <- infResDF[, !duplicated(names(infResDF))]
-            thisRow <- thisRow[!duplicated(names(thisRow))]
-            infResDF <- infResDF[, names(infResDF) %in% names(thisRow)]
-            thisRow <- thisRow[names(thisRow) %in% names(infResDF)]
-            if (!(all(names(infResDF) == names(thisRow)))) {
-                stop("rbind in gather_inferenceRes_ecoCopula is failing because the columns don't match")
-            }
+            if (run != runs[1]) {
+                infResDF <- infResDF[, !duplicated(names(infResDF))]
+                thisRow <- thisRow[!duplicated(names(thisRow))]
+                infResDF <- infResDF[, names(infResDF) %in% names(thisRow)]
+                thisRow <- thisRow[names(thisRow) %in% names(infResDF)]
+                if (!(all(names(infResDF) == names(thisRow)))) {
+                    stop("rbind in gather_inferenceRes_ecoCopula is failing because the columns don't match")
+                }
+            } 
             infResDF <- rbind(infResDF, thisRow)
             colnames(infResDF) <- names(thisRow)
         }
@@ -83,13 +85,13 @@ for (run in runs) {
 }
 
 #saveRDS(parmNames, paste0(thisDir, "parmNames.Rdata"))
-if (file.exists(sitetabName)) {
+#if (file.exists(sitetabName)) {
 # this will fail if the mistakes file was never made but I think that's ok
-colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(percent_presence), names(mistakes)) 
-} else {
+#colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(percent_presence), names(mistakes)) 
+#} else {
 # this will fail if the mistakes file was never made but I think that's ok
-colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(mistakes)) 
-}
+#colnames(infResDF) <- c("RunNum", "inference_trial", parmNames, names(mistakes)) 
+#}
 
 
 if (!is.na(cutoff)) {
