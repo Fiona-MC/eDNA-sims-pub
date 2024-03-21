@@ -4,11 +4,11 @@ library(data.table)
 library(highfrequency)
 
 args <- commandArgs(trailingOnly = TRUE)
-# Rscript dumbSim_covMx.R /space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/
+# Rscript logiSim_covMx.R /space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/
 
 # bash code to do this for all subfolders within this folder
 #sim_dir="/space/s1/fiona_callahan/multiSim_50sp"
-#for folder in ${sim_dir}/randomRun*; do (Rscript dumbSim_covMx.R ${folder}/) done
+#for folder in ${sim_dir}/randomRun*; do (Rscript logiSim_covMx.R ${folder}/) done
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_50/randomRun1/"
 data_dir <- args[1]
@@ -62,9 +62,9 @@ if (prec) {
 # need to think of anohter way to get this mx
 reads <- rmvnorm(n = samples, mean = rep(0, times = params$numSpecies), sigma = covarMx)
 if (prec) {
-    saveRDS(covarMx, file = paste0(data_dir, "dumb_covar_mx_prec.Rdata"))
+    saveRDS(covarMx, file = paste0(data_dir, "logi_covar_mx_prec.Rdata"))
 } else {
-   saveRDS(covarMx, file = paste0(data_dir, "dumb_covar_mx.Rdata"))
+   saveRDS(covarMx, file = paste0(data_dir, "logi_covar_mx.Rdata"))
 }
 # truncate at 0
 reads <- reads * (reads > 0)
@@ -86,9 +86,9 @@ if (sim_covs) {
 }
 
 if (prec) {
-    fwrite(x = sitetab_abd, file = paste0(data_dir, "sitetab_abd_dumb_prec.csv"))
+    fwrite(x = sitetab_abd, file = paste0(data_dir, "sitetab_abd_logi_prec.csv"))
 } else {
-    fwrite(x = sitetab_abd, file = paste0(data_dir, "sitetab_abd_dumb.csv"))
+    fwrite(x = sitetab_abd, file = paste0(data_dir, "sitetab_abd_logi.csv"))
 }
 
 # truncate to presence absence 
@@ -102,7 +102,7 @@ if (sim_covs) {
 }
 
 if (prec) {
-    fwrite(x = sitetab, file = paste0(data_dir, "sitetab_dumb_prec.csv"))
+    fwrite(x = sitetab, file = paste0(data_dir, "sitetab_logi_prec.csv"))
 } else {
-    fwrite(x = sitetab, file = paste0(data_dir, "sitetab_dumb.csv"))
+    fwrite(x = sitetab, file = paste0(data_dir, "sitetab_logi.csv"))
 }

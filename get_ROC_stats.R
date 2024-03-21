@@ -8,11 +8,11 @@ cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
 numSamples <- 100
-dumb <- FALSE
+logi <- FALSE
 saveRes <- FALSE
 se_include <- TRUE
 
-dirName <- c("savio/multiSim_10sp_random")
+dirName <- c("multiSim_50sp")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -25,11 +25,11 @@ logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
 
-if (dumb) {
+if (logi) {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_cov_dumb_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                              paste0("logistic_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_dumb_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 } else {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
                               paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
@@ -51,11 +51,11 @@ if (dumb) {
 #inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paperSep_infResGathered_cutoff", x, ".csv")})
 
 inla_cutoffs <- c(0, 1, 0.0000001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, .3, .5)
-if (dumb) {
+if (logi) {
   inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_cov_dumb_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_cov_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
   inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_noCov_dumb_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_noCov_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
 } else {
   inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
                         paste0("INLA_res_paperSep_sampled", numSamples, "_cov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
@@ -68,27 +68,27 @@ if (dumb) {
 
 #inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_resnames_500 <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
-if(dumb) {
-  seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_dumb")
-  seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_dumb")
-  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_dumb")
+if(logi) {
+  seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_logi")
+  seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_logi")
+  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_logi")
 } else {
   seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb")
   seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso")
   seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc")
 }
 
-if (dumb) {
-  ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_dumb")
-  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov_dumb")
+if (logi) {
+  ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_logi")
+  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov_logi")
 } else {
   ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov")
   ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov")
 }
 
-if(dumb) {
-  inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_dumb_infResGathered_", numRuns, "sims.csv")
-  jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_dumb_", numRuns, "sims.csv")
+if(logi) {
+  inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_logi_infResGathered_", numRuns, "sims.csv")
+  jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_logi_", numRuns, "sims.csv")
 } else {
   inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_infResGathered_", numRuns, "sims.csv")
   jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_", numRuns, "sims.csv")
@@ -126,7 +126,7 @@ for (i in seq_along(resNames)) {
  #             inla_resnames_500)
 
 #logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
-#log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_dumb_cutoff", x, ".csv")})
+#log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_logi_cutoff", x, ".csv")})
 #resNames <- log_resnames
 
 file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", paste0("JAGS_infResGathered_sampled", numSamples, "_", numRuns, "sims.csv")))
@@ -458,8 +458,9 @@ if (!cluster) {
       se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
       params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
       actualAlpha <- params$alpha
-      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
-      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+      # direction of alpha
+      alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+      #alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
       # theta = true_interactions
       se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
       TPRs[, run] <- se.roc$tp
@@ -499,8 +500,9 @@ if (!cluster) {
       se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
       params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
       actualAlpha <- params$alpha
-      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
-      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+      # direction
+      alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+      #alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
       # theta = true_interactions
       se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
       TPRs[, run] <- se.roc$tp
@@ -612,8 +614,8 @@ if (saveRes) {
     }
   }
 
-  if (dumb) {
-    saveName <- paste0(saveName, "_dumb")
+  if (logi) {
+    saveName <- paste0(saveName, "_logi")
   }
 
 

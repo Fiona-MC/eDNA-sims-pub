@@ -48,7 +48,7 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
         indivSampleProb <- runif(n = 1, 0.001, 0.02)
         readSampleRate <- runif(n = 1, 0.5, 100)
         corr_mode <- sample(c("independent")) # this is the only one implemented thus far
-        numCovs <- sample(1:numSpecies, size = 1)
+        numCovs <- sample(3:numSpecies, size = 1)
 
         covVars <- list()
         for (i in 1:numCovs) {
@@ -87,7 +87,7 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
         }
 
         if (parmSet != "indep" && numSpecies == 3) {
-          alpha <- matrix(c(0, -1, 0, -1, 0, 0, 0, 0, 0), byrow = TRUE)
+          alpha <- matrix(c(0, -1, 0, -1, 0, 0, 0, 0, 0), nrow = numSpecies, ncol = numSpecies, byrow = TRUE)
         }
 
         if (parmSetCov == "indep") { # if the species are independent, there should be 0 interactions

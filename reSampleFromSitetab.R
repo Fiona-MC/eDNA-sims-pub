@@ -8,14 +8,14 @@ save_dir <- "/space/s1/fiona_callahan/multiSim_100sp_random/"
 numRuns <- 100
 
 resample <- TRUE # do you want to just copy the stuff or resample it?
-#nSamplesL <- c(50, 100, 500, 1000, 5000, 10000, 25000)
+nSamplesL <- c(50, 100, 500, 1000, 5000, 10000, 25000)
 #nSamplesL <- c(50, 100, 500, 1000)
-nSamplesL <- c(100)
-dumb <- FALSE
+#nSamplesL <- c(1000, 10000)
+logi <- FALSE
 
-if (dumb) {
-    full_sitetabName <- "sitetab_dumb.csv"
-    full_sitetabName_abd <- "sitetab_abd_dumb.csv"
+if (logi) {
+    full_sitetabName <- "sitetab_logi.csv"
+    full_sitetabName_abd <- "sitetab_abd_logi.csv"
 } else {
     full_sitetabName <- "sim_sitetab_sampled.csv"
     full_sitetabName_abd <- "sim_sitetab_readAbd_sampled.csv"
@@ -37,7 +37,7 @@ for (nSamples in nSamplesL) {
             sample <- sample(x = 1:dim(full_sitetab)[1], size = nSamples, replace = FALSE) # nolint: seq_linter.
             sitetab_reSampled <- full_sitetab[sample, ]
             sitetab_reSampled_abd <- full_sitetab_abd[sample, ]
-            if (dumb) {
+            if (logi) {
                 fwrite(sitetab_reSampled, file = paste0(save_subdir, "logiSim_sitetab_sampled", nSamples, ".csv"))
                 fwrite(sitetab_reSampled_abd, file = paste0(save_subdir, "logiSim_sitetab_readAbd_sampled", nSamples, ".csv"))
             } else {

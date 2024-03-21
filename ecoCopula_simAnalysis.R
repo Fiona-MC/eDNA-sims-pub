@@ -28,8 +28,8 @@ plot <- FALSE
 numTrials <- 1
 prec <- TRUE
 
-#sitetab <- read.csv(paste0(data_dir, "sitetab_dumb.csv"))
-#sitetab <- read.csv(paste0(data_dir, "sitetab_dumb_dir.csv"))
+#sitetab <- read.csv(paste0(data_dir, "sitetab_logi.csv"))
+#sitetab <- read.csv(paste0(data_dir, "sitetab_logi_dir.csv"))
 if (str_detect(sitetab_name, "readAbd")) {
   abundance <- TRUE
 } else {

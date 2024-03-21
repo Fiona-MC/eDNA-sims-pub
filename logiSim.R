@@ -15,8 +15,8 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript /home/fiona_callahan/eDNA_sims_code/dumbSim.R /space/s1/fiona_callahan/dumbSim3/ 1 100
-#thisdir<-"/space/s1/fiona_callahan/dumbSim/"
+# Rscript /home/fiona_callahan/eDNA_sims_code/logiSim.R /space/s1/fiona_callahan/logiSim3/ 1 100
+#thisdir<-"/space/s1/fiona_callahan/logiSim/"
 
 thisdir <- args[1]
 dir.create(thisdir)
@@ -46,7 +46,7 @@ for (run in runs) {
   locDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = TRUE))
   distMx <- as.matrix(dist(locDF, diag = TRUE, upper = TRUE))
   
-  #Run dumb sim
+  #Run logi sim
   ######################################################################
   sim_data <- list()
   for (t in 1:params$num_gens) {

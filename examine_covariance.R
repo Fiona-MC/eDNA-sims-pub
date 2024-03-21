@@ -127,28 +127,28 @@ ggplot(covarData, aes(x = time_splits, y = covariance)) +
         axis.title = element_text(size = 16)) 
 
 
-getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE) {
+getCovarData <- function(data_dirs, logi = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE) {
     plotData_all <- data.frame()
     for(data_dir in data_dirs) {
         params <- readRDS(paste0(data_dir, "params.Rdata"))
         # question: does pairwise covariance (between species) correlate to actual connections in the large networks
-        if (dumb) {
+        if (logi) {
             if (abd) {
-                sitetab_path <- paste0(data_dir, "sitetab_abd_dumb.csv")
+                sitetab_path <- paste0(data_dir, "sitetab_abd_logi.csv")
                 if (prec) {
-                    sitetab_path <- paste0(data_dir, "sitetab_abd_dumb_prec.csv")
+                    sitetab_path <- paste0(data_dir, "sitetab_abd_logi_prec.csv")
                 }
             } else {
-                sitetab_path <- paste0(data_dir, "sitetab_dumb.csv")
+                sitetab_path <- paste0(data_dir, "sitetab_logi.csv")
                 if (prec) {
-                    sitetab_path <- paste0(data_dir, "sitetab_dumb_prec.csv")
+                    sitetab_path <- paste0(data_dir, "sitetab_logi_prec.csv")
                 }
             }
         } else {
             sitetab_path <- paste0(data_dir, "sim_sitetab_sampled.csv")
         }
 
-        if (!dumb && abd) {
+        if (!logi && abd) {
             # what about if we are using abundances? vvv
             sitetab_path <- paste0(data_dir, "sim_sitetab_readAbd_sampled.csv")
         }
@@ -156,11 +156,11 @@ getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, clus
         sitetab <- read.csv(sitetab_path)
         print(sitetab_path)
 
-        if (dumb) {
+        if (logi) {
             if (prec) {
-                actual_covar_mx <- readRDS(paste0(data_dir, "dumb_covar_mx_prec.Rdata"))
+                actual_covar_mx <- readRDS(paste0(data_dir, "logi_covar_mx_prec.Rdata"))
             } else {
-                actual_covar_mx <- readRDS(paste0(data_dir, "dumb_covar_mx.Rdata"))
+                actual_covar_mx <- readRDS(paste0(data_dir, "logi_covar_mx.Rdata"))
             }
         }
 
@@ -238,7 +238,7 @@ getCovarData <- function(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, clus
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
 data_dirs <- sapply(X = 1:100, FUN = function(num) {paste0(data_dir, "randomRun", num, "/")})
-plotData <- getCovarData(data_dirs, dumb = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
+plotData <- getCovarData(data_dirs, logi = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
 # what if we do absolute value of covariance?
 #plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
 #                                            rep("negative", times = length(covar_neg_interact)), 

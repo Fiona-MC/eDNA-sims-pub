@@ -131,12 +131,12 @@ huge::huge.roc(se$est$path, graphNeg, verbose=FALSE)
 
 dirName <- c("multiSim_10sp")
 run <- 1
-dumb <- TRUE
+logi <- TRUE
 numSamples <- 1000
-if(dumb) {
-  seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_dumb")
-  seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_dumb")
-  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_dumb")
+if(logi) {
+  seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_logi")
+  seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_logi")
+  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_logi")
 } else {
   seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb")
   seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso")

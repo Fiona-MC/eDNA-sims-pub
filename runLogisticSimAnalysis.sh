@@ -7,20 +7,20 @@ sim_dir="/space/s1/fiona_callahan/savio/multiSim_10sp_random"
 numRuns=100
 covs=0
 numSamples=100
-dumb=0
+logi=0
 
 sim_dir=$1
 numRuns=$2
 covs=$3
 numSamples=$4
-dumb=$5
+logi=$5
 
 echo "Starting logistic"
 echo $sim_dir
 echo $numRuns
 echo $covs
 echo $numSamples
-echo dumb? $dumb
+echo logiSim? $logi
 
 if [ ${numSamples} == "None" ]
 then
@@ -38,16 +38,16 @@ else
 	outname=${outname}_noCov
 fi
 
-if [ ${dumb} == 1 ]
+if [ ${logi} == 1 ]
 then
 	sitetab=logiSim_sitetab_sampled${numSamples}.csv
-	outname=${outname}_dumb
+	outname=${outname}_logi
 fi
 
 outname=${outname}_${numRuns}runs
 
 echo ${outname}
 
-Rscript ./logisticFromSim_moreSp.R ${sim_dir}/ ${numRuns} ${covs} ${dumb} ${sitetab} ${outname}
+Rscript ./logisticFromSim_moreSp.R ${sim_dir}/ ${numRuns} ${covs} ${logi} ${sitetab} ${outname}
 
 echo "all done"

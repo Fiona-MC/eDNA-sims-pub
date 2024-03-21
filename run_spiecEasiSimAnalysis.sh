@@ -11,7 +11,7 @@ sim_dir=$1
 numRuns=$2
 seMethod=$3
 numSamples=$4
-dumb=$5
+logi=$5
 
 if [ ${numSamples} == "None" ]
 then
@@ -32,10 +32,10 @@ covs=0 # not a real option here
 
 resDirName=${resDirName}_${seMethod}
 
-if [ ${dumb} == 1 ]
+if [ ${logi} == 1 ]
 then
     sitetab_name=logiSim_sitetab_readAbd_sampled${numSamples}.csv
-    resDirName=${resDirName}_dumb
+    resDirName=${resDirName}_logi
 fi
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}

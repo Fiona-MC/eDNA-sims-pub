@@ -12,7 +12,7 @@ numRuns=$2
 covs=$3
 numSamples=$4
 readAbd=$5
-dumb=$6
+logi=$6
 
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
@@ -47,7 +47,7 @@ else
 	resDirName=${resDirName}_noCov
 fi
 
-if [ ${dumb} == 1 ]
+if [ ${logi} == 1 ]
 then
     if [ ${readAbd} == 1 ]
     then
@@ -55,7 +55,7 @@ then
     else 
         sitetab_name=logiSim_sitetab_sampled${numSamples}.csv
     fi
-    resDirName=${resDirName}_dumb
+    resDirName=${resDirName}_logi
 fi
 #INLA_type="faster"
 
