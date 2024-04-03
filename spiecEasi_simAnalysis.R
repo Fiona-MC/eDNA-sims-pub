@@ -25,7 +25,6 @@ sitetab_name <- args[5]
 #se.method <- "mb"
 dir.create(save_dir)
 
-
 # load data
 locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
@@ -34,8 +33,8 @@ params <- readRDS(paste0(data_dir, "params.Rdata"))
 sitetab_data <- read.csv(paste0(data_dir, sitetab_name))
 
 names_cov <- params$names_cov
-names_species <- params$names_species
-
+names_species <- names(sitetab_data)[grep("Sp", names(sitetab_data))]
+num_species <- length(names_species)
 
 for (trial in 1:numTrials) {
     subdir <- paste0(save_dir, "trial", trial, "/")
@@ -44,15 +43,15 @@ for (trial in 1:numTrials) {
     #data(amgut1.filt)
     #"Also, we should use a larger number of stars repetitions  for real data" (meaning >50)
     if (se.method == "mb") {
-        res <- spiec.easi(as.matrix(sitetab_data[, params$names_species]), method = 'mb', lambda.min.ratio = 1e-3,
+        res <- spiec.easi(as.matrix(sitetab_data[, names_species]), method = 'mb', lambda.min.ratio = 1e-3,
                             nlambda = 100, pulsar.params = list(rep.num = 500))
         res.graph <- getRefit(res)
     } else if (se.method == "glasso") {
-        res <- spiec.easi(as.matrix(sitetab_data[, params$names_species]), method = 'glasso', lambda.min.ratio = 1e-3,
+        res <- spiec.easi(as.matrix(sitetab_data[, names_species]), method = 'glasso', lambda.min.ratio = 1e-3,
                             nlambda = 100, pulsar.params = list(rep.num = 500))
         res.graph <- getRefit(res)
     } else if (se.method == "sparcc") {
-        res <- sparcc(as.matrix(sitetab_data[, params$names_species]))
+        res <- sparcc(as.matrix(sitetab_data[, names_species]))
         ## Define arbitrary threshold for SparCC correlation matrix for the graph
         res.graph <- abs(res$Cor) >= 0.3 #fiona edited
         diag(res.graph) <- 0
@@ -66,7 +65,7 @@ for (trial in 1:numTrials) {
     inferenceRes$alphaInferred <- as.matrix(res.graph)
     inferenceRes$betaInferred <- NA
     # put 0s on diagonal
-    inferenceRes$alphaInferred <- inferenceRes$alphaInferred * as.integer(diag(nrow = params$numSpecies, ncol = params$numSpecies) == 0)
+    inferenceRes$alphaInferred <- inferenceRes$alphaInferred * as.integer(diag(nrow = num_species, ncol = num_species) == 0)
 
     saveRDS(inferenceRes, paste0(subdir, "inferenceRes.Rdata"))
 }
