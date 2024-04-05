@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 library(igraph)
+library(stringr)
+
 # to run
 # Rscript countEcoCopulaMistakes.R /space/s1/fiona_callahan/multiSim_5sp_testing/randomRun1/ /space/s1/fiona_callahan/multiSim_5sp_testing/randomRun1/ecoCopula_res/
 
@@ -21,6 +23,10 @@ if (length(args) < 2) {
 #covs <- (as.numeric(0) == 1)
 #cutoff <- as.numeric(NA)
 
+data_dir="/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
+outdir="/space/s1/fiona_callahan/multiSim_10sp/randomRun1/spiecEasi_res_sampled1000_glasso_filtered100/"
+covs=0
+
 data_dir <- args[1]
 outdir <- args[2]
 covs <- (as.numeric(args[3]) == 1)
@@ -30,6 +36,11 @@ numRuns <- 1 # runs per folder (1 is correct)
 numTrials <- 1
 cluster <- FALSE #just controls cluster plotting
 
+if (str_detect(outdir, "filtered")) {
+    filtered <- TRUE
+} else {
+    filtered <- FALSE
+}
 
 runL <- rep(NA, times = numRuns * numTrials)
 trialL <- rep(NA, times = numRuns * numTrials)
@@ -70,11 +81,32 @@ for (run in 1:numRuns) {
         runL[i] <- run
         trialL[i] <- trial
 
-        simParms <- readRDS(paste0(data_dir, "/params.Rdata"))
-        actualAlpha <- sign(simParms$alpha)
+        if (filtered) {
+            simParms <- readRDS(paste0(data_dir, "/paramsFiltered.Rdata"))
+        } else {
+            simParms <- readRDS(paste0(data_dir, "/params.Rdata"))
+        }
+
+        if (filtered) {
+            names_species <- simParms$filteredSpNames
+        } else {
+            names_species <- simParms$names_species
+        }
+
+        numSpecies <- length(names_species)
+
+        if (filtered) {
+            actualAlpha <- simParms$filteredAlpha
+        } else {
+            actualAlpha <- sign(simParms$alpha)
+        }
 
         if (covs) {
-            actualBeta <- sign(simParms$beta)
+            if (filtered) {
+                actualBeta <- simParms$filteredBeta
+            } else {
+                actualBeta <- sign(simParms$beta)
+            }
             covTypes <- unlist(lapply(simParms$covVars, FUN = function(x) {return(x[["type"]])}))
             if (dim(actualBeta)[2] == length(covTypes)) {
                 actualBeta <- actualBeta[, covTypes != "constant"]
@@ -106,9 +138,9 @@ for (run in 1:numRuns) {
             try(if (sum(diag(inferredParms$alphaInferred)) != 0) {stop("Elements of inferred alpha diagonal are not 0")})
             alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
             inferredAlphaG <- graph_from_adjacency_matrix(inferredParms$alphaInferred != 0, mode = "max")
-            connected_alpha_actual <- (distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
+            connected_alpha_actual <- (distances(alphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
                                         (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
-            connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) != Inf) * 
+            connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
                                         (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
             # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
             num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1)
@@ -163,9 +195,9 @@ for (run in 1:numRuns) {
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
                 TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) + 
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0)) -
-                                    simParms$numSpecies # subtract diagonal
+                                    numSpecies # subtract diagonal
                 try(if (TP_cluster[i] + FP_cluster[i] + FN_cluster[i] + TN_cluster[i] != 
-                        (simParms$numSpecies^2 - simParms$numSpecies + simParms$numSpecies * (simParms$numCovs - 1))) 
+                        (numSpecies^2 - numSpecies + numSpecies * (simParms$numCovs - 1))) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx in cluster")})
 
             } else {
@@ -173,14 +205,14 @@ for (run in 1:numRuns) {
                 FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0)) 
                 FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1)) 
                 TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0)) -
-                                    simParms$numSpecies # subtract diagonal
-                try(if (TP_cluster[i] + FP_cluster[i] + FN_cluster[i] + TN_cluster[i] != simParms$numSpecies^2 - simParms$numSpecies) 
+                                    numSpecies # subtract diagonal
+                try(if (TP_cluster[i] + FP_cluster[i] + FN_cluster[i] + TN_cluster[i] != numSpecies^2 - numSpecies) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx in cluster")})
             }
 
             # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
-            undirected_alpha_actual <- distances(alphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
-            undirected_alpha_inferred <- distances(inferredAlphaG, v = 1:simParms$numSpecies, to = 1:simParms$numSpecies) == 1
+            undirected_alpha_actual <- distances(alphaG, v = 1:numSpecies, to = 1:numSpecies) == 1
+            undirected_alpha_inferred <- distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) == 1
 
             alpha_incorrect_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == -1) + 
                                             sum(undirected_alpha_actual == 0 & undirected_alpha_inferred != 0)
@@ -201,9 +233,9 @@ for (run in 1:numRuns) {
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1))
                 TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) + 
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0)) -
-                                    simParms$numSpecies # subtract diagonal
+                                    numSpecies # subtract diagonal
                 try(if (TN_ignoreSign[i] + FN_ignoreSign[i] + FP_ignoreSign[i] + TP_ignoreSign[i] != 
-                        (simParms$numSpecies^2 - simParms$numSpecies + simParms$numSpecies * (simParms$numCovs - 1))) 
+                        (numSpecies^2 - numSpecies + numSpecies * (simParms$numCovs - 1))) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx")})
 
             } else {
@@ -211,8 +243,8 @@ for (run in 1:numRuns) {
                 FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) 
                 FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1)) 
                 TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0)) -
-                                        simParms$numSpecies # subtract diagonal
-                try(if (TP_ignoreSign[i] + FP_ignoreSign[i] + FN_ignoreSign[i] + TN_ignoreSign[i] != simParms$numSpecies^2 - simParms$numSpecies) 
+                                        numSpecies # subtract diagonal
+                try(if (TP_ignoreSign[i] + FP_ignoreSign[i] + FN_ignoreSign[i] + TN_ignoreSign[i] != numSpecies^2 - numSpecies) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx")})
             }
 
@@ -231,9 +263,9 @@ for (run in 1:numRuns) {
                                     sum(betaInferred == 0 & actualBeta != 0)
                 TN_sign[i] <- sum(alphaInferred == 0 & actualAlpha == 0) + 
                                     sum(betaInferred == 0 & actualBeta == 0) -
-                                    simParms$numSpecies # subtract diagonal
+                                    numSpecies # subtract diagonal
                 try(if (TP_sign[i] + FP_sign[i] + FN_sign[i] + TN_sign[i] != 
-                        (simParms$numSpecies^2 - simParms$numSpecies + simParms$numSpecies * (simParms$numCovs - 1))) 
+                        (numSpecies^2 - numSpecies + numSpecies * (simParms$numCovs - 1))) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx")})
 
             } else {
@@ -243,8 +275,8 @@ for (run in 1:numRuns) {
                                 sum(alphaInferred == -1 & actualAlpha == 1) 
                 FN_sign[i] <- sum(alphaInferred == 0 & actualAlpha != 0)
                 TN_sign[i] <- sum(alphaInferred == 0 & actualAlpha == 0) -
-                                    simParms$numSpecies # subtract diagonal
-                try(if (TP_sign[i] + FP_sign[i] + FN_sign[i] + TN_sign[i] != simParms$numSpecies^2 - simParms$numSpecies) 
+                                    numSpecies # subtract diagonal
+                try(if (TP_sign[i] + FP_sign[i] + FN_sign[i] + TN_sign[i] != numSpecies^2 - numSpecies) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx")})
             }
 

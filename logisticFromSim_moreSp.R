@@ -12,8 +12,8 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
-
-data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
+# Rscript logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_10sp/ 100 0 0 sim_sitetab_sampled1000.csv logistic_mistakes_sampled1000_noCov_100runs
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 numRuns <- 100
 covs <- FALSE
 logi <- (as.numeric("1") == 0)
@@ -170,12 +170,14 @@ for (cutoff in cutoffs) {
                             covName <- paste0("Cov", covNum)
                             model_summary <- sp_glm_L[[speciesName]]
                             betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < cutoff) * sign(model_summary[covName, "Estimate"])
-                            if (actualBeta[spNum, covNum] == 0) {
-                                z.values_0 <- c(z.values_0, model_summary[covName, "z.value"])
-                            } else if (actualBeta[spNum, covNum] < 0) {
-                                z.values_neg <- c(z.values_neg, model_summary[covName, "z.value"])
-                            } else {
-                                z.values_pos <- c(z.values_pos, model_summary[covName, "z.value"])
+                            if (cutoff == 0) {
+                                if (actualBeta[spNum, covNum] == 0) {
+                                    z.values_0 <- c(z.values_0, model_summary[covName, "z.value"])
+                                } else if (actualBeta[spNum, covNum] < 0) {
+                                    z.values_neg <- c(z.values_neg, model_summary[covName, "z.value"])
+                                } else {
+                                    z.values_pos <- c(z.values_pos, model_summary[covName, "z.value"])
+                                }
                             }
                         }
                     }
@@ -196,12 +198,14 @@ for (cutoff in cutoffs) {
                         } else {
                             alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...z.."] < cutoff) * 
                                                             sign(model_summary[speciesName2, "Estimate"])
-                            if (actualAlpha[spNum1, spNum2] == 0) {
-                                z.values_0 <- c(z.values_0, model_summary[speciesName2, "z.value"])
-                            } else if (actualAlpha[spNum1, spNum2] < 0) {
-                                z.values_neg <- c(z.values_neg, model_summary[speciesName2, "z.value"])
-                            } else {
-                                z.values_pos <- c(z.values_pos, model_summary[speciesName2, "z.value"])
+                            if (cutoff == 0) {
+                                if (actualAlpha[spNum1, spNum2] == 0) {
+                                    z.values_0 <- c(z.values_0, model_summary[speciesName2, "z.value"])
+                                } else if (actualAlpha[spNum1, spNum2] < 0) {
+                                    z.values_neg <- c(z.values_neg, model_summary[speciesName2, "z.value"])
+                                } else {
+                                    z.values_pos <- c(z.values_pos, model_summary[speciesName2, "z.value"])
+                                }
                             }
                         }
                     }
@@ -393,7 +397,7 @@ for (cutoff in cutoffs) {
      
 }
 
-plotZvals <- FALSE
+plotZvals <- TRUE
 if (plotZvals) {
     library(ggplot2)
     z.values_0 <- z.values_0[!is.na(z.values_0)]
@@ -414,14 +418,16 @@ if (plotZvals) {
         y = "Density")
 
 
-    ggplot(z_vals_df, aes(x = zValues, fill = actual_beta, color = actual_beta)) +
+    plot1 <- ggplot(z_vals_df, aes(x = zValues, fill = actual_beta, color = actual_beta)) +
         geom_density(alpha = 0.5) +  # Add transparency for better visibility of overlapping densities
         coord_cartesian(xlim = c(-4, 4)) +  # Set x-axis limits
-        labs(title = "Density Plot of zValues for All Levels of actual_beta",
+        labs(title = paste0("Density Plot of zValues: ", outName),
             x = "zValues",
             y = "Density") +
         scale_fill_manual(values = rainbow(length(unique(z_vals_df$actual_beta)))) +  # Adjust colors
         scale_color_manual(values = rainbow(length(unique(z_vals_df$actual_beta)))) +  # Adjust colors
         theme_minimal()  # Optional: Change the theme
+    
+    ggsave(filename = paste0(data_dir, "zValsDistribution_", outName, "_", numRuns, "sims.png"), plot = plot1)
 
 }

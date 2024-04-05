@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-# ./run_spiecEasiSimAnalysis.sh /space/s1/fiona_callahan/multiSim_50sp 100 glasso
+# ./run_spiecEasiSimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 glasso 1000 0 1
 
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
@@ -12,6 +12,7 @@ numRuns=$2
 seMethod=$3
 numSamples=$4
 logi=$5
+filtered=$6 #100
 
 if [ ${numSamples} == "None" ]
 then
@@ -36,6 +37,12 @@ if [ ${logi} == 1 ]
 then
     sitetab_name=logiSim_sitetab_readAbd_sampled${numSamples}.csv
     resDirName=${resDirName}_logi
+fi
+
+if [ ${filtered} == 1 ]
+then
+    sitetab_name=sim_sitetab_readAbd_sampled${numSamples}_filtered100.csv
+    resDirName=${resDirName}_filtered100
 fi
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}

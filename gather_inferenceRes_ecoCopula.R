@@ -52,9 +52,10 @@ for (run in runs) {
         mistakes <- read.csv(mistakes_file, header = TRUE)
         if (file.exists(sitetabName)) {
             sim_sitetab_sampled <- read.csv(sitetabName, header = TRUE)
+            names_species <- names(sim_sitetab_sampled)[grep("Sp", names(sim_sitetab_sampled))]
             # get percent presence per species
             percent_presence <- list()
-            for(species in params$names_species) {
+            for(species in names_species) {
                 # get #presences/#totalDataPts
                 percent_presence[[paste0(species, "PercentPresence")]] <- sum(sim_sitetab_sampled[, species]) / length(sim_sitetab_sampled[, species])
             }

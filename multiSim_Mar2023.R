@@ -1,4 +1,4 @@
-#setwd("/home/fiona_callahan/simData/FALSE_POS/independent_FPR/")
+#setwd("/home/fiona_callahan/eDNA_sims_code")
 #library(Rlab)
 library(ggplot2)
 library(reshape)
@@ -29,11 +29,11 @@ burn <- 100
 
 spNumMode <- "many"
 #nSp <- 2
-nSp <- 10
+nSp <- 3
 readAbdMode <- TRUE
 saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
 
-#thisdir <- "/space/s1/fiona_callahan/multiSim_test/"
+#thisdir <- "/space/s1/fiona_callahan/multiSim_test2/"
 thisdir <- args[1]
 dir.create(thisdir)
 
@@ -89,6 +89,10 @@ for (run in runs) {
     }
   }
   inv_covar_mx <- solve(covar_matrix)
+
+  if (!(all(eigen(covar_matrix)$values >= 0))) {
+    stop("covariance matrix is not positive semidefinite (line 94 in multiSim_Mar2023.R)", call.=FALSE)
+  }
 
   #Initialize abundances with all 10's
   N0 <- list()

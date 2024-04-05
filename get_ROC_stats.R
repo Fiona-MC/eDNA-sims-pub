@@ -7,12 +7,13 @@ library(igraph)
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
-numSamples <- 100
+numSamples <- 1000
 logi <- FALSE
 saveRes <- FALSE
 se_include <- TRUE
+filtered <- TRUE
 
-dirName <- c("multiSim_50sp")
+dirName <- c("multiSim_10sp")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -25,11 +26,16 @@ logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
 
+# "/space/s1/fiona_callahan/multiSim_10sp/spiecEasi_res_sampled1000_glasso_filtered100_infResGathered_100sims.csv"
+
 if (logi) {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
                               paste0("logistic_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
                               paste0("logistic_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+} else if (filtered) {
+  log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
+                      paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_filtered100_cutoff", x, "_", numRuns, "sims.csv")})
 } else {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
                               paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
@@ -43,6 +49,7 @@ if (logi) {
   #                            paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, ".csv")})
   #}
 }
+
 #inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_cutoffs <- c(0, 0.0000000000001, 0.0000001, 0.00001, .3, .5, .7, .9, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
 #inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_infResGathered_cutoff", x, ".csv")})
@@ -105,6 +112,14 @@ resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"),
               log_resnames_cov,
               log_resnames_noCov,
               jags1)
+
+if (filtered) {
+  seName1 <- "spiecEasi_res_sampled1000_mb_filtered100"
+  seName2 <- "spiecEasi_res_sampled1000_glasso_filtered100"
+  resNames <- c(log_resnames_noCov, 
+              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"))
+}
 
 # check if runs exist
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
@@ -421,16 +436,24 @@ if(multiples) {
 if (!cluster) {
   # for spiec-easi, just put separate lines for a couple of individual sims rather than average
   for (run in sample(1:numRuns, size = 5)) {
-    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName1, "/trial1/")
+    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName2, "/trial1/")
     se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
-    params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
-    actualAlpha <- params$alpha 
+    if (filtered) {
+      params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/paramsFiltered.Rdata"))
+      actualAlpha <- params$filteredAlpha
+    } else {
+      params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
+      actualAlpha <- params$alpha
+    }
+
     alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
     # theta = true_interactions
-    se.roc <- huge::huge.roc(se$est$path, theta = 
-    G, verbose = FALSE)
+    se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
     avg_TPR <- c(avg_TPR, se.roc$tp)
     avg_FPR <- c(avg_FPR, se.roc$fp)
+
+    TPR_sd <- c(TPR_sd, rep(NA, times = length(se.roc$fp))) 
+    FPR_sd <- c(FPR_sd, rep(NA, times = length(se.roc$fp)))
 
     modelSelect <- c(modelSelect, rep(FALSE, times = length(se.roc$fp)))
     numSamplesL <- c(numSamplesL, rep(NA, times = length(se.roc$fp)))
@@ -456,11 +479,16 @@ if (!cluster) {
     subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName1, "/trial1/")
     if (file.exists(paste0(subdir, "se_rawRes.Rdata"))) {
       se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
-      params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
-      actualAlpha <- params$alpha
+      if (filtered) {
+        params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/paramsFiltered.Rdata"))
+        actualAlpha <- params$filteredAlpha
+      } else {
+        params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
+        actualAlpha <- params$alpha
+      }
       # direction of alpha
-      alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
-      #alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
       # theta = true_interactions
       se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
       TPRs[, run] <- se.roc$tp
@@ -495,14 +523,19 @@ if (!cluster) {
   TPRs <- matrix(nrow = 100, ncol = numRuns) # rows are lambda values, columns are runs
   FPRs <- matrix(nrow = 100, ncol = numRuns)
   for (run in 1:numRuns) {
+    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName2, "/trial1/")
     if (file.exists(paste0(subdir, "se_rawRes.Rdata"))) {
-      subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName2, "/trial1/")
       se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
-      params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
-      actualAlpha <- params$alpha
+      if (filtered) {
+        params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/paramsFiltered.Rdata"))
+        actualAlpha <- params$filteredAlpha
+      } else {
+        params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
+        actualAlpha <- params$alpha
+      }
       # direction
-      alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
-      #alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+      #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
       # theta = true_interactions
       se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
       TPRs[, run] <- se.roc$tp

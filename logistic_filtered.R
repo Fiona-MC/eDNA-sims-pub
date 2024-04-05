@@ -5,7 +5,7 @@ library(stats)
 library(igraph)
 library(stringr)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
 numRuns <- 100
 covs <- FALSE
 logi <- (as.numeric("1") == 0)
@@ -154,6 +154,10 @@ for (cutoff in cutoffs) {
 
                 actualAlpha <- sign(simParms$alpha)
                 actualAlpha <- actualAlpha[numeric_species, numeric_species]
+
+                #simParmsFiltered <- readRDS(paste0(data_dir, "randomRun", run, "/paramsFiltered.Rdata"))
+                #actualBeta <- simParmsFiltered$filteredBeta
+                #actualAlpha <- simParmsFiltered$filteredAlpha
 
                 ############### GET INFERRED ALPHA AND BETA ######################
                 betaInferred <- matrix(NA, nrow = numSpecies, ncol = (simParms$numCovs - 1))
