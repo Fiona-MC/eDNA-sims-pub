@@ -11,6 +11,7 @@ if (length(args) < 2) {
 
 data_dir <- args[1]
 save_dir <- args[2]
+filtered <- as.numeric(args[3]) == 1
 
 modelParmsL <- c("none", "cov", "sp", "spCov")
 numTrials <- 1
@@ -28,8 +29,13 @@ for (trial in 1:numTrials) {
     # CPO 
     modelcands <- names(sim_lists)
 
-    params <- readRDS(paste0(data_dir, "params.Rdata"))
-    names_species <- params$names_species
+    if (filtered) {
+        params <- readRDS(paste0(data_dir, "paramsFiltered.Rdata"))
+        names_species <- params$filteredSpNames
+    } else {
+        params <- readRDS(paste0(data_dir, "params.Rdata"))
+        names_species <- params$names_species
+    }
     names_cov <- params$names_cov
     
     cpotab <- sapply(names_species, function(response) {

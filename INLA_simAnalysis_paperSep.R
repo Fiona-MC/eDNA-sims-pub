@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # to run
-# Rscript INLA_simAnalysis_paperSep.R /space/s1/fiona_callahan/multiSim_rw3/randomRun1/ /space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/
+# Rscript INLA_simAnalysis_paperSep.R /space/s1/fiona_callahan/multiSim_10sp/randomRun1/ /space/s1/fiona_callahan/multiSim_rw3/randomRun1/INLAres/
 
 # NOTE this is the original unedited version!!!
 source("./Arctic_eDNA_2021/script/INLA_ST_functions.R")
@@ -23,7 +23,7 @@ save_dir <- args[2]
 #dir.create(save_dir)
 sitetabName <- args[3]
 modelParms <- args[4] # "none" "cov" "sp" "spCov"
-
+filtered <- as.numeric(args[5]) == 1
 
 plot <- FALSE
 proj <- FALSE
@@ -32,12 +32,18 @@ numTrials <- 1
 # load data
 # sim_data_raw <- readRDS(paste0(data_dir, "sim_data.Rdata"))
 sitetab <- read.csv(paste0(data_dir, sitetabName))
-#locList <- readRDS(paste0(data_dir, "locList.Rdata"))
-params <- readRDS(paste0(data_dir, "params.Rdata"))
 
-
-names_cov <- params$names_cov
-names_species <- params$names_species
+if (filtered) {
+  #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
+  params <- readRDS(paste0(data_dir, "paramsFiltered.Rdata"))
+  names_cov <- params$names_cov
+  names_species <- params$filteredSpNames
+} else {
+  #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
+  params <- readRDS(paste0(data_dir, "params.Rdata"))
+  names_cov <- params$names_cov
+  names_species <- params$names_species
+}
 
 # run analysis three times on the same data
 for (trial in 1:numTrials){

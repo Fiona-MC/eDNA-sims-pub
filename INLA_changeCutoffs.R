@@ -21,10 +21,19 @@ save_dir <- args[3]
 res_dir <- args[4]
 ROC_mode <- args[5] #"noModelSelect" or "modelSelect"
 cov <- (as.numeric(args[6]) == 1)
+filtered <- (as.numeric(args[7]) == 1)
 
 trial <- 1
 subdir <- paste0(res_dir, "trial", trial, "/")
-params <- readRDS(paste0(sim_dir, "params.Rdata"))
+
+if (filtered) {
+    params <- readRDS(paste0(sim_dir, "paramsFiltered.Rdata"))
+    names_species <- params$filteredSpNames
+} else {
+    params <- readRDS(paste0(sim_dir, "params.Rdata"))
+    names_species <- params$names_species
+}
+names_cov <- params$names_cov
 
 modelParmsL <- c("none", "cov", "sp", "spCov")
 
@@ -35,9 +44,6 @@ for (modelParms in modelParmsL) {
 }
 
 modelcands <- names(sim_lists)
-
-names_species <- params$names_species
-names_cov <- params$names_cov
 
 # waic
 if (length(modelcands) > 1) {

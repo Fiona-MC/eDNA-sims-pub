@@ -13,7 +13,7 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 # Rscript logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_10sp/ 100 0 0 sim_sitetab_sampled1000.csv logistic_mistakes_sampled1000_noCov_100runs
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
 numRuns <- 100
 covs <- FALSE
 logi <- (as.numeric("1") == 0)
@@ -37,8 +37,8 @@ numTrials <- 1
 trials <- 1:1
 
 cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1)
-#cutoffs <- c(1e-128)
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 1.01)
+#cutoffs <- c(1)
 
 runL <- rep(NA, times = numRuns * numTrials)
 trialL <- rep(NA, times = numRuns * numTrials)
