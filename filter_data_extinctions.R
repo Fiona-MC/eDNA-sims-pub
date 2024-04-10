@@ -6,7 +6,7 @@ library(stringr)
 #save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
 sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 numRuns <- 100
-nSamples <- 1000
+nSamples <- 100
 
 # number of samples where species must be present
 presenceCutoff <- 0.1 * nSamples
@@ -53,17 +53,17 @@ for (run in 1:numRuns) {
     actualAlpha <- sign(params$alpha)
     params$filteredAlpha <- actualAlpha[numeric_species, numeric_species]
 
-    saveRDS(params, file = paste0(sim_subdir, "paramsFiltered.Rdata"))
+    saveRDS(params, file = paste0(sim_subdir, "paramsFiltered", numSamples, ".Rdata"))
     
     #print(sum(criteria1))
     #print(sum(criteria2))
     #print("")
 
     if (logi) {
-        fwrite(sitetab_reSampled, file = paste0(sim_subdir, "logiSim_sitetab_sampled", nSamples, "_filtered", presenceCutoff, ".csv"))
-        fwrite(sitetab_reSampled_abd, file = paste0(sim_subdir, "logiSim_sitetab_readAbd_sampled", nSamples, "_filtered", presenceCutoff, ".csv"))
+        fwrite(sitetab_reSampled, file = paste0(sim_subdir, "logiSim_sitetab_sampled", nSamples, "_filtered.csv"))
+        fwrite(sitetab_reSampled_abd, file = paste0(sim_subdir, "logiSim_sitetab_readAbd_sampled", nSamples, "_filtered.csv"))
     } else {
-        fwrite(sitetab_reSampled, file = paste0(sim_subdir, "sim_sitetab_sampled", nSamples, "_filtered", presenceCutoff, ".csv"))
-        fwrite(sitetab_reSampled_abd, file = paste0(sim_subdir, "sim_sitetab_readAbd_sampled", nSamples, "_filtered", presenceCutoff, ".csv"))
+        fwrite(sitetab_reSampled, file = paste0(sim_subdir, "sim_sitetab_sampled", nSamples, "_filtered.csv"))
+        fwrite(sitetab_reSampled_abd, file = paste0(sim_subdir, "sim_sitetab_readAbd_sampled", nSamples, "_filtered.csv"))
     }
 }

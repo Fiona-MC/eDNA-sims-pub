@@ -5,12 +5,12 @@ library(stats)
 library(igraph)
 library(stringr)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 numRuns <- 100
 covs <- FALSE
 logi <- (as.numeric("1") == 0)
-sitetab_name <- "sim_sitetab_sampled1000_filtered100.csv"
-outName <- "logistic_mistakes_sampled1000_noCov_100runs_filtered100"
+sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
+outName <- "logistic_mistakes_sampled100_noCov_100runs_filtered"
 #sitetab_name <- "sim_sitetab_sampled1000.csv"
 #outName <- "logistic_mistakes_sampled1000_noCov_100runs"
 
@@ -179,7 +179,7 @@ for (cutoff in cutoffs) {
                             }
                         }
                     }
-                    if(!is.na(sum(betaInferred)) && !randomSim) {
+                    if(!is.na(sum(betaInferred)) && !randomSim && !filtered) {
                         avg_betInferred <- avg_betInferred + betaInferred
                         nCompleteB <- nCompleteB + 1
                     }   

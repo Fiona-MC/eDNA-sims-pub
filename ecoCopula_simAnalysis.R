@@ -44,8 +44,9 @@ if (scramble == TRUE) {
 }
 
 names_cov <- params$names_cov
-names_species <- params$names_species
 
+names_species <- names(sitetab)[grep("Sp", names(sitetab))]
+numSpecies <- length(names_species)
 
 
 for (trial in 1:numTrials) {
@@ -91,7 +92,7 @@ for (trial in 1:numTrials) {
   inferenceRes$alphaInferred <- sign(inferred_mx)
   inferenceRes$betaInferred <- NA
   # put 0s on diagonal
-  inferenceRes$alphaInferred <- inferenceRes$alphaInferred * as.integer(diag(nrow = params$numSpecies, ncol = params$numSpecies) == 0)
+  inferenceRes$alphaInferred <- inferenceRes$alphaInferred * as.integer(diag(nrow = numSpecies, ncol = numSpecies) == 0)
 
   saveRDS(inferenceRes, paste0(subdir, "inferenceRes.Rdata"))
 }

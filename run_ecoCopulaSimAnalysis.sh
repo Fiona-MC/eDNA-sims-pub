@@ -13,6 +13,7 @@ covs=$3
 numSamples=$4
 readAbd=$5
 logi=$6
+filtered=$7
 
 numTrials=1 # I think as this is implemented right now this needs to be 1
 scramble=0
@@ -57,6 +58,13 @@ then
     fi
     resDirName=${resDirName}_logi
 fi
+
+if [ ${filtered} == 1 ]
+then
+sitetab_name=sim_sitetab_sampled${numSamples}_filtered.csv
+resDirName=${resDirName}_filtered
+fi
+
 #INLA_type="faster"
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}

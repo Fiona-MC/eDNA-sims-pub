@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 ${numSamples} 1
+#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp_random 100 100 1
 #./runINLAsimAnalysis.sh /global/scratch/users/fionacallahan/multiSim_10sp 100 ${numSamples}
 
 sim_dir=$1
@@ -43,7 +43,7 @@ ROC_mode="noModelSelect" # this will mean there is no WAIC selection for the one
 
 if [ ${filtered} == 1 ]
 then
-    sitetab=sim_sitetab_sampled${numSamples}_filtered100.csv
+    sitetab=sim_sitetab_sampled${numSamples}_filtered.csv
     resDirName=${resDirName}_filtered
 fi
 #INLA_type="faster"

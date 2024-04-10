@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-# ./run_spiecEasiSimAnalysis.sh /space/s1/fiona_callahan/multiSim_50sp 100 glasso 1000 0 1
+# ./run_spiecEasiSimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 10 glasso 100 0 1
 
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
@@ -41,8 +41,8 @@ fi
 
 if [ ${filtered} == 1 ]
 then
-    sitetab_name=sim_sitetab_readAbd_sampled${numSamples}_filtered100.csv
-    resDirName=${resDirName}_filtered100
+    sitetab_name=sim_sitetab_readAbd_sampled${numSamples}_filtered.csv
+    resDirName=${resDirName}_filtered
 fi
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
@@ -100,3 +100,4 @@ wait
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
 
 echo "all done"
+

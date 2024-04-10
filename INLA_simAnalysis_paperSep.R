@@ -35,9 +35,8 @@ sitetab <- read.csv(paste0(data_dir, sitetabName))
 
 if (filtered) {
   #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
-  params <- readRDS(paste0(data_dir, "paramsFiltered.Rdata"))
-  names_cov <- params$names_cov
-  names_species <- params$filteredSpNames
+  names_cov <- names(sitetab)[grep("Cov", names(sitetab))]
+  names_species <- names(sitetab)[grep("Sp", names(sitetab))]
 } else {
   #locList <- readRDS(paste0(data_dir, "locList.Rdata"))
   params <- readRDS(paste0(data_dir, "params.Rdata"))

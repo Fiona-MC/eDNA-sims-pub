@@ -42,6 +42,8 @@ if (str_detect(outdir, "filtered")) {
     filtered <- FALSE
 }
 
+numSamples <-  str_extract(outdir, "(?<=sampled)\\d+")
+
 runL <- rep(NA, times = numRuns * numTrials)
 trialL <- rep(NA, times = numRuns * numTrials)
 num_correctInferencesL <- rep(NA, times = numRuns * numTrials) # true pos
@@ -82,7 +84,7 @@ for (run in 1:numRuns) {
         trialL[i] <- trial
 
         if (filtered) {
-            simParms <- readRDS(paste0(data_dir, "/paramsFiltered.Rdata"))
+            simParms <- readRDS(paste0(data_dir, "/paramsFiltered", numSamples ,".Rdata"))
         } else {
             simParms <- readRDS(paste0(data_dir, "/params.Rdata"))
         }
