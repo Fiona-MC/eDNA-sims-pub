@@ -1,12 +1,13 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./run_INLA_oneRun.sh /space/s1/fiona_callahan/multiSim_10sp_random ${runNum} 100
+#./run_INLA_oneRun.sh /space/s1/fiona_callahan/multiSim_10sp_random ${runNum} 100 0
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 runNum=$2
 numSamples=$3
+filtered=$4
 
 echo "Starting INLA"
 echo $sim_dir
@@ -35,6 +36,12 @@ else
 	sitetab=sim_sitetab_sampled${numSamples}.csv
 fi
 
+if [ ${filtered} == 1 ]
+then
+    sitetab=sim_sitetab_sampled${numSamples}_filtered.csv
+    resDirName=${resDirName}_filtered
+fi
+
 ROC_mode="noModelSelect" # this will mean there is no WAIC selection for the ones where the cutoff changes
 
 folder=(${sim_dir}/randomRun${runNum})
@@ -44,9 +51,9 @@ mkdir "$folder/$resDirName/"
 for modelParms in none cov sp spCov; do
     # run INLA sim analysis
     echo $modelParms
-    timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
+    timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms} ${filtered}
 done
-Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/
+Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/ ${filtered}
 #./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
 Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 1
 
@@ -54,12 +61,12 @@ for cutoff in 0 1 0.0000000000001 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 
 do
     saveDirName=${resDirName}_cov
     mkdir "$folder/$saveDirName/"
-    Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1
+    Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1 ${filtered}
     Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 1 ${cutoff}
 
     saveDirName=${resDirName}_noCov
     mkdir "$folder/$saveDirName/"
-    Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 0
+    Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 0 ${filtered}
     Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
 done
 
