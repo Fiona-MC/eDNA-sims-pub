@@ -15,6 +15,7 @@ echo "Starting INLA"
 echo $sim_dir
 echo $numRuns
 echo $numSamples
+echo "filtered=" $filtered
 
 
 numTrials=1
@@ -99,6 +100,11 @@ for folder in ${folderNames[@]}; do
                 mkdir "$folder/$saveDirName/"
                 Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 0 ${filtered}
                 Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
+
+                saveDirName=${resDirName}_covNoCount
+                mkdir "$folder/$saveDirName/"
+                Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1 ${filtered}
+                Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
             done
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
        #fi
@@ -124,6 +130,9 @@ saveDirName=${resDirName}_cov
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
 
 saveDirName=${resDirName}_noCov
+Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
+
+saveDirName=${resDirName}_covNoCount
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
 done
 

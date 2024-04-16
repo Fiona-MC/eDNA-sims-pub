@@ -7,10 +7,10 @@ args <- commandArgs(trailingOnly = TRUE)
 # Rscript logiSim_covMx.R /space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/
 
 # bash code to do this for all subfolders within this folder
-#sim_dir="/space/s1/fiona_callahan/multiSim_50sp"
+#sim_dir="/space/s1/fiona_callahan/multiSim_10sp"
 #for folder in ${sim_dir}/randomRun*; do (Rscript logiSim_covMx.R ${folder}/) done
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_50/randomRun1/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
 data_dir <- args[1]
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 
@@ -19,7 +19,7 @@ prec <- FALSE
 sim_covs <- TRUE
 
 # simulate reads from covariance matrix
-samples <- params$num_samples_time * params$num_samples_space
+samples <- 25000
 
 sigma <- 1 # variance of read counts [per species]
 rho <- 0.25 # covariance of species with interaction 

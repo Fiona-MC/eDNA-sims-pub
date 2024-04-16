@@ -5,12 +5,21 @@ library(stats)
 library(igraph)
 library(stringr)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+args <- commandArgs(trailingOnly = TRUE)
+
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples/"
 numRuns <- 100
-covs <- FALSE
-logi <- (as.numeric("1") == 0)
-sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
-outName <- "logistic_mistakes_sampled100_noCov_100runs_filtered"
+covs <- (as.numeric("0") == 1)
+logi <- (as.numeric("0") == 1)
+sitetab_name <- "sim_sitetab_sampled10000_filtered.csv"
+outName <- "logistic_mistakes_sampled10000_noCov_filtered_100runs"
+
+data_dir <- args[1]
+numRuns <- as.numeric(args[2])
+covs <- (as.numeric(args[3]) == 1)
+logi <- (as.numeric(args[4]) == 1)
+sitetab_name <- args[5]
+outName <- args[6]
 #sitetab_name <- "sim_sitetab_sampled1000.csv"
 #outName <- "logistic_mistakes_sampled1000_noCov_100runs"
 
@@ -62,6 +71,8 @@ logisticRes <- list()
 for (run in runs) {
     for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
         if (file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
+            #print("run")
+            #print(run)
             # LOAD ACTUAL PARAMS 
             simParms <- readRDS(paste0(data_dir, "randomRun", run, "/params.Rdata"))
 
@@ -72,6 +83,7 @@ for (run in runs) {
             sp_glm_L <- list()
             speciesNames <- names(sim_sitetab_sampled)[grep("Sp", names(sim_sitetab_sampled))]
             numSpecies <- length(speciesNames)
+            #print(numSpecies)
             for (speciesName in speciesNames) {
                 if (covs) {
                     # glm

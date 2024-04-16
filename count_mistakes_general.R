@@ -24,8 +24,9 @@ if (length(args) < 2) {
 #cutoff <- as.numeric(NA)
 
 data_dir="/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
-outdir="/space/s1/fiona_callahan/multiSim_10sp/randomRun1/spiecEasi_res_sampled1000_glasso_filtered100/"
-covs=0
+outdir="/space/s1/fiona_callahan/multiSim_10sp/randomRun1/INLA_res_paperSep_sampled100_filtered_covNoCount/"
+covs=FALSE
+cutoff=0
 
 data_dir <- args[1]
 outdir <- args[2]
@@ -84,9 +85,9 @@ for (run in 1:numRuns) {
         trialL[i] <- trial
 
         if (filtered) {
-            simParms <- readRDS(paste0(data_dir, "/paramsFiltered", numSamples ,".Rdata"))
+            simParms <- readRDS(paste0(data_dir, "paramsFiltered", numSamples, ".Rdata"))
         } else {
-            simParms <- readRDS(paste0(data_dir, "/params.Rdata"))
+            simParms <- readRDS(paste0(data_dir, "params.Rdata"))
         }
 
         if (filtered) {
@@ -143,7 +144,7 @@ for (run in 1:numRuns) {
             connected_alpha_actual <- (distances(alphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
                                         (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
             connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
-                                        (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
+            #                            (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
             # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
             num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1)
             if (covs) {

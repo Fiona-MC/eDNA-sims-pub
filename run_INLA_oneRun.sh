@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./run_INLA_oneRun.sh /space/s1/fiona_callahan/multiSim_10sp_random ${runNum} 100 0
+#./run_INLA_oneRun.sh /space/s1/fiona_callahan/multiSim_10sp ${runNum} 100 1
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
@@ -51,7 +51,7 @@ mkdir "$folder/$resDirName/"
 for modelParms in none cov sp spCov; do
     # run INLA sim analysis
     echo $modelParms
-    timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms} ${filtered}
+    #timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms} ${filtered}
 done
 Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/ ${filtered}
 #./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
@@ -67,6 +67,11 @@ do
     saveDirName=${resDirName}_noCov
     mkdir "$folder/$saveDirName/"
     Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 0 ${filtered}
+    Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
+
+    saveDirName=${resDirName}_covNoCount
+    mkdir "$folder/$saveDirName/"
+    Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1 ${filtered}
     Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
 done
 

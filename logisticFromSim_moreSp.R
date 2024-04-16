@@ -16,7 +16,7 @@ if (length(args) < 2) {
 data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
 numRuns <- 100
 covs <- FALSE
-logi <- (as.numeric("1") == 0)
+logi <- (as.numeric("0") == 1)
 sitetab_name <- "sim_sitetab_sampled1000.csv"
 outName <- "logistic_mistakes_sampled1000_noCov_100runs"
 

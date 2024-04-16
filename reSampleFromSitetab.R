@@ -5,7 +5,7 @@ library(data.table)
 #save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
 sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples/"
 save_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples/"
-numRuns <- 10
+numRuns <- 100
 
 resample <- TRUE # do you want to just copy the stuff or resample it?
 nSamplesL <- c(50, 100, 500, 1000, 5000, 10000, 25000)
