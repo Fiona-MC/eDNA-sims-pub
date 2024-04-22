@@ -3,4 +3,6 @@ screenlog*
 
 ./Arctic_eDNA_2021
 
+./run_INLA_oneRun.sh
+
 Rplots.pdf
