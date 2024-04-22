@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp_random 100 100 1
+#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp_random_moreSamples 100 100 1
 #./runINLAsimAnalysis.sh /global/scratch/users/fionacallahan/multiSim_10sp 100 ${numSamples}
 
 sim_dir=$1
@@ -81,7 +81,7 @@ for folder in ${folderNames[@]}; do
             for modelParms in none cov sp spCov; do
                 # run INLA sim analysis
                 echo $modelParms
-                timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms} ${filtered}
+                #timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms} ${filtered}
             done
             Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/ ${filtered}
             #./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}

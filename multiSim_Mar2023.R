@@ -19,9 +19,9 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_100sp_random_moreSamples/ 1 100
+# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_50sp_testing/ 1 10
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
-random <- TRUE
+random <- FALSE
 #parmSet <- "indep" # indep means that all alphas will be 0
 parmSet <- 1 # this is default
 # amount of generations to prime the sim before starting to record -- (not implemented TODO)
@@ -29,7 +29,7 @@ burn <- 100
 
 spNumMode <- "many"
 #nSp <- 2
-nSp <- 100
+nSp <- 50
 readAbdMode <- TRUE
 saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
 
@@ -40,7 +40,8 @@ dir.create(thisdir)
 runstart <- args[2]
 runend <- args[3]
 runs <- runstart:runend
-#runs <- c(26,32,35,37,43,44,57,64,99)
+#runs <- c(5,6,10,18,23,32,33,38,46,47,64,80,91,99)
+#runs <- c(5,6,22,38,59,81)
 #runs <- c(30,35,43)
 # controls whether sim_sitetab_longer.csv is created with all time points or just the sampled table
 longer <- FALSE 

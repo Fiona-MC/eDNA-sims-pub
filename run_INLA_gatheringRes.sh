@@ -1,14 +1,15 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./run_INLA_gatheringRes.sh /space/s1/fiona_callahan/multiSim_10sp 100 10000 1
+#./run_INLA_gatheringRes.sh /space/s1/fiona_callahan/multiSim_10sp_random_moreSamples 100 10000 0 1
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/savio/multiSim_10sp_random"
 #numRuns=100
 numRuns=$2
 numSamples=$3
-filtered=$4
+logi=$4
+filtered=$5
 
 echo "Starting INLA"
 echo $sim_dir
@@ -42,6 +43,12 @@ if [ ${filtered} == 1 ]
 then
     sitetab=sim_sitetab_sampled${numSamples}_filtered.csv
     resDirName=${resDirName}_filtered
+fi
+
+if [ ${logi} == 1 ]
+then
+    sitetab=logiSim_sitetab_sampled${numSamples}.csv
+    resDirName=${resDirName}_logi
 fi
 
 ROC_mode="noModelSelect" # this will mean there is no WAIC selection for the ones where the cutoff changes

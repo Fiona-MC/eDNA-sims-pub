@@ -7,23 +7,25 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
 numRuns <- 100
-covs <- (as.numeric("0") == 1)
+covs <- (as.numeric("1") == 1)
 logi <- (as.numeric("0") == 1)
 sitetab_name <- "sim_sitetab_sampled10000_filtered.csv"
-outName <- "logistic_mistakes_sampled10000_noCov_filtered_100runs"
+outName <- "logistic_mistakes_sampled10000_covNoCount_filtered_100runs"
+countCovs <- FALSE
 
-data_dir <- args[1]
-numRuns <- as.numeric(args[2])
-covs <- (as.numeric(args[3]) == 1)
-logi <- (as.numeric(args[4]) == 1)
-sitetab_name <- args[5]
-outName <- args[6]
+#data_dir <- args[1]
+#numRuns <- as.numeric(args[2])
+#covs <- (as.numeric(args[3]) == 1)
+#logi <- (as.numeric(args[4]) == 1)
+#sitetab_name <- args[5]
+#outName <- args[6]
 #sitetab_name <- "sim_sitetab_sampled1000.csv"
 #outName <- "logistic_mistakes_sampled1000_noCov_100runs"
 
 randomSim <- str_detect(data_dir, "random")
+
 
 # to run
 # Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000
@@ -173,7 +175,7 @@ for (cutoff in cutoffs) {
 
                 ############### GET INFERRED ALPHA AND BETA ######################
                 betaInferred <- matrix(NA, nrow = numSpecies, ncol = (simParms$numCovs - 1))
-                if (covs) {
+                if (countCovs && covs) {
                     for (spNum in 1:numSpecies) {
                         for (covNum in 1:(simParms$numCovs - 1)) {
                             speciesName <- speciesNames[spNum]
@@ -236,7 +238,7 @@ for (cutoff in cutoffs) {
                                             (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
                 # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
                 num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1, na.rm = TRUE)
-                if (covs) {
+                if (countCovs && covs) {
                     num_correct_beta <- sum(inferredParms$betaInferred * actualBeta == 1, na.rm = TRUE)
                     num_correct <- num_correct_alpha + num_correct_beta
                 } else {
@@ -251,7 +253,7 @@ for (cutoff in cutoffs) {
                                                 sum(actualAlpha == 0 & inferredParms$alphaInferred != 0, na.rm = TRUE)
                 alpha_direction_mistakes <- sum(inferredParms$alphaInferred * actualAlpha == -1, na.rm = TRUE)
 
-                if (covs) {
+                if (countCovs && covs) {
                     count_incorrectT1_beta <- sum(inferredParms$betaInferred * actualBeta == -1, na.rm = TRUE) + 
                                                 sum(actualBeta == 0 & inferredParms$betaInferred != 0, na.rm = TRUE)
                     count_incorrectT1 <- count_incorrectT1_beta + count_incorrectT1_alpha
@@ -262,7 +264,7 @@ for (cutoff in cutoffs) {
                 count_incorrect_cluster <- sum(connected_alpha_inferred * connected_alpha_actual == -1, na.rm = TRUE) + 
                                                 sum(connected_alpha_actual == 0 & connected_alpha_inferred != 0, na.rm = TRUE)
 
-                if (covs) {
+                if (countCovs && covs) {
                 TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1, na.rm = TRUE) + 
                                     sum(abs(betaInferred) * abs(actualBeta) == 1, na.rm = TRUE)
                 FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) + 
@@ -282,11 +284,11 @@ for (cutoff in cutoffs) {
                 # count missed effects (number of times that actual effect is 1 or -1 and inferred effect is 0)
                 num_missedEffects_alpha <- sum(actualAlpha != 0 & inferredParms$alphaInferred == 0, na.rm = TRUE)
 
-                if (covs) {
+                if (countCovs && covs) {
                     num_missedEffects_beta <- sum(actualBeta != 0 & inferredParms$betaInferred == 0, na.rm = TRUE)
                 }
 
-                if (covs) {
+                if (countCovs && covs) {
                     num_missedEffects <- num_missedEffects_alpha + num_missedEffects_beta
                 } else {
                     num_missedEffects <- num_missedEffects_alpha 
@@ -303,12 +305,12 @@ for (cutoff in cutoffs) {
                 alpha_correct_undirected <- sum(undirected_alpha_inferred * undirected_alpha_actual == 1, na.rm = TRUE)
 
                 # add to running lists
-                if (covs) {
+                if (countCovs && covs) {
                     num_incorrect_betaL[i] <- count_incorrectT1_beta
                     num_missedEffects_betaL[i] <- num_missedEffects_beta
                 } 
 
-                if (covs) {
+                if (countCovs && covs) {
                     TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1, na.rm = TRUE) + 
                                         sum(abs(betaInferred) * abs(actualBeta) == 1, na.rm = TRUE)
                     FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0), na.rm = TRUE) + 
@@ -408,7 +410,7 @@ if (plotZvals) {
 
     plot1 <- ggplot(z_vals_df, aes(x = zValues, fill = actual_beta, color = actual_beta)) +
         geom_density(alpha = 0.5) +  # Add transparency for better visibility of overlapping densities
-        coord_cartesian(xlim = c(-4, 4)) +  # Set x-axis limits
+        #coord_cartesian(xlim = c(-1, 1)) +  # Set x-axis limits
         labs(title = paste0("Density Plot of zValues: ", outName),
             x = "zValues",
             y = "Density") +

@@ -4,9 +4,9 @@ library(stringr)
 
 #sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 #save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
-sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples/"
-numRuns <- 100
-nSamplesL <- c(100, 1000, 10000)
+sim_dir <- "/space/s1/fiona_callahan/multiSim_50sp_testing/"
+numRuns <- 10
+nSamplesL <- c(100, 10000)
 
 # number of samples where species must be present
 #nSamplesL <- c(50, 100, 500, 1000)
@@ -53,8 +53,11 @@ for (nSamples in nSamplesL) {
         actualAlpha <- sign(params$alpha)
         params$filteredAlpha <- actualAlpha[numeric_species, numeric_species]
 
-        saveRDS(params, file = paste0(sim_subdir, "paramsFiltered", nSamples, ".Rdata"))
-        
+        if (logi) {
+            saveRDS(params, file = paste0(sim_subdir, "logi_paramsFiltered", nSamples, ".Rdata"))
+        } else {
+            saveRDS(params, file = paste0(sim_subdir, "paramsFiltered", nSamples, ".Rdata"))
+        }
         #print(sum(criteria1))
         #print(sum(criteria2))
         #print("")

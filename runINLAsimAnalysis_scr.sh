@@ -1,18 +1,21 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_test 100 1 500
+#./runINLAsimAnalysis_scr.sh /space/s1/fiona_callahan/multiSim_10sp 100 100 1 0
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
 numRuns=$2
 numSamples=$3
+logi=$4
+filtered=$5
 
 echo "Starting INLA"
 echo $sim_dir
 echo $numRuns
 echo $numSamples
+echo "filtered=" $filtered
 
 
 numTrials=1
@@ -39,6 +42,18 @@ fi
 
 ROC_mode="noModelSelect" # this will mean there is no WAIC selection for the ones where the cutoff changes
 
+if [ ${filtered} == 1 ]
+then
+    sitetab=sim_sitetab_sampled${numSamples}_filtered.csv
+    resDirName=${resDirName}_filtered
+fi
+
+if [ ${logi} == 1 ]
+then
+    sitetab=logiSim_sitetab_sampled${numSamples}.csv
+    resDirName=${resDirName}_logi
+fi
+
 #INLA_type="faster"
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
@@ -62,18 +77,21 @@ for ((i=1; i<=$numRuns; i++)); do
   folderNames+=(${sim_dir}/randomRun$i)
 done
 
+#folder=(${sim_dir}/randomRun1)
+
 for folder in ${folderNames[@]}; do
     (
         #if test ! -d "${folder}/INLA_res_${INLA_type}/trial1" # if the folder is not already there 
         #then
             echo "starting task $folder.."
-            #mkdir "$folder/$resDirName/" 
+            mkdir "$folder/$resDirName/" 
             for modelParms in none cov sp spCov; do
                 # run INLA sim analysis
-            #    timeout -k 10 ${timeout1}h Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms}
+                echo $modelParms
+                #timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms} ${filtered}
             done
-            #Rscript INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/
-            ./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
+            Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/ ${filtered}
+            #./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
             Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 1
 
             #for cutoff in 0.01;
@@ -82,12 +100,17 @@ for folder in ${folderNames[@]}; do
             do
                 saveDirName=${resDirName}_cov
                 mkdir "$folder/$saveDirName/"
-                Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1
+                Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1 ${filtered}
                 Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 1 ${cutoff}
 
                 saveDirName=${resDirName}_noCov
                 mkdir "$folder/$saveDirName/"
-                Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 0
+                Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 0 ${filtered}
+                Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
+
+                saveDirName=${resDirName}_covNoCount
+                mkdir "$folder/$saveDirName/"
+                Rscript ./INLA_changeCutoffs.R ${folder}/ ${cutoff} ${folder}/${saveDirName}/ ${folder}/${resDirName}/ ${ROC_mode} 1 ${filtered}
                 Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${saveDirName}/ 0 ${cutoff}
             done
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
@@ -114,6 +137,9 @@ saveDirName=${resDirName}_cov
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
 
 saveDirName=${resDirName}_noCov
+Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
+
+saveDirName=${resDirName}_covNoCount
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
 done
 

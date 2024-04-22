@@ -144,7 +144,7 @@ for (run in 1:numRuns) {
             connected_alpha_actual <- (distances(alphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
                                         (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
             connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
-            #                            (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
+                                       (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
             # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
             num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1)
             if (covs) {

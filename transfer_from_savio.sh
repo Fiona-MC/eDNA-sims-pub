@@ -1,5 +1,7 @@
+# meant to be copy-pasted into savio or ponderosa command line -- dont run this as a script
 
-folder=multiSim_10sp
+# savio to ponderosa
+folder=multiSim_10sp_random_moreSamples
 subfolder1=INLA_res_paperSep_sampled10000_filtered_noCov
 subfolder2=INLA_res_paperSep_sampled10000_filtered_cov
 subfolder3=INLA_res_paperSep_sampled10000_filtered
@@ -11,3 +13,6 @@ scp -r -i ~/.ssh/id_rsa ./${folder}/randomRun${i}/${subfolder2} fiona_callahan@p
 scp -r -i ~/.ssh/id_rsa ./${folder}/randomRun${i}/${subfolder3} fiona_callahan@ponderosa.biol.berkeley.edu:/space/s1/fiona_callahan/${folder}/randomRun${i}/
 done
 
+# ponderosa to savio -- doesnt work to make shortcuts because of entering passwd 100 times
+
+scp -r ./multiSim_10sp fionacallahan@dtn.brc.berkeley.edu:/global/scratch/users/fionacallahan

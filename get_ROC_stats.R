@@ -7,13 +7,13 @@ library(igraph)
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
-numSamples <- 100
+numSamples <- 10000
 logi <- FALSE
 saveRes <- FALSE
 filtered <- TRUE
-covMode <- "all" # "all" "noCov" "cov" "covNoCount"
+covMode <- "covNoCount" # "all" "noCov" "cov" "covNoCount" "noCount"
 
-dirName <- c("multiSim_10sp")
+dirName <- c("multiSim_50sp")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -165,6 +165,19 @@ if(covMode == "all") {
   se_include <- FALSE
   resNames <- c(paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
               inla_resnames_covNoCount,
+              log_resnames_covNoCount,
+              jags1)
+} else if (covMode == "noCount") {
+  se_include <- TRUE
+  resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(seName3, "_infResGathered_", numRuns, "sims.csv"),
+              inla1, 
+              inla_resnames_noCov,
+              inla_resnames_covNoCount,
+              log_resnames_noCov,
               log_resnames_covNoCount,
               jags1)
 } else {

@@ -30,7 +30,8 @@ for (trial in 1:numTrials) {
     modelcands <- names(sim_lists)
 
     if (filtered) {
-        params <- readRDS(paste0(data_dir, "paramsFiltered.Rdata"))
+        numSamples <- as.numeric(gsub("\\D", "", regmatches(save_dir, regexpr("(?<=sampled)\\d+", save_dir, perl = TRUE))))
+        params <- readRDS(paste0(data_dir, "paramsFiltered", numSamples, ".Rdata"))
         names_species <- params$filteredSpNames
     } else {
         params <- readRDS(paste0(data_dir, "params.Rdata"))
