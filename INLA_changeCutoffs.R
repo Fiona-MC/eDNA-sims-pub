@@ -27,7 +27,8 @@ trial <- 1
 subdir <- paste0(res_dir, "trial", trial, "/")
 
 if (filtered) {
-    params <- readRDS(paste0(sim_dir, "paramsFiltered.Rdata"))
+    numSamples <- as.numeric(gsub("\\D", "", regmatches(save_dir, regexpr("(?<=sampled)\\d+", save_dir, perl = TRUE))))
+    params <- readRDS(paste0(sim_dir, "paramsFiltered", numSamples, ".Rdata"))
     names_species <- params$filteredSpNames
 } else {
     params <- readRDS(paste0(sim_dir, "params.Rdata"))
