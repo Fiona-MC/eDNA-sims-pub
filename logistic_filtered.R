@@ -7,20 +7,20 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
-numRuns <- 100
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+numRuns <- as.numeric(100)
 covs <- (as.numeric("1") == 1)
 logi <- (as.numeric("0") == 1)
-sitetab_name <- "sim_sitetab_sampled10000_filtered.csv"
-outName <- "logistic_mistakes_sampled10000_covNoCount_filtered_100runs"
+sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
+outName <- "logistic_mistakes_sampled100_covNoCount_filtered_100runs"
 countCovs <- FALSE
 
-#data_dir <- args[1]
-#numRuns <- as.numeric(args[2])
-#covs <- (as.numeric(args[3]) == 1)
-#logi <- (as.numeric(args[4]) == 1)
-#sitetab_name <- args[5]
-#outName <- args[6]
+data_dir <- args[1]
+numRuns <- as.numeric(args[2])
+covs <- (as.numeric(args[3]) == 1)
+logi <- (as.numeric(args[4]) == 1)
+sitetab_name <- args[5]
+outName <- args[6]
 #sitetab_name <- "sim_sitetab_sampled1000.csv"
 #outName <- "logistic_mistakes_sampled1000_noCov_100runs"
 
@@ -272,12 +272,15 @@ for (cutoff in cutoffs) {
                 FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1), na.rm = TRUE) + 
                                     sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1), na.rm = TRUE)
                 TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) + 
-                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE)
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE) -
+                                    numSpecies #diagonal
+
                 } else {
                     TP_cluster[i] <- sum(abs(connected_alpha_inferred) * abs(connected_alpha_actual) == 1, na.rm = TRUE) 
                     FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) 
                     FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1), na.rm = TRUE) 
-                    TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) 
+                    TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) - 
+                                        numSpecies #diagonal 
                 }
                 
                 # type 2 error
@@ -318,12 +321,14 @@ for (cutoff in cutoffs) {
                     FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1), na.rm = TRUE) + 
                                         sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1), na.rm = TRUE)
                     TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) + 
-                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE)
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE) -
+                                        numSpecies # subtract diagonal
                 } else {
                     TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1, na.rm = TRUE) 
                     FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0), na.rm = TRUE) 
                     FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1), na.rm = TRUE) 
-                    TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) 
+                    TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) - 
+                                        numSpecies # subtract diagonal
                 }
 
                 num_incorrect_alphaL[i] <- count_incorrectT1_alpha
@@ -393,7 +398,7 @@ for (cutoff in cutoffs) {
     fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
 
     #print(fulldf)
-    write.csv(fulldf, paste0(data_dir, "/", outName, "_cutoff", cutoff, "_", numRuns, "sims.csv"))
+    write.csv(fulldf, paste0(data_dir, outName, "_cutoff", cutoff, "_", numRuns, "sims.csv"))
      
 }
 

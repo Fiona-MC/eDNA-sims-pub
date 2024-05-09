@@ -1,15 +1,15 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp_random_moreSamples 100 100 1
-#./runINLAsimAnalysis.sh /global/scratch/users/fionacallahan/multiSim_10sp 100 ${numSamples}
+#./runINLAsimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 100 1 0
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
 numRuns=$2
 numSamples=$3
-filtered=$4
+logi=$4
+filtered=$5
 
 echo "Starting INLA"
 echo $sim_dir
@@ -47,6 +47,13 @@ then
     sitetab=sim_sitetab_sampled${numSamples}_filtered.csv
     resDirName=${resDirName}_filtered
 fi
+
+if [ ${logi} == 1 ]
+then
+    sitetab=logiSim_sitetab_sampled${numSamples}.csv
+    resDirName=${resDirName}_logi
+fi
+
 #INLA_type="faster"
 
 #Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
@@ -81,11 +88,11 @@ for folder in ${folderNames[@]}; do
             for modelParms in none cov sp spCov; do
                 # run INLA sim analysis
                 echo $modelParms
-                #timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms} ${filtered}
+                timeout -k 10 ${timeout1}h Rscript ./INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ ${sitetab} ${modelParms} ${filtered}
             done
             Rscript ./INLA_modelSelect.R ${folder}/ ${folder}/${resDirName}/ ${filtered}
             #./runINLA_checkAndReRun.sh ${sim_dir} ${resDirName} ${numRuns} 1 ${timeout2} ${INLA_type} ${sitetab}
-            Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 1
+            Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 0
 
             #for cutoff in 0.01;
             #for cutoff in 0 0.0000000000001 0.0000001 0.00001 .3 .5 .7 .9 1;

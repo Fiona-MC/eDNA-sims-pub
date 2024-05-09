@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-# ./run_all_scr.sh /space/s1/fiona_callahan/multiSim_50sp 100 0 1
+# ./run_all_scr2.sh /space/s1/fiona_callahan/multiSim_100sp_random_moreSamples 100 0 1
 
 sim_dir=$1
 numRuns=$2
@@ -14,7 +14,7 @@ filtered=$4
 
 #for numSamples in 10000 25000;
 #for numSamples in 500 5000;
-for numSamples in 10000;
+for numSamples in 100;
 #for numSamples in 50 100 500 1000;
 do
 #./runINLAsimAnalysis.sh ${sim_dir} ${numRuns} ${numSamples} > ${sim_dir}/inlaCov${numSamples}Out.log 2> ${sim_dir}/inlaCov${numSamples}Err.log &

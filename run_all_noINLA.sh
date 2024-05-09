@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-# ./run_all_noINLA.sh /space/s1/fiona_callahan/multiSim_10sp 100 0 1
+# ./run_all_noINLA.sh /space/s1/fiona_callahan/multiSim_100sp 100 1 0
 
 sim_dir=$1
 numRuns=$2
@@ -14,13 +14,13 @@ filtered=$4
 
 #for numSamples in 10000 25000;
 #for numSamples in 500 5000;
-for numSamples in 100 1000 10000;
+for numSamples in 100 10000;
 #for numSamples in 50 100 500 1000;
 do
 #./runINLAsimAnalysis.sh ${sim_dir} ${numRuns} ${numSamples} > ${sim_dir}/inlaCov${numSamples}Out.log 2> ${sim_dir}/inlaCov${numSamples}Err.log &
 
-./runLogisticSimAnalysis_filtered.sh ${sim_dir} ${numRuns} 1 ${numSamples} ${logi} ${filtered} > ${sim_dir}/logisticCov${numSamples}_${logi}Out.log 2> ${sim_dir}/logisticCov${numSamples}_${logi}Err.log &
-./runLogisticSimAnalysis_filtered.sh ${sim_dir} ${numRuns} 0 ${numSamples} ${logi} ${filtered} > ${sim_dir}/logistic${numSamples}_${logi}Out.log 2> ${sim_dir}/logistic${numSamples}_${logi}Err.log &
+#./runLogisticSimAnalysis_filtered.sh ${sim_dir} ${numRuns} 1 ${numSamples} ${logi} ${filtered} > ${sim_dir}/logisticCov${numSamples}_${logi}Out.log 2> ${sim_dir}/logisticCov${numSamples}_${logi}Err.log &
+#./runLogisticSimAnalysis_filtered.sh ${sim_dir} ${numRuns} 0 ${numSamples} ${logi} ${filtered} > ${sim_dir}/logistic${numSamples}_${logi}Out.log 2> ${sim_dir}/logistic${numSamples}_${logi}Err.log &
 
 #pres-abs
 ./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 1 ${numSamples} 0 ${logi} ${filtered} > ${sim_dir}/ecCov${numSamples}_${logi}Out.log 2> ${sim_dir}/ecCov${numSamples}_${logi}Err.log &

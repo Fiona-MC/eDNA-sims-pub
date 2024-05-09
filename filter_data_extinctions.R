@@ -4,9 +4,9 @@ library(stringr)
 
 #sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 #save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
-sim_dir <- "/space/s1/fiona_callahan/multiSim_50sp_testing/"
-numRuns <- 10
-nSamplesL <- c(100, 10000)
+sim_dir <- "/space/s1/fiona_callahan/multiSim_100sp_random_moreSamples/"
+numRuns <- 100
+nSamplesL <- c(100, 1000, 10000)
 
 # number of samples where species must be present
 #nSamplesL <- c(50, 100, 500, 1000)

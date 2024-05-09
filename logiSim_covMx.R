@@ -4,13 +4,13 @@ library(data.table)
 library(highfrequency)
 
 args <- commandArgs(trailingOnly = TRUE)
-# Rscript logiSim_covMx.R /space/s1/fiona_callahan/multiSim_10sp_indep/randomRun1/
+# Rscript logiSim_covMx.R /space/s1/fiona_callahan/multiSim_100sp_random_moreSamples/randomRun1/
 
 # bash code to do this for all subfolders within this folder
-#sim_dir="/space/s1/fiona_callahan/multiSim_100sp"
+#sim_dir="/space/s1/fiona_callahan/multiSim_10sp"
 #for folder in ${sim_dir}/randomRun*; do (Rscript logiSim_covMx.R ${folder}/) done
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
+#data_dir <- "/space/s1/fiona_callahan/multiSim_50sp_testing/randomRun1/"
 data_dir <- args[1]
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 
@@ -85,6 +85,11 @@ if (sim_covs) {
     names(sitetab_abd) <- c("site", params$names_species)
 }
 
+sitetab_abd$Age <- sample(x = 1:params$num_gens, size = samples, replace = TRUE)
+sitetab_abd$Lat <- runif(n = samples, min = 0, max = params$xdim)
+sitetab_abd$Long <- runif(n = samples, min = 0, max = params$ydim)
+
+
 if (prec) {
     fwrite(x = sitetab_abd, file = paste0(data_dir, "sitetab_abd_logi_prec.csv"))
 } else {
@@ -100,6 +105,10 @@ if (sim_covs) {
     sitetab <- data.frame(site = 1:samples, presAbs)
     names(sitetab) <- c("site", params$names_species)
 }
+
+sitetab$Age <- sitetab_abd$Age
+sitetab$Lat <- sitetab_abd$Lat
+sitetab$Long <- sitetab_abd$Long
 
 if (prec) {
     fwrite(x = sitetab, file = paste0(data_dir, "sitetab_logi_prec.csv"))

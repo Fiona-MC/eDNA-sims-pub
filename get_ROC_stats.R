@@ -7,13 +7,18 @@ library(igraph)
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
-numSamples <- 10000
+numSamples <- 100
 logi <- FALSE
 saveRes <- FALSE
-filtered <- TRUE
-covMode <- "covNoCount" # "all" "noCov" "cov" "covNoCount" "noCount"
+covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
 
-dirName <- c("multiSim_50sp")
+if (logi) {
+  filtered <- FALSE
+} else {
+  filtered <- TRUE
+}
+
+dirName <- c("multiSim_10sp")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -22,7 +27,7 @@ multiSimRes <- data.frame()
 
 #ls /space/s1/fiona_callahan/multiSim_100
 logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 1.01)
+                      0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 1.01)
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
 
@@ -30,9 +35,11 @@ logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.
 
 if (logi) {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                  paste0("logistic_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                                paste0("logistic_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+  log_resnames_covNoCount <- sapply(X = logistic_cutoffs, FUN = function(x) {
+                      paste0("logistic_mistakes_sampled", numSamples, "_covNoCount_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})     
 } else {
   if (filtered) {
     log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
@@ -67,9 +74,11 @@ if (logi) {
 inla_cutoffs <- c(0, 1, 0.0000001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, .3, .5)
 if (logi) {
   inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_cov_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_logi_cov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
   inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_noCov_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_logi_noCov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+  inla_resnames_covNoCount <- sapply(X = inla_cutoffs, FUN = function(x) {
+                        paste0("INLA_res_paperSep_sampled", numSamples, "_logi_covNoCount_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
 } else {
   if(filtered) {
     inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
@@ -94,18 +103,27 @@ if (logi) {
 if(logi) {
   seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_logi")
   seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_logi")
-  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_logi")
 } else {
   if (filtered) {
     seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_filtered")
     seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_filtered")
-    seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_filtered") 
   } else {
     seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb")
     seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso")
-    seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc")
   }
 }
+
+sparcc_cutoffs <- c(0.00001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5)
+if (logi) {
+  sparcc_resnames <- sapply(X = sparcc_cutoffs, FUN = function(x) {
+                        paste0("sparcc_res_sampled", numSamples, "_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+} else {
+  if(filtered) {
+    sparcc_resnames <- sapply(X = sparcc_cutoffs, FUN = function(x) {
+                        paste0("sparcc_res_sampled", numSamples, "_filtered_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+  } 
+}
+
 
 if (logi) {
   ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_logi")
@@ -139,7 +157,7 @@ if(covMode == "all") {
               paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName3, "_infResGathered_", numRuns, "sims.csv"),
+              sparcc_resnames,
               inla1, 
               inla_resnames_noCov,
               inla_resnames_cov,
@@ -158,7 +176,7 @@ if(covMode == "all") {
   resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName3, "_infResGathered_", numRuns, "sims.csv"),
+              sparcc_resnames,
               inla_resnames_noCov,
               log_resnames_noCov)
 } else if (covMode == "covNoCount") {
@@ -173,7 +191,7 @@ if(covMode == "all") {
               paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName3, "_infResGathered_", numRuns, "sims.csv"),
+              sparcc_resnames,
               inla1, 
               inla_resnames_noCov,
               inla_resnames_covNoCount,
@@ -418,6 +436,9 @@ for (i in seq_along(multiSimResL)) {
       modelSelect[i] <- TRUE
     } else if (str_detect(names(multiSimResL)[i], "JAGS")) {
       methods[i] <- "JAGS"
+      modelSelect[i] <- FALSE
+    } else if(str_detect(names(multiSimResL)[i], "sparcc")) {
+      methods[i] <- "sparcc"
       modelSelect[i] <- FALSE
     }
 
@@ -695,13 +716,13 @@ ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method, group
   #geom_errorbarh(aes(xmin = pmax(0, avg_FPR - FPR_sd), xmax = pmin(1, avg_FPR + FPR_sd)), height = 0.03) +  # Add FPR error bars
   lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
   scale_color_manual(values = c("SpiecEasi_glasso" = "red", 
-                                "SpiecEasi_mb" = "deeppink4", 
-                                "SpiecEasi_sparcc" = "darkred",
+                                "SpiecEasi_mb" = "deeppink3", 
+                                "sparcc" = "darkred",
                                 "INLA_noCov" = "blue", 
                                 "INLA_cov" = "deepskyblue", 
                                 "ecoCopula_cov" = "green", 
                                 "ecoCopula_noCov" = "darkgreen", 
-                                "logistic_noCov" = "brown",
+                                "logistic_noCov" = "yellow",
                                 "logistic_cov" = "brown1",
                                 "logistic" = "darkorange",
                                 "JAGS" = "darkorchid")) + # Manual color scale for method

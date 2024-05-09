@@ -3,15 +3,15 @@ library(data.table)
 
 #sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 #save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
-sim_dir <- "/space/s1/fiona_callahan/multiSim_50sp_testing/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_50sp_testing/"
-numRuns <- 10
+sim_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
+numRuns <- 100
 
 resample <- TRUE # do you want to just copy the stuff or resample it?
-nSamplesL <- c(100, 10000)
+nSamplesL <- c(100)
 #nSamplesL <- c(50, 100, 500, 1000)
 #nSamplesL <- c(1000, 10000)
-logi <- FALSE
+logi <- TRUE
 
 if (logi) {
     full_sitetabName <- "sitetab_logi.csv"

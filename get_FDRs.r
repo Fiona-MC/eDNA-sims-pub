@@ -5,109 +5,109 @@ library(igraph)
 
 cluster <- FALSE
 numRuns <- 100
-numSamples <- 1000
+numSamples <- 10000
 logi <- FALSE
 saveRes <- FALSE
 
-dirNames <- c("multiSim_10sp", "multiSim_50sp", "multiSim_100sp", "/savio/multiSim_10sp_random")
+dirNames <- c("multiSim_10sp", "multiSim_50sp", "multiSim_100sp", "multiSim_10sp_random_moreSamples", "multiSim_100sp_random_moreSamples")
 
 # if you need to check these later, look at obsidian ROC curve note
-  # obsidian://open?vault=simulations&file=ROC%20curves
-  get_TPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-      if (mode == "cluster") {
-          TP <- data$TP_cluster 
-          FN <- data$FN_cluster
-      } else if (mode == "ignore_sign") {
-          TP <- data$TP_ignoreSign
-          FN <- data$FN_ignoreSign
-      } else {
-          # tp/(tp+fn)
-          TP <- data$TP_sign
-          FN <- data$FN_sign
-      } 
-      TPR <- TP / (TP + FN)
-      if (return_components) {
-        return(list(TPR = TPR, TP = TP, FN = FN))
-      } else {
-        return(TPR)
-      }
+# obsidian://open?vault=simulations&file=ROC%20curves
+get_TPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
+  if (mode == "cluster") {
+      TP <- data$TP_cluster 
+      FN <- data$FN_cluster
+  } else if (mode == "ignore_sign") {
+      TP <- data$TP_ignoreSign
+      FN <- data$FN_ignoreSign
+  } else {
+      # tp/(tp+fn)
+      TP <- data$TP_sign
+      FN <- data$FN_sign
+  } 
+  TPR <- TP / (TP + FN)
+  if (return_components) {
+    return(list(TPR = TPR, TP = TP, FN = FN))
+  } else {
+    return(TPR)
   }
+}
 
-  get_FPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-      if (mode == "cluster") {
-        FP <- data$FP_cluster
-        TN <- data$TN_cluster
-      } else if (mode == "ignore_sign") {
-        FP <- data$FP_ignoreSign
-        TN <- data$TN_ignoreSign
-      } else {
-        FP <- data$FP_sign
-        TN <- data$TN_sign
-      } 
-      FPR <- FP / (FP + TN)
-      if (return_components) {
-        return(list(FPR = FPR, FP = FP, TN = TN))
-      } else {
-        return(FPR)
-      }
+get_FPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
+  if (mode == "cluster") {
+    FP <- data$FP_cluster
+    TN <- data$TN_cluster
+  } else if (mode == "ignore_sign") {
+    FP <- data$FP_ignoreSign
+    TN <- data$TN_ignoreSign
+  } else {
+    FP <- data$FP_sign
+    TN <- data$TN_sign
+  } 
+  FPR <- FP / (FP + TN)
+  if (return_components) {
+    return(list(FPR = FPR, FP = FP, TN = TN))
+  } else {
+    return(FPR)
   }
+}
 
-  get_precision <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-      if (mode == "cluster") {
-          TP <- data$TP_cluster 
-          FP <- data$FP_cluster
-      } else if (mode == "ignore_sign") {
-          TP <- data$TP_ignoreSign
-          FP <- data$FP_ignoreSign
-      } else {
-        TP <- data$TP_sign
-        FP <- data$FP_sign
-      }
-      prec <- TP / (TP + FP)
-      if (return_components) {
-        return(list(prec = prec, TP = TP, FP = FP))
-      } else {
-        return(prec)
-      }
+get_precision <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
+  if (mode == "cluster") {
+      TP <- data$TP_cluster 
+      FP <- data$FP_cluster
+  } else if (mode == "ignore_sign") {
+      TP <- data$TP_ignoreSign
+      FP <- data$FP_ignoreSign
+  } else {
+    TP <- data$TP_sign
+    FP <- data$FP_sign
   }
+  prec <- TP / (TP + FP)
+  if (return_components) {
+    return(list(prec = prec, TP = TP, FP = FP))
+  } else {
+    return(prec)
+  }
+}
 
-  get_recall <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-      if (mode == "cluster") {
-        TP <- data$TP_cluster
-        FN <- data$FN_cluster
-      } else if (mode == "ignore_sign") {
-        TP <- data$TP_ignoreSign
-        FN <- data$FN_ignoreSign 
-      } else {      
-        TP <- data$TP_sign
-        FN <- data$FN_sign 
-      }
-      recall <- TP / (TP + FN)
-      if (return_components) {
-        return(list(recall = recall, TP = TP, FN = FN))
-      } else {
-        return(recall)
-      }
+get_recall <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
+  if (mode == "cluster") {
+    TP <- data$TP_cluster
+    FN <- data$FN_cluster
+  } else if (mode == "ignore_sign") {
+    TP <- data$TP_ignoreSign
+    FN <- data$FN_ignoreSign 
+  } else {      
+    TP <- data$TP_sign
+    FN <- data$FN_sign 
   }
+  recall <- TP / (TP + FN)
+  if (return_components) {
+    return(list(recall = recall, TP = TP, FN = FN))
+  } else {
+    return(recall)
+  }
+}
 
-  get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-      if (mode == "cluster") {
-        TP <- data$TP_cluster
-        FP <- data$FP_cluster
-      } else if (mode == "ignore_sign") {
-        TP <- data$TP_ignoreSign
-        FP <- data$FP_ignoreSign 
-      } else {      
-        TP <- data$TP_sign
-        FP <- data$FP_sign 
-      }
-      FDR <- FP / (FP + TP)
-      if (return_components) {
-        return(list(FDR = FDR, FP = FP, TP = TP))
-      } else {
-        return(FDR)
-      }
+get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
+  if (mode == "cluster") {
+    TP <- data$TP_cluster
+    FP <- data$FP_cluster
+  } else if (mode == "ignore_sign") {
+    TP <- data$TP_ignoreSign
+    FP <- data$FP_ignoreSign 
+  } else {      
+    TP <- data$TP_sign
+    FP <- data$FP_sign 
   }
+  FDR <- FP / (FP + TP)
+  if (return_components) {
+    return(list(FDR = FDR, FP = FP, TP = TP))
+  } else {
+    return(FDR)
+  }
+}
 
 #dirName <- c("multiSim_test2x10sp")
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -121,14 +121,14 @@ logistic_cutoffs <- c(0.05)
 
 if (logi) {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                              paste0("logistic_mistakes_sampled", numSamples, "_covNoCount_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
                               paste0("logistic_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 } else {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                              paste0("logistic_mistakes_sampled", numSamples, "_covNoCount_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 
   #if (numRuns == 100 && numSamples == 100 && dirName == c("multiSim_10sp")) {
   #  log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
@@ -167,25 +167,25 @@ if(logi) {
   seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_logi")
   seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_logi")
 } else {
-  seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb")
-  seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso")
-  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc")
+  seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_filtered")
+  seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_filtered")
+  seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_filtered")
 }
 
 if (logi) {
   ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_logi")
-  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov_logi")
+  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_covNoCount_logi")
 } else {
-  ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov")
-  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov")
+  ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_filtered")
+  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_covNoCount_filtered")
 }
 
 if (logi) {
   inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_logi_infResGathered_", numRuns, "sims.csv")
   jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_logi_", numRuns, "sims.csv")
 } else {
-  inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_infResGathered_", numRuns, "sims.csv")
-  jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_", numRuns, "sims.csv")
+  inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_filtered_infResGathered_", numRuns, "sims.csv")
+  jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_filtered_", numRuns, "sims.csv")
 }
 
 resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
@@ -226,7 +226,7 @@ for (dirName in dirNames) { #iterate through sims
     if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
       thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
       if (str_detect(resNames[i], "JAGS")) {
-        cutoffIndex <- 0.05
+        cutoffIndex <- 9 # corresponds to 0.05
         thisMultiSimRes <- thisMultiSimRes[thisMultiSimRes$cutoff_val == cutoffIndex, ]
       } 
       thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
@@ -262,14 +262,16 @@ ggplot(FDRs_filtered, aes(x = Simulation, y = Method, fill = FDR)) +
   theme_minimal() + # You can change the theme as per your preference
   labs(x = "Simulation",
        y = "Method",
-       fill = "FDR")
+       fill = "FDR") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-ggplot(FPRs_filtered, aes(x = Simulation, y = Method, fill = FPR)) +
-  geom_tile() +
-  scale_fill_gradient(low = "gray", high = "blue") + # You can adjust colors as needed
-  geom_text(aes(label = sprintf("%.2f", FPR)), color = "black") + # Display FDR values as text
-  theme_minimal() + # You can change the theme as per your preference
-  labs(x = "Simulation",
-       y = "Method",
-       fill = "FPR")
+
+#ggplot(FPRs_filtered, aes(x = Simulation, y = Method, fill = FPR)) +
+#  geom_tile() +
+#  scale_fill_gradient(low = "gray", high = "blue") + # You can adjust colors as needed
+#  geom_text(aes(label = sprintf("%.2f", FPR)), color = "black") + # Display FDR values as text
+#  theme_minimal() + # You can change the theme as per your preference
+#  labs(x = "Simulation",
+#       y = "Method",
+#       fill = "FPR")

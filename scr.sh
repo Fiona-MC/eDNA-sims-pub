@@ -1,23 +1,7 @@
-#!/bin/bash
-export OMP_NUM_THREADS=5
 
-#./scr.sh /space/s1/fiona_callahan/multiSim_100sp
 
-sim_dir=$1
+Rscript ./logistic_filtered.R /space/s1/fiona_callahan/multiSim_100sp/ 100 1 1 logiSim_sitetab_sampled100.csv logistic_mistakes_sampled100_covNoCount_logi_100runs
+Rscript ./logistic_filtered.R /space/s1/fiona_callahan/multiSim_100sp/ 100 0 1 logiSim_sitetab_sampled100.csv logistic_mistakes_sampled100_noCov_logi_100runs
 
-numTrials=1
-INLA_type="paper"
-
-scramble=0
-
-ROC_mode="noModelSelect" # this will mean there is no WAIC selection for the ones where the cutoff changes
-
-folder=$sim_dir/randomRun2
-numSamples=500
-sitetab=sim_sitetab_sampled${numSamples}.csv
-resDirName=INLA_test_2
-echo "starting task $folder.."
-mkdir "$folder/$resDirName/" 
-
-Rscript /home/fiona_callahan/eDNA_sims_code/INLA_simAnalysis_${INLA_type}.R ${folder}/ ${folder}/${resDirName}/ $sitetab
-      
+Rscript ./logistic_filtered.R /space/s1/fiona_callahan/multiSim_100sp/ 100 1 1 logiSim_sitetab_sampled10000.csv logistic_mistakes_sampled10000_covNoCount_logi_100runs
+Rscript ./logistic_filtered.R /space/s1/fiona_callahan/multiSim_100sp/ 100 0 1 logiSim_sitetab_sampled10000.csv logistic_mistakes_sampled10000_noCov_logi_100runs

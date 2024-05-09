@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-#./run_INLA_gatheringRes.sh /space/s1/fiona_callahan/multiSim_10sp_random_moreSamples 100 10000 0 1
+#./run_INLA_gatheringRes.sh /space/s1/fiona_callahan/multiSim_10sp 100 10000 1 0
 
 sim_dir=$1
 #sim_dir="/space/s1/fiona_callahan/savio/multiSim_10sp_random"
