@@ -1,0 +1,306 @@
+library(ranger)
+library(dplyr)
+library(pdp)
+library(ggplot2)
+library(plyr)
+library(gridExtra)
+library(tidyr)
+library(stringr)
+
+dirNames <- c("multiSim_100sp_random_moreSamples")
+
+resNames <- c("logistic_mistakes_sampled10000_noCov_filtered_100runs_cutoff0.05_100sims.csv",
+            #"logistic_mistakes_sampled10000_covNoCount_filtered_100runs_cutoff0.05_100sims.csv",
+            "spiecEasi_res_sampled10000_mb_filtered_infResGathered_100sims.csv",
+            "sparcc_res_sampled10000_filtered_infResGathered_cutoff0.3_100sims.csv",
+            "ecoCopula_res_sampled10000_noCov_filtered_infResGathered_100sims.csv",
+            #"INLA_res_paperSep_sampled10000_filtered_noCov_infResGathered_cutoff0.05_100sims.csv",
+            "INLA_res_paperSep_sampled10000_filtered_covNoCount_infResGathered_cutoff0.05_100sims.csv")
+
+resName <- "logistic_mistakes_sampled10000_noCov_filtered_100runs_cutoff0.05_100sims.csv"
+
+get_falseDiscovery <- function(data, mode = "ignore_sign", return_components = FALSE) {
+    if (mode == "cluster") {
+    TP <- data$TP_cluster
+    FP <- data$FP_cluster
+    } else if (mode == "ignore_sign") {
+    TP <- data$TP_ignoreSign
+    FP <- data$FP_ignoreSign 
+    } else {      
+    TP <- data$TP_sign
+    FP <- data$FP_sign 
+    }
+    FDR <- FP / (FP + TP)
+    if (return_components) {
+    return(list(FDR = FDR, FP = FP, TP = TP))
+    } else {
+    return(FDR)
+    }
+}
+
+get_TPR <- function(data, mode = "ignore_sign", return_components = FALSE) {
+    if (mode == "cluster") {
+        TP <- data$TP_cluster 
+        FN <- data$FN_cluster
+    } else if (mode == "ignore_sign") {
+        TP <- data$TP_ignoreSign
+        FN <- data$FN_ignoreSign
+    } else {
+        # tp/(tp+fn)
+        TP <- data$TP_sign
+        FN <- data$FN_sign
+    } 
+    TPR <- TP / (TP + FN)
+    if (return_components) {
+    return(list(TPR = TPR, TP = TP, FN = FN))
+    } else {
+    return(TPR)
+    }
+}
+
+get_FPR <- function(data, mode = "ignore_sign", return_components = FALSE) {
+    if (mode == "cluster") {
+    FP <- data$FP_cluster
+    TN <- data$TN_cluster
+    } else if (mode == "ignore_sign") {
+    FP <- data$FP_ignoreSign
+    TN <- data$TN_ignoreSign
+    } else {
+    FP <- data$FP_sign
+    TN <- data$TN_sign
+    } 
+    FPR <- FP / (FP + TN)
+    if (return_components) {
+    return(list(FPR = FPR, FP = FP, TN = TN))
+    } else {
+    return(FPR)
+    }
+}
+
+plotL <- list()
+for(resName in resNames) {
+    method <- str_split(resName, pattern = "_")[[1]][1]
+
+    if (str_detect(resName, "cov")){
+        method <- paste0(method, "_cov")
+    }
+
+    multiSimRes <- data.frame()
+
+    dirNameL <- c()
+    for (dirName in dirNames) {
+    thisDir <- paste0("/space/s1/fiona_callahan/", dirName, "/")
+    thisMultiSimRes <- read.csv(paste0(thisDir, resName), header = TRUE)
+    dirNameL <- c(dirNameL, rep(dirName, times = length(thisMultiSimRes$sim_run)))
+    multiSimRes <- plyr::rbind.fill(multiSimRes, thisMultiSimRes)
+    }
+    multiSimRes$dirName <- dirNameL
+
+    filter_criteria <- !str_detect(names(multiSimRes), "alpha") &
+                        !str_detect(names(multiSimRes), "beta") &
+                        !str_detect(names(multiSimRes), "names_species")
+    multiSimRes <- multiSimRes[, filter_criteria]
+
+    #TODO change this
+    randomParms <- c("radius", "covNoise_sd", "covMeasureNoise_sd", "r", "sigma", 
+                    "c2", "mean_mig_rate", "indivSampleProb", "readSampleRate", 
+                    "numCovs", "covar_scale_space", "readThreshold")
+    randomParmsVary <- as.vector(sapply(lapply(multiSimRes[, randomParms], unique), length) > 1)
+    randomParms <- randomParms[as.vector(randomParmsVary)] # take out any that I've changed to not be random
+
+    multiSimRes$FDR <- get_falseDiscovery(data = multiSimRes, mode = "ignore_sign", return_components = FALSE)
+    multiSimRes$FPR <- get_FPR(data = multiSimRes, mode = "ignore_sign", return_components = FALSE)
+    multiSimRes$TPR <- get_TPR(data = multiSimRes, mode = "ignore_sign", return_components = FALSE)
+
+    indep_var <- "FDR"
+
+    fmlaParms <- c(randomParms)
+    #fmlaParms <- c(randomParms[randomParms!="r"])
+
+    fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
+
+    #remove NA's in response (run didnt finish or whatever)
+    multiSimRes_na.rm <- multiSimRes[!is.na(multiSimRes[[indep_var]]), ]
+
+    # random forest res
+    #rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "impurity") 
+    rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "permutation") 
+    summary(rf_res)
+    sort(importance(rf_res))
+    importanceDF <- as.data.frame(sort(importance(rf_res)))
+    importanceDF$Variable <- row.names(importanceDF)
+    names(importanceDF) <- c("RF_Importance", "Parameter")
+
+
+    #better_parmNames <- data.frame(Parameter = fmlaParms, Parameter_name = c("n_time", "n_space", 
+    #                    "neighborhood radius", "false detection rate", "false detect correlation", 
+    #                    "covariate process noise", "covariate measurement noise", "r", "sigma", 
+    #                    "false absence parameter", "migration rate", "inter-species affect scaling"))#, 
+                        #"Sp1 Percent Presence", "Sp2 Percent Presence", "Sp3 Percent Presence"))
+
+    #importanceDF <- merge(x = importanceDF, y = better_parmNames, by = "Parameter")
+
+
+    rf_importance_plot <- ggplot(importanceDF, aes(x = reorder(Parameter, RF_Importance), y = RF_Importance)) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    theme(axis.text.y = element_text(hjust = 1, size = 24), axis.title.x = element_text(size = 24), axis.title.y = element_blank()) +
+    coord_flip() +
+    labs(y = "Random Forest Importance", title = paste(indep_var, "for", method)) 
+
+    #rf_importance_plot
+    plotL[[method]] <- rf_importance_plot
+
+    # how well does the rf predict FDR (training set)
+    data <- multiSimRes_na.rm
+    naive_rmse <- sqrt(sum((median(data[[indep_var]]) - data[[indep_var]])^2, na.rm = TRUE) / length(data[[indep_var]]))
+    rf_predictions <- predict(object = rf_res, data = data)
+    rf_rmse <- sqrt(sum((rf_predictions$predictions - data[[indep_var]])^2) / length(data[[indep_var]]))
+    (rf_rmse - naive_rmse) / naive_rmse
+
+}
+
+#ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_importance_allmethods.png"), 
+#                plot = grid.arrange(grobs = plotL), width = 16, height = 16)
+
+
+###### test set ########
+dirNames <- c("multiSim_10sp_random_testSet")
+resName <- "logistic_mistakes_sampled10000_noCov_filtered_100runs_cutoff0.05_100sims.csv"
+
+method <- str_split(resName, pattern = "_")[[1]][1]
+
+if (str_detect(resName, "cov")) {
+    method <- paste0(method, "_cov")
+}
+
+multiSimRes_test <- data.frame()
+
+dirNameL <- c()
+for (dirName in dirNames) {
+thisDir <- paste0("/space/s1/fiona_callahan/", dirName, "/")
+thisMultiSimRes <- read.csv(paste0(thisDir, resName), header = TRUE)
+dirNameL <- c(dirNameL, rep(dirName, times = length(thisMultiSimRes$sim_run)))
+multiSimRes_test <- plyr::rbind.fill(multiSimRes_test, thisMultiSimRes)
+}
+multiSimRes_test$dirName <- dirNameL
+
+filter_criteria <- !str_detect(names(multiSimRes_test), "alpha") &
+                    !str_detect(names(multiSimRes_test), "beta") &
+                    !str_detect(names(multiSimRes_test), "names_species")
+multiSimRes_test <- multiSimRes_test[, filter_criteria]
+
+
+randomParms <- c("radius", "covNoise_sd", "covMeasureNoise_sd", "r", "sigma", 
+                "c2", "mean_mig_rate", "indivSampleProb", "readSampleRate", 
+                "numCovs", "covar_scale_space", "readThreshold")
+randomParmsVary <- as.vector(sapply(lapply(multiSimRes_test[, randomParms], unique), length) > 1)
+randomParms <- randomParms[as.vector(randomParmsVary)] # take out any that I've changed to not be random
+
+multiSimRes_test$FDR <- get_falseDiscovery(data = multiSimRes_test, mode = "ignore_sign", return_components = FALSE)
+multiSimRes_test$FPR <- get_FPR(data = multiSimRes_test, mode = "ignore_sign", return_components = FALSE)
+multiSimRes_test$TPR <- get_TPR(data = multiSimRes_test, mode = "ignore_sign", return_components = FALSE)
+
+indep_var <- "FDR"
+
+fmlaParms <- c(randomParms)
+#fmlaParms <- c(randomParms[randomParms!="r"])
+
+fmla <- as.formula(paste(indep_var, " ~ ", paste(fmlaParms, collapse = "+")))
+
+#remove NA's in response (run didnt finish or whatever)
+multiSimRes_test_na.rm <- multiSimRes_test[!is.na(multiSimRes_test[[indep_var]]), ]
+
+rf_predictions <- predict(object = rf_res, data = multiSimRes_test_na.rm)
+rf_rmse <- sqrt(sum((rf_predictions$predictions - multiSimRes_test_na.rm$FDR)^2) / length(multiSimRes_test_na.rm$FDR))
+
+#for test set
+rf_rmse
+naive_rmse
+(rf_rmse - naive_rmse) / naive_rmse
+
+
+
+ 
+
+# pdp plotting
+pdp_resL <- list()
+ice_permL <- list()
+cice_permL <- list()
+
+#for(parm in parms){
+for (parm in fmlaParms) {
+  pdp_res <- pdp::partial(object = rf_res, pred.var = parm, plot = FALSE)
+  pdp_resL[[parm]] <- pdp_res
+  # ice plots
+  ice_perm <- partial(object = rf_res, ice = TRUE, pred.var = parm, plot = FALSE)
+  ice_permL[[parm]] <- ice_perm
+  #cice plots
+  cice_perm <- partial(object = rf_res, ice = TRUE, center = TRUE, pred.var = parm, plot = FALSE)
+  cice_permL[[parm]] <- cice_perm
+}
+
+#ICE plots
+ICEplotL <- list()
+orderImportances <- c()
+for(parm in fmlaParms){
+  ice_perm <- ice_permL[[parm]]
+  ice_perm_subset <- ice_perm#[ice_perm$yhat.id %% 30 == 1, ]
+  p <- ggplot(ice_perm_subset, aes(x = !!sym(parm), y = yhat, group = yhat.id)) +
+      geom_line() +
+      coord_cartesian() +
+      #coord_cartesian(ylim = c(.2, .6)) +
+      #labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
+      theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
+
+  ICEplotL[parm] <- list(p)
+  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+}
+rf_marginal_ice <- grid.arrange(grobs = ICEplotL[order(orderImportances, decreasing = TRUE)])
+
+
+#cice
+ICEplotL <- list()
+orderImportances <- c()
+for(parm in fmlaParms){
+  ice_perm <- cice_permL[[parm]]
+  ice_perm_subset <- ice_perm[ice_perm$yhat.id %% 30 == 1, ]
+  p <- ggplot(ice_perm_subset, aes(x = !!sym(parm), y = yhat, group = yhat.id)) +
+      geom_line() +
+      #coord_cartesian(ylim = c(-.2, .3)) +
+      coord_cartesian(ylim = c(-2, 3)) +
+      labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var, "(centered)")) +
+      theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
+
+  ICEplotL[parm] <- list(p)
+  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+}
+rf_marginal_cice <- grid.arrange(grobs = ICEplotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
+
+
+####### plot marginal rf ##########
+plotL <- list()
+orderImportances <- c()
+for(parm in fmlaParms){
+  pdp_res <- pdp_resL[[parm]]
+  p <- ggplot(pdp_res, aes(!!sym(parm), yhat)) +
+    geom_point(size = 3) +
+    geom_line() +
+    coord_cartesian(ylim = c(3.5, 4.75)) +
+    #coord_cartesian(ylim = c(.3, .5)) +
+    labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
+    theme(axis.text.y = element_text(size = 20), axis.title.x = element_text(size = 36), axis.text.x = element_text(size = 20))
+  if (parm == "fpr.mode") { # fix angle
+    p <- ggplot(pdp_res, aes(!!sym(parm), yhat)) +
+      geom_point(size = 3) +
+      #geom_line() +
+      coord_cartesian(ylim = c(3.5, 4.75)) +
+      #coord_cartesian(ylim = c(.3, .5)) +
+      labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
+      theme(axis.text.y = element_text(size = 20), axis.title.x = element_text(size = 36), axis.text.x = element_text(size = 20, angle = 10))
+  }
+  plotL[parm] <- list(p)
+  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+}
+
+rf_marginal <- grid.arrange(grobs = plotL[order(orderImportances, decreasing = TRUE)], nrow = 2)
+

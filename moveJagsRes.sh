@@ -23,7 +23,7 @@ cp /space/s1/KaiyuanLi/data/JAGS/results/filtered/sp${numSpecies}_${numSamples}_
 # for logi
 numSpecies=10
 numRuns=100
-numSamples=100
+numSamples=10000
 
 # /space/s1/KaiyuanLi/data/JAGS/results/filtered/sp10_100_filtered/mistakes.csv
 

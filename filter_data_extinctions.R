@@ -4,7 +4,7 @@ library(stringr)
 
 #sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 #save_dir <- "/space/s1/fiona_callahan/multiSim_10x10sp/"
-sim_dir <- "/space/s1/fiona_callahan/multiSim_100sp_random_moreSamples/"
+sim_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_testSet/"
 numRuns <- 100
 nSamplesL <- c(100, 1000, 10000)
 

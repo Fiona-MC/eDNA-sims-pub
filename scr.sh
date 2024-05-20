@@ -1,7 +1,40 @@
+# run all linear regression
+
+# 10sp
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 0 100 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 0 1000 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 0 10000 0 1
+
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 1 100 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 1 1000 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 1 10000 0 1
+
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 0 100 1 0
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 0 10000 1 0
+
+# 100sp
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 0 100 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 0 1000 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 0 10000 0 1
+
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 1 100 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 1 1000 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 1 10000 0 1
+
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 0 100 1 0
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 0 10000 1 0
 
 
-Rscript ./logistic_filtered.R /space/s1/fiona_callahan/multiSim_100sp/ 100 1 1 logiSim_sitetab_sampled100.csv logistic_mistakes_sampled100_covNoCount_logi_100runs
-Rscript ./logistic_filtered.R /space/s1/fiona_callahan/multiSim_100sp/ 100 0 1 logiSim_sitetab_sampled100.csv logistic_mistakes_sampled100_noCov_logi_100runs
+# 10sp_random
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp_random_moreSamples 100 0 100 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp_random_moreSamples 100 0 10000 0 1
 
-Rscript ./logistic_filtered.R /space/s1/fiona_callahan/multiSim_100sp/ 100 1 1 logiSim_sitetab_sampled10000.csv logistic_mistakes_sampled10000_covNoCount_logi_100runs
-Rscript ./logistic_filtered.R /space/s1/fiona_callahan/multiSim_100sp/ 100 0 1 logiSim_sitetab_sampled10000.csv logistic_mistakes_sampled10000_noCov_logi_100runs
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp_random_moreSamples 100 1 100 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp_random_moreSamples 100 1 10000 0 1
+
+# 100sp_random
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp_random_moreSamples 100 0 100 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp_random_moreSamples 100 0 10000 0 1
+
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp_random_moreSamples 100 1 100 0 1
+./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp_random_moreSamples 100 1 10000 0 1

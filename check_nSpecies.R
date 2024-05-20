@@ -2,8 +2,8 @@ library(stats)
 library(igraph)
 library(stringr)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_50sp_testing/"
-numRuns <- 10
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_testSet/"
+numRuns <- 100
 covs <- (as.numeric("1") == 1)
 logi <- (as.numeric("0") == 1)
 sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
@@ -33,4 +33,5 @@ for (run in runs) {
         }
     }
 }
+
 

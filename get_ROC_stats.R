@@ -7,7 +7,7 @@ library(igraph)
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
-numSamples <- 100
+numSamples <- 10000
 logi <- FALSE
 saveRes <- FALSE
 covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
@@ -18,7 +18,7 @@ if (logi) {
   filtered <- TRUE
 }
 
-dirName <- c("multiSim_10sp")
+dirName <- c("multiSim_100sp_random_moreSamples")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -28,10 +28,6 @@ multiSimRes <- data.frame()
 #ls /space/s1/fiona_callahan/multiSim_100
 logistic_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
                       0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 1.01)
-#log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
-#log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
-
-# "/space/s1/fiona_callahan/multiSim_10sp/spiecEasi_res_sampled1000_glasso_filtered100_infResGathered_100sims.csv"
 
 if (logi) {
   log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
@@ -55,13 +51,32 @@ if (logi) {
                               paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 
   }
+}
 
-  #if (numRuns == 100 && numSamples == 100 && dirName == c("multiSim_10sp")) {
-  #  log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-  #                            paste0("logistic_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, ".csv")})
-  #  log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-  #                            paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, ".csv")})
-  #}
+linear_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
+                      0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 1.01)
+
+if (logi) {
+  lin_resnames_cov <- sapply(X = linear_cutoffs, FUN = function(x) {
+                  paste0("linearReg_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+  lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
+                                paste0("linearReg_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+  lin_resnames_covNoCount <- sapply(X = linear_cutoffs, FUN = function(x) {
+                      paste0("linearReg_mistakes_sampled", numSamples, "_covNoCount_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})     
+} else {
+  if (filtered) {
+    lin_resnames_cov <- sapply(X = linear_cutoffs, FUN = function(x) {
+                          paste0("linearReg_mistakes_sampled", numSamples, "_cov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+    lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
+                          paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+    lin_resnames_covNoCount <- sapply(X = linear_cutoffs, FUN = function(x) {
+                      paste0("linearReg_mistakes_sampled", numSamples, "_covNoCount_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})                          
+  } else {
+    lin_resnames_cov <- sapply(X = linear_cutoffs, FUN = function(x) {
+                              paste0("linearReg_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+    lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
+                              paste0("linearReg_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+  }
 }
 
 #inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
@@ -113,7 +128,7 @@ if(logi) {
   }
 }
 
-sparcc_cutoffs <- c(0.00001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5)
+sparcc_cutoffs <- c(0.00001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5, 0.005, 0.04, 0.06, 0.08, 0.125, 0.15, 0.175, 0.25)
 if (logi) {
   sparcc_resnames <- sapply(X = sparcc_cutoffs, FUN = function(x) {
                         paste0("sparcc_res_sampled", numSamples, "_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
@@ -165,12 +180,16 @@ if(covMode == "all") {
               log_resnames_cov,
               log_resnames_noCov,
               log_resnames_covNoCount,
+              lin_resnames_cov,
+              lin_resnames_noCov,
+              lin_resnames_covNoCount,
               jags1)
 } else if (covMode == "cov") {
   se_include <- FALSE
   resNames <- c(inla1, 
                 inla_resnames_cov,
-                log_resnames_cov)
+                log_resnames_cov,
+                lin_resnames_cov)
 } else if (covMode == "noCov") {
   se_include <- TRUE
   resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
@@ -178,12 +197,14 @@ if(covMode == "all") {
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
               sparcc_resnames,
               inla_resnames_noCov,
-              log_resnames_noCov)
+              log_resnames_noCov,
+              lin_resNames_noCov)
 } else if (covMode == "covNoCount") {
   se_include <- FALSE
   resNames <- c(paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
               inla_resnames_covNoCount,
               log_resnames_covNoCount,
+              lin_resnames_covNoCount,
               jags1)
 } else if (covMode == "noCount") {
   se_include <- TRUE
@@ -197,6 +218,8 @@ if(covMode == "all") {
               inla_resnames_covNoCount,
               log_resnames_noCov,
               log_resnames_covNoCount,
+              lin_resnames_noCov,
+              lin_resnames_covNoCount,
               jags1)
 } else {
   print("covMode not a valid option")
@@ -710,7 +733,7 @@ ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method, group
   scale_shape_manual(values = 1:12) +
   geom_point(size = 5, aes(shape = modelSelect)) +
   stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
-  labs(title = paste("ROC: cluster = ", cluster), x = "FPR = FP/(FP+TN)", y = "TPR = TP/(TP+FN)") +
+  labs(x = "FPR", y = "TPR") +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line (no skill)
   #geom_errorbar(aes(ymin = pmax(0, avg_TPR - TPR_sd), ymax = pmin(1, avg_TPR + TPR_sd)), width = 0.03) +  # Add TPR error bars
   #geom_errorbarh(aes(xmin = pmax(0, avg_FPR - FPR_sd), xmax = pmin(1, avg_FPR + FPR_sd)), height = 0.03) +  # Add FPR error bars

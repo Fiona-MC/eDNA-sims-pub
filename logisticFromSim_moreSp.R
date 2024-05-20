@@ -13,12 +13,12 @@ if (length(args) < 2) {
   stop("input folder needs to be supplied", call. = FALSE)
 } 
 # Rscript logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_10sp/ 100 0 0 sim_sitetab_sampled1000.csv logistic_mistakes_sampled1000_noCov_100runs
-data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 numRuns <- 100
 covs <- FALSE
 logi <- (as.numeric("0") == 1)
-sitetab_name <- "sim_sitetab_sampled1000.csv"
-outName <- "logistic_mistakes_sampled1000_noCov_100runs"
+sitetab_name <- "sim_sitetab_sampled10000.csv"
+outName <- "logistic_mistakes_sampled10000_noCov_100runs"
 
 data_dir <- args[1]
 numRuns <- as.numeric(args[2])

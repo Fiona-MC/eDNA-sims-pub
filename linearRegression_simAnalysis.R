@@ -7,12 +7,12 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_testSet/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_100sp_random_moreSamples/"
 numRuns <- as.numeric(100)
 covs <- (as.numeric("1") == 0)
 logi <- (as.numeric("0") == 1)
-sitetab_name <- "sim_sitetab_sampled10000_filtered.csv"
-outName <- "logistic_mistakes_sampled10000_noCov_filtered_100runs"
+sitetab_name <- "sim_sitetab_readAbd_sampled10000_filtered.csv"
+outName <- "linearReg_mistakes_sampled10000_noCov_filtered_100runs"
 countCovs <- FALSE
 
 data_dir <- args[1]
@@ -25,10 +25,6 @@ outName <- args[6]
 #outName <- "logistic_mistakes_sampled1000_noCov_100runs"
 
 randomSim <- str_detect(data_dir, "random")
-
-
-# to run
-# Rscript /home/fiona_callahan/eDNA_sims_code/logisticFromSim_moreSp.R /space/s1/fiona_callahan/multiSim_5sp_random/ 1000
 
 runs <- 1:numRuns
 numTrials <- 1
@@ -69,12 +65,12 @@ FN_cluster <- rep(NA, times = numRuns * numTrials)
 # this is a hacky way to get the number of parms
 simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
 
-logisticRes <- list()
+resL <- list()
 for (run in runs) {
     for (trial in trials) { # basically ignore the trials thing -- I think this is deterministic so trials should be irrelevant
         if (file.exists(paste0(data_dir, "randomRun", run))) { # this is for the runs that were deleted
-            #print("run")
-            #print(run)
+            print("run")
+            print(run)
             # LOAD ACTUAL PARAMS 
             simParms <- readRDS(paste0(data_dir, "randomRun", run, "/params.Rdata"))
 
@@ -96,18 +92,18 @@ for (run in runs) {
                     fmla <- as.formula(paste(speciesName, "~ ", 
                                     paste(c(speciesNames[speciesNames != speciesName]), collapse = "+")))
                 }
-                model <- glm(fmla, family = binomial(link = 'logit'), data = sim_sitetab_sampled)
+                model <- lm(fmla, data = sim_sitetab_sampled)
                 model_summary <- data.frame(summary(model)$coefficients)
                 sp_glm_L[[speciesName]] <- model_summary
             }
-            logisticRes[[run]] <- sp_glm_L
+            resL[[run]] <- sp_glm_L
         }
     }
 }
 
-z.values_pos <- c()
-z.values_neg <- c()
-z.values_0 <- c()
+t.values_pos <- c()
+t.values_neg <- c()
+t.values_0 <- c()
 
 
 for (cutoff in cutoffs) {
@@ -129,7 +125,7 @@ for (cutoff in cutoffs) {
                 sim_sitetab_sampled <- read.csv(file = paste0(data_dir, "randomRun", run, "/", sitetab_name), header = TRUE)
                 speciesNames <- names(sim_sitetab_sampled)[grep("Sp", names(sim_sitetab_sampled))]
                 numSpecies <- length(speciesNames)
-                sp_glm_L <- logisticRes[[run]]
+                sp_glm_L <- resL[[run]]
                 # store run and trial info
                 runL[i] <- run
                 trialL[i] <- trial
@@ -181,14 +177,14 @@ for (cutoff in cutoffs) {
                             speciesName <- speciesNames[spNum]
                             covName <- paste0("Cov", covNum)
                             model_summary <- sp_glm_L[[speciesName]]
-                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < cutoff) * sign(model_summary[covName, "Estimate"])
+                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...t.."] < cutoff) * sign(model_summary[covName, "Estimate"])
                             if (cutoff == 0) {
                                 if (actualBeta[spNum, covNum] == 0) {
-                                    z.values_0 <- c(z.values_0, model_summary[covName, "z.value"])
+                                    t.values_0 <- c(t.values_0, model_summary[covName, "t.value"])
                                 } else if (actualBeta[spNum, covNum] < 0) {
-                                    z.values_neg <- c(z.values_neg, model_summary[covName, "z.value"])
+                                    t.values_neg <- c(t.values_neg, model_summary[covName, "t.value"])
                                 } else {
-                                    z.values_pos <- c(z.values_pos, model_summary[covName, "z.value"])
+                                    t.values_pos <- c(t.values_pos, model_summary[covName, "t.value"])
                                 }
                             }
                         }
@@ -208,15 +204,15 @@ for (cutoff in cutoffs) {
                         if (spNum1 == spNum2) {
                             alphaInferred[spNum1, spNum2] <- 0
                         } else {
-                            alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...z.."] < cutoff) * 
+                            alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...t.."] < cutoff) * 
                                                             sign(model_summary[speciesName2, "Estimate"])
                             if (cutoff == 0) {
                                 if (actualAlpha[spNum1, spNum2] == 0) {
-                                    z.values_0 <- c(z.values_0, model_summary[speciesName2, "z.value"])
+                                    t.values_0 <- c(t.values_0, model_summary[speciesName2, "t.value"])
                                 } else if (actualAlpha[spNum1, spNum2] < 0) {
-                                    z.values_neg <- c(z.values_neg, model_summary[speciesName2, "z.value"])
+                                    t.values_neg <- c(t.values_neg, model_summary[speciesName2, "t.value"])
                                 } else {
-                                    z.values_pos <- c(z.values_pos, model_summary[speciesName2, "z.value"])
+                                    t.values_pos <- c(t.values_pos, model_summary[speciesName2, "t.value"])
                                 }
                             }
                         }
@@ -408,27 +404,27 @@ for (cutoff in cutoffs) {
      
 }
 
-plotZvals <- TRUE
-if (plotZvals) {
+plotTvals <- TRUE
+if (plotTvals) {
     library(ggplot2)
-    z.values_0 <- z.values_0[!is.na(z.values_0)]
-    z.values_pos <- z.values_pos[!is.na(z.values_pos)]
-    z.values_neg <- z.values_neg[!is.na(z.values_neg)]
-    z_vals_df <- data.frame(actual_beta = as.factor(c(rep(0, times = length(z.values_0)), 
-                                        rep(1, times = length(z.values_pos)), 
-                                        rep(-1, times = length(z.values_neg)))), 
-                        zValues = c(z.values_0, z.values_pos, z.values_neg))
+    t.values_0 <- t.values_0[!is.na(t.values_0)]
+    t.values_pos <- t.values_pos[!is.na(t.values_pos)]
+    t.values_neg <- t.values_neg[!is.na(t.values_neg)]
+    t_vals_df <- data.frame(actual_beta = as.factor(c(rep(0, times = length(t.values_0)), 
+                                        rep(1, times = length(t.values_pos)), 
+                                        rep(-1, times = length(t.values_neg)))), 
+                        tValues = c(t.values_0, t.values_pos, t.values_neg))
 
-    plot1 <- ggplot(z_vals_df, aes(x = zValues, fill = actual_beta, color = actual_beta)) +
+    plot1 <- ggplot(t_vals_df, aes(x = tValues, fill = actual_beta, color = actual_beta)) +
         geom_density(alpha = 0.5) +  # Add transparency for better visibility of overlapping densities
         #coord_cartesian(xlim = c(-1, 1)) +  # Set x-axis limits
-        labs(title = paste0("Density Plot of zValues: ", outName),
-            x = "zValues",
+        labs(title = paste0("Density Plot of tValues: ", outName),
+            x = "tValues",
             y = "Density") +
-        scale_fill_manual(values = rainbow(length(unique(z_vals_df$actual_beta)))) +  # Adjust colors
-        scale_color_manual(values = rainbow(length(unique(z_vals_df$actual_beta)))) +  # Adjust colors
+        scale_fill_manual(values = rainbow(length(unique(t_vals_df$actual_beta)))) +  # Adjust colors
+        scale_color_manual(values = rainbow(length(unique(t_vals_df$actual_beta)))) +  # Adjust colors
         theme_minimal()  # Optional: Change the theme
     
-    ggsave(filename = paste0(data_dir, "zValsDistribution_", outName, "_", numRuns, "sims.png"), plot = plot1)
+    ggsave(filename = paste0(data_dir, "tValsDistribution_", outName, "_", numRuns, "sims.png"), plot = plot1)
 
 }

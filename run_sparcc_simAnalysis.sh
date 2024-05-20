@@ -56,7 +56,7 @@ for folder in ${folderNames[@]}; do
             mkdir "${folder}/${resDirName}/" 
             # process as abundance
             # run INLA sim analysis
-            for cutoff in 0.00001 0.001 0.01 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 2 3 4 5;
+            for cutoff in 0.00001 0.001 0.01 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 0.005 0.04 0.06 0.08 0.125 0.15 0.175 0.25;
             do
             Rscript sparcc_simAnalysis.r ${folder}/ ${folder}/${resDirName}/ ${cutoff} ${numTrials} ${sitetab_name}
             # this ecoCopula one should work I think
@@ -80,7 +80,7 @@ done
 wait
 
 # this ecoCopula one should still work
-for cutoff in 0.00001 0.001 0.01 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 2 3 4 5;
+for cutoff in 0.00001 0.001 0.01 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 0.005 0.04 0.06 0.08 0.125 0.15 0.175 0.25;
 do
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
 done
