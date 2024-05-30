@@ -1,7 +1,7 @@
 library(stringr)
 library(ggplot2)
 
-simdir <- "multiSim_10sp"
+simdir <- "multiSim_100sp"
 nSamples <- 100
 
 nInteract <- c()

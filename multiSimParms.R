@@ -55,7 +55,7 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
           period <- runif(1, min = 100, max = 10000)
           covVars[[i]] <- list(type = "spatialRandomField", period = period)
         }
-        covar_scale_space <- runif(n = 1, min = 1, max = 100)
+        covar_scale_space <- runif(n = 1, min = 1, max = 40)
 
         covVars[[numCovs + 1]] <- list(type = "constant")
 

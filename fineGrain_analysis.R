@@ -5,11 +5,11 @@ library(igraph)
 
 cluster <- FALSE
 numRuns <- 100
-numSamples <- 10000
-logi <- TRUE # include logi
-ratio_of_avg <- TRUE
+numSamples <- 100
+logi <- FALSE
+saveRes <- FALSE
 
-dirNames <- c("multiSim_10sp", "multiSim_100sp", "multiSim_10sp_random_moreSamples", "multiSim_100sp_random_moreSamples")
+dirName <- "multiSim_100sp"
 
 # if you need to check these later, look at obsidian ROC curve note
 # obsidian://open?vault=simulations&file=ROC%20curves
@@ -49,44 +49,6 @@ get_FPR <- function(data, mode = "ignore_sign", return_components = FALSE) {
     return(list(FPR = FPR, FP = FP, TN = TN))
   } else {
     return(FPR)
-  }
-}
-
-get_precision <- function(data, mode = "ignore_sign", return_components = FALSE) {
-  if (mode == "cluster") {
-      TP <- data$TP_cluster 
-      FP <- data$FP_cluster
-  } else if (mode == "ignore_sign") {
-      TP <- data$TP_ignoreSign
-      FP <- data$FP_ignoreSign
-  } else {
-    TP <- data$TP_sign
-    FP <- data$FP_sign
-  }
-  prec <- TP / (TP + FP)
-  if (return_components) {
-    return(list(prec = prec, TP = TP, FP = FP))
-  } else {
-    return(prec)
-  }
-}
-
-get_recall <- function(data, mode = "ignore_sign", return_components = FALSE) {
-  if (mode == "cluster") {
-    TP <- data$TP_cluster
-    FN <- data$FN_cluster
-  } else if (mode == "ignore_sign") {
-    TP <- data$TP_ignoreSign
-    FN <- data$FN_ignoreSign 
-  } else {      
-    TP <- data$TP_sign
-    FN <- data$FN_sign 
-  }
-  recall <- TP / (TP + FN)
-  if (return_components) {
-    return(list(recall = recall, TP = TP, FN = FN))
-  } else {
-    return(recall)
   }
 }
 
@@ -267,49 +229,51 @@ fprL <- c()
 tpL <- c()
 fpL <- c()
 tnL <- c()
-fnL <- c()
 
 fileNameL <- c()
 simL <- c()
+runL <- c()
 
-for (dirName in dirNames) { #iterate through sims
-  # check if runs exist
-  thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
-  for (i in seq_along(resNames)) {
-    if(!file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
-      print("This file does not exist:")
-      print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
-    }
-  }
-
-  for (i in seq_along(resNames)) {
-    if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
-      thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
-      if (str_detect(resNames[i], "JAGS")) {
-        cutoffIndex <- 9 # corresponds to 0.05
-        thisMultiSimRes <- thisMultiSimRes[thisMultiSimRes$cutoff_val == cutoffIndex, ]
-      } 
-      thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
-      thisTPR <- get_TPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
-      thisFPR <- get_FPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
-
-      tpL <- c(tpL, mean(thisFDR$TP, na.rm = TRUE))
-      fpL <- c(fpL, mean(thisFDR$FP, na.rm = TRUE))
-      tnL <- c(tnL, mean(thisFPR$TN, na.rm = TRUE))
-      fnL <- c(fnL, mean(thisTPR$FN, na.rm = TRUE))
-      fdrL <- c(fdrL, mean(thisFDR$FDR, na.rm = TRUE))
-      fprL <- c(fprL, mean(thisFPR$FPR, na.rm = TRUE))
-      fileNameL <- c(fileNameL, resNames[i])
-      
-      if (str_detect(resNames[i], "_logi")) {
-        thisSim <- paste0(dirName, "_logi")
-      } else {
-        thisSim <- dirName
-      }
-      simL <- c(simL, thisSim)
-    }
-  }
+# check if runs exist
+thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
+for (i in seq_along(resNames)) {
+if(!file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
+    print("This file does not exist:")
+    print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
 }
+}
+
+for (i in seq_along(resNames)) {
+if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
+    thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
+    if (str_detect(resNames[i], "JAGS")) {
+    cutoffIndex <- 9 # corresponds to 0.05
+    thisMultiSimRes <- thisMultiSimRes[thisMultiSimRes$cutoff_val == cutoffIndex, ]
+    } 
+    thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
+    thisTPR <- get_FPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
+    tpL <- c(tpL, thisFDR$TP)
+    fpL <- c(fpL, thisFDR$FP)
+    tnL <- c(tnL, thisTPR$TN)
+    fdrL <- c(fdrL, thisFDR$FDR)
+    fprL <- c(fprL, thisTPR$FPR)
+    fileNameL <- c(fileNameL, rep(resNames[i], times = length(thisFDR$TP)))
+    if (dim(thisMultiSimRes)[1] != numRuns) {
+      print(i)
+      print("Panic")
+    }
+    # this is wrong -- runs are not in order
+    runL <- c(runL, seq_len(dim(thisMultiSimRes)[1]))
+
+    if (str_detect(resNames[i], "_logi")) {
+    thisSim <- paste0(dirName, "_logi")
+    } else {
+    thisSim <- dirName
+    }
+    simL <- c(simL, rep(thisSim, times = length(thisFDR$TP)))
+}
+}
+
 
 methodL <- c()
 for (fileName in fileNameL) {
@@ -336,64 +300,27 @@ for (fileName in fileNameL) {
 simL[simL == "multiSim_10sp_random_moreSamples"] <- "multiSim_10sp_random"
 simL[simL == "multiSim_100sp_random_moreSamples"] <- "multiSim_100sp_random"
 
+FDRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, Run = as.factor(runL), FDR = fdrL, FPR = fprL, FP = fpL, TP = tpL, TN = tnL)
 
-if (ratio_of_avg) {
-  FDRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FDR = fpL / (fpL + tpL), FP = fpL, TP = tpL)
-  FPRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FPR = fpL / (fpL + tnL))
-} else {
-  FDRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FDR = fdrL)
-  FPRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FPR = fprL)
-}
+# Create the plot
+ggplot(FDRs, aes(x = Method, y = FDR, fill = Method)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-head(FPRs)
+# Create the plot
+ggplot(FDRs, aes(x = Method, y = FPR, fill = Method)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-FDRs_filtered <- FDRs[!is.na(FDRs$FDR) & !is.nan(FDRs$FDR), ]
-FPRs_filtered <- FPRs[!is.na(FPRs$FPR) & !is.nan(FPRs$FPR), ]
 
-custom_labels_simulation <- c("multiSim_10sp" = "Set parms, 10sp",
-                              "multiSim_10sp_logi" = "Covariance Mx, 10sp",
-                              "multiSim_100sp" = "Set parms, 100sp",
-                              "multiSim_100sp_logi" = "Covariance Mx, 100sp",
-                              "multiSim_10sp_random" = "Random parms, 10sp",
-                              "multiSim_100sp_random" = "Random parms, 100sp")
+ggplot(FDRs, aes(x = Method, y = FDR, group = Run)) +
+  geom_point(aes(color = Run)) +
+  geom_line(aes(group = Run), alpha = 0.5) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (noCov, pres-abs)",
-                          "ecoCopula_cov" = "ecoCopula (cov, pres-abs)",
-                          "ecoCopula_noCov_readAbd" = "ecoCopula (noCov, readAbd)",
-                          "ecoCopula_cov_readAbd" = "ecoCopula (cov, readAbd)",
-                          "spiecEasi_mb" = "spiecEasi (mb)",
-                          "spiecEasi_glasso" = "spiecEasi (glasso)",      
-                          "spiecEasi_sparcc" = "SPARCC",
-                          "INLA" = "SDM-INLA",              
-                          "logistic_cov" = "logistic (cov)",          
-                          "logistic_noCov" = "logistic (noCov)",
-                          "linearReg_cov" = "linear (cov)",
-                          "linearReg_noCov" = "linear (noCov)",     
-                          "JAGS" = "JSDM-MCMC")
-
-# Create the heatmap
-FDRplot <- ggplot(FDRs, aes(x = Simulation, y = Method, fill = FDR)) +
-  geom_tile() +
-  scale_fill_gradient(low = "white", high = "blue", na.value = "gray") + # You can adjust colors as needed
-  geom_text(aes(label = sprintf("%.2f", FDR)), color = "black", size = 5) + # Display FDR values as text
-  theme_minimal() + # You can change the theme as per your preference
-  labs(x = "Simulation",
-       y = "Method",
-       fill = "FDR") +
-  scale_x_discrete(labels = custom_labels_simulation) +  # Custom labels for the x-axis
-  scale_y_discrete(labels = custom_labels_method) +      # Custom labels for the y-axis
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14),  # Adjust the size value as needed
-        axis.text.y = element_text(size = 14),  # Adjust the size value as needed
-        axis.title = element_text(size = 14))   # Adjust the size value as needed
-
-FDRplot
-
-ggsave(filename = paste0("/space/s1/fiona_callahan/FDR_plot_", numSamples, "samples.png"), plot = FDRplot)
-#ggplot(FPRs_filtered, aes(x = Simulation, y = Method, fill = FPR)) +
-#  geom_tile() +
-#  scale_fill_gradient(low = "gray", high = "blue") + # You can adjust colors as needed
-#  geom_text(aes(label = sprintf("%.2f", FPR)), color = "black") + # Display FDR values as text
-#  theme_minimal() + # You can change the theme as per your preference
-#  labs(x = "Simulation",
-#       y = "Method",
-#       fill = "FPR")
+ggplot(FDRs, aes(x = Method, y = FPR, group = Run)) +
+  geom_point(aes(color = Run)) +
+  geom_line(aes(group = Run), alpha = 0.5) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))

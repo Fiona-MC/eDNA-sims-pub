@@ -7,7 +7,7 @@ library(gridExtra)
 library(tidyr)
 library(stringr)
 
-dirNames <- c("multiSim_100sp_random_moreSamples")
+dirNames <- c("multiSim_10sp_random_1000")
 
 resNames <- c("logistic_mistakes_sampled10000_noCov_filtered_100runs_cutoff0.05_100sims.csv",
             #"logistic_mistakes_sampled10000_covNoCount_filtered_100runs_cutoff0.05_100sims.csv",
@@ -17,7 +17,7 @@ resNames <- c("logistic_mistakes_sampled10000_noCov_filtered_100runs_cutoff0.05_
             #"INLA_res_paperSep_sampled10000_filtered_noCov_infResGathered_cutoff0.05_100sims.csv",
             "INLA_res_paperSep_sampled10000_filtered_covNoCount_infResGathered_cutoff0.05_100sims.csv")
 
-resName <- "logistic_mistakes_sampled10000_noCov_filtered_100runs_cutoff0.05_100sims.csv"
+resName <- "linearReg_mistakes_sampled100_noCov_filtered_1000runs_cutoff0.05_1000sims.csv"
 
 get_falseDiscovery <- function(data, mode = "ignore_sign", return_components = FALSE) {
     if (mode == "cluster") {
@@ -155,7 +155,7 @@ for(resName in resNames) {
     naive_rmse <- sqrt(sum((median(data[[indep_var]]) - data[[indep_var]])^2, na.rm = TRUE) / length(data[[indep_var]]))
     rf_predictions <- predict(object = rf_res, data = data)
     rf_rmse <- sqrt(sum((rf_predictions$predictions - data[[indep_var]])^2) / length(data[[indep_var]]))
-    (rf_rmse - naive_rmse) / naive_rmse
+    (rf_rmse - naive_rmse) / naive_rmse # training
 
 }
 
@@ -165,7 +165,7 @@ for(resName in resNames) {
 
 ###### test set ########
 dirNames <- c("multiSim_10sp_random_testSet")
-resName <- "logistic_mistakes_sampled10000_noCov_filtered_100runs_cutoff0.05_100sims.csv"
+resName <- "linearReg_mistakes_sampled100_noCov_filtered_100runs_cutoff0.05_100sims.csv"
 
 method <- str_split(resName, pattern = "_")[[1]][1]
 
@@ -212,6 +212,9 @@ multiSimRes_test_na.rm <- multiSimRes_test[!is.na(multiSimRes_test[[indep_var]])
 
 rf_predictions <- predict(object = rf_res, data = multiSimRes_test_na.rm)
 rf_rmse <- sqrt(sum((rf_predictions$predictions - multiSimRes_test_na.rm$FDR)^2) / length(multiSimRes_test_na.rm$FDR))
+naive_rmse <- sqrt(sum((median(multiSimRes_test_na.rm[[indep_var]]) - multiSimRes_test_na.rm[[indep_var]])^2, na.rm = TRUE) / 
+              length(multiSimRes_test_na.rm[[indep_var]]))
+
 
 #for test set
 rf_rmse

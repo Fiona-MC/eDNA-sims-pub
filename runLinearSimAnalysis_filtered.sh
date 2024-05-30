@@ -1,12 +1,12 @@
 #!/bin/bash
 export OMP_NUM_THREADS=15
 
-# ./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_10sp 100 0 1000 0 1
+# ./runLinearSimAnalysis_filtered.sh /space/s1/fiona_callahan/multiSim_100sp 100 0 10000 0 1
 
-sim_dir="/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples"
+sim_dir="/space/s1/fiona_callahan/multiSim_100sp"
 numRuns=100
 covs=0
-numSamples=1000
+numSamples=100
 logi=0
 filtered=1
 

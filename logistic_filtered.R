@@ -7,12 +7,12 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_testSet/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
 numRuns <- as.numeric(100)
 covs <- (as.numeric("1") == 0)
 logi <- (as.numeric("0") == 1)
-sitetab_name <- "sim_sitetab_sampled10000_filtered.csv"
-outName <- "logistic_mistakes_sampled10000_noCov_filtered_100runs"
+sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
+outName <- "logistic_mistakes_sampled100_noCov_filtered_100runs"
 countCovs <- FALSE
 
 data_dir <- args[1]

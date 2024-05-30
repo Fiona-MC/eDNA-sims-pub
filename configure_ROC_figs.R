@@ -2,11 +2,11 @@ library(ggplot2)
 library(gridExtra)
 library(stringr)
 
-dir_list <- c("/space/s1/fiona_callahan/multiSim_10sp/", 
-            "/space/s1/fiona_callahan/multiSim_10sp/", 
-            "/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples/")
+dir_list <- c("/space/s1/fiona_callahan/multiSim_100sp/", 
+            "/space/s1/fiona_callahan/multiSim_100sp/", 
+            "/space/s1/fiona_callahan/multiSim_100sp_random_moreSamples/")
 logiL <- c(TRUE, FALSE, FALSE)
-samplesL <- c(100, 1000, 10000)
+samplesL <- c(100, 10000)
 
 numRuns <- 100
 
@@ -28,7 +28,7 @@ for (i in seq_along(dir_list)) {
         }
 
         if (logi) {
-            simSet <- paste0(simSet, " logi")
+            simSet <- "covariance matrix"
             saveName <- paste0(saveName, "_logi")
         }
 
@@ -44,31 +44,63 @@ for (i in seq_along(dir_list)) {
 full_ROC$sim_set <- simSetL
 full_ROC$Num_Samples <- nSamplesL
 
+
+custom_labeller <- function(variable, value) {
+  if (variable == "Num_Samples") {
+    return(paste(value, "samples"))
+  }
+  return(value)
+}
+
+
 ROC_plot <- ggplot(full_ROC, aes(x = avg_FPR, y = avg_TPR, color = method, group = method)) +
         scale_shape_manual(values = 1:12) +
         #geom_point(size = 5, aes(shape = modelSelect)) +
         geom_point(data = subset(full_ROC, modelSelect == TRUE), size = 5) +  # Show points only when modelSelect = TRUE
         stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
-        labs(x = "FPR", y = "TPR") +
+        labs(x = "False Positive Rate (FPR)", y = "True Positive Rate (TPR)") +
         geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line (no skill)
         #geom_errorbar(aes(ymin = pmax(0, avg_TPR - TPR_sd), ymax = pmin(1, avg_TPR + TPR_sd)), width = 0.03) +  # Add TPR error bars
         #geom_errorbarh(aes(xmin = pmax(0, avg_FPR - FPR_sd), xmax = pmin(1, avg_FPR + FPR_sd)), height = 0.03) +  # Add FPR error bars
         lims(x = c(0, 1), y = c(0, 1)) + # Set x and y-axis limits
         scale_color_manual(values = c("SpiecEasi_glasso" = "red", 
-                                        "SpiecEasi_mb" = "deeppink3", 
-                                        "spiecEasi_glasso" = "red", 
-                                        "spiecEasi_mb" = "deeppink3",
-                                        "sparcc" = "darkred",
-                                        "INLA_noCov" = "blue", 
-                                        "INLA_cov" = "deepskyblue", 
-                                        "ecoCopula_cov" = "green", 
-                                        "ecoCopula_noCov" = "darkgreen", 
-                                        "logistic_noCov" = "yellow",
-                                        "logistic_cov" = "brown1",
-                                        "logistic" = "darkorange",
-                                        "JAGS" = "darkorchid")) + # Manual color scale for method
+                                "SpiecEasi_mb" = "deeppink3", 
+                                "spiecEasi_glasso" = "red", 
+                                "spiecEasi_mb" = "deeppink3",
+                                "sparcc" = "darkred",
+                                "INLA_noCov" = "blue", 
+                                "INLA_cov" = "deepskyblue", 
+                                "ecoCopula_cov" = "green", 
+                                "ecoCopula_noCov" = "#b1ff8d", 
+                                "ecoCopula_cov_readAbd" = "darkgreen", 
+                                "ecoCopula_noCov_readAbd" = "#00a200", 
+                                "logistic_noCov" = "yellow",
+                                "logistic_cov" = "brown1",
+                                "logistic" = "darkorange",
+                                "linear_cov" = "grey",
+                                "linear_noCov" = "black",
+                                "JAGS" = "darkorchid"),
+                                labels = c(
+                                "SpiecEasi_glasso" = "SpiecEasi (glasso)", 
+                                "SpiecEasi_mb" = "SpiecEasi (mb)", 
+                                "spiecEasi_glasso" = "SpiecEasi (glasso)", 
+                                "spiecEasi_mb" = "SpiecEasi (mb)",
+                                "sparcc" = "SPARCC",
+                                "INLA_noCov" = "SDM-INLA (noCov)", 
+                                "INLA_cov" = "SDM-INLA (cov)", 
+                                "ecoCopula_cov" = "ecoCopula (cov)", 
+                                "ecoCopula_noCov" = "ecoCopula (noCov)", 
+                                "ecoCopula_cov_readAbd" = "ecoCopula (cov readAbd)", 
+                                "ecoCopula_noCov_readAbd" = "ecoCopula (noCov readAbd)", 
+                                "logistic_noCov" = "Logistic (noCov)",
+                                "logistic_cov" = "Logistic (cov)",
+                                "logistic" = "Logistic (cov)",
+                                "linear_cov" = "Linear (cov)",
+                                "linear_noCov" = "Linear (noCov)",
+                                "JAGS" = "JSDM-MCMC"
+                                )) + # Manual color scale for method
         theme(text = element_text(size = 18))  + # Set the base size for all text elements
-        facet_grid(sim_set ~ Num_Samples)
+        facet_grid(sim_set ~ Num_Samples, labeller = custom_labeller)
 
 ROC_plot
 

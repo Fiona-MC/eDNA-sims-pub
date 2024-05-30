@@ -19,7 +19,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_10sp_random_testSet/ 1 100
+# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_10sp_random_1000/ 1 1000
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- TRUE
 #parmSet <- "indep" # indep means that all alphas will be 0
@@ -41,7 +41,7 @@ dir.create(thisdir)
 runstart <- args[2]
 runend <- args[3]
 runs <- runstart:runend
-runs <- c(16,36,39,50,56,58,70,77,85)
+#runs <- c(16,36,39,50,56,58,70,77,85)
 #runs <- c(5,6,22,38,59,81)
 #runs <- c(30,35,43)
 # controls whether sim_sitetab_longer.csv is created with all time points or just the sampled table
@@ -95,11 +95,18 @@ for (run in runs) {
       covar_matrix[locindex1, locindex2] <- spatial_covariance(loc1, loc2, covar_scale_space = params$covar_scale_space)
     }
   }
-  inv_covar_mx <- solve(covar_matrix)
+
+  if (any(is.complex(eigen(covar_matrix)$values))) {
+    print(params$covar_scale_space)
+    stop("covariance matrix has complex eigenvals and therefore is not pos semidef (line 94 in multiSim_Mar2023.R)", call.=FALSE)
+  }
 
   if (!(all(eigen(covar_matrix)$values >= 0))) {
-    stop("covariance matrix is not positive semidefinite (line 94 in multiSim_Mar2023.R)", call.=FALSE)
+    print(params$covar_scale_space)
+    stop("covariance matrix has negative values and therefore is not positive semidefinite (line 94 in multiSim_Mar2023.R)", call.=FALSE)
   }
+
+  inv_covar_mx <- solve(covar_matrix)
 
   #Initialize abundances with all 10's
   N0 <- list()

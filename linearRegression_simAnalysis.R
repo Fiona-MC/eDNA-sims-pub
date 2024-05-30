@@ -7,9 +7,9 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_100sp_random_moreSamples/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
 numRuns <- as.numeric(100)
-covs <- (as.numeric("1") == 0)
+covs <- (as.numeric("0") == 1)
 logi <- (as.numeric("0") == 1)
 sitetab_name <- "sim_sitetab_readAbd_sampled10000_filtered.csv"
 outName <- "linearReg_mistakes_sampled10000_noCov_filtered_100runs"
@@ -63,7 +63,7 @@ TN_cluster <- rep(NA, times = numRuns * numTrials)
 FN_cluster <- rep(NA, times = numRuns * numTrials)
 
 # this is a hacky way to get the number of parms
-simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
+#simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
 
 resL <- list()
 for (run in runs) {
@@ -349,15 +349,13 @@ for (cutoff in cutoffs) {
                     timeL[i] <- inferredParms$time
                 }
                     
-                
-            }
-
                 # count total number of actual effects in the model
                 num_actualEffects <- sum(abs(actualAlpha))
 
                 num_actualEffectsL[i] <- num_actualEffects
                 num_possibleEffectsL[i] <- dim(actualAlpha)[1]^2 - dim(actualAlpha)[1]
-                i <- i + 1
+            }
+            i <- i + 1
         }
     }
 
@@ -393,8 +391,8 @@ for (cutoff in cutoffs) {
 
     #print(df)
 
-    parmsDF$sim_run <- runL
-    parmsDF$trial <- trialL
+    parmsDF$sim_run <- runL[!(is.na(runL))]
+    parmsDF$trial <- trialL[!(is.na(trialL))]
     #print(parmsDF)
 
     fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
@@ -425,6 +423,7 @@ if (plotTvals) {
         scale_color_manual(values = rainbow(length(unique(t_vals_df$actual_beta)))) +  # Adjust colors
         theme_minimal()  # Optional: Change the theme
     
+    write.csv(t_vals_df, paste0(data_dir, "tValsDistribution_", outName, "_", numRuns, "sims.csv"))
     ggsave(filename = paste0(data_dir, "tValsDistribution_", outName, "_", numRuns, "sims.png"), plot = plot1)
 
 }

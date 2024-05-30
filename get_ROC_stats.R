@@ -3,6 +3,7 @@ library(tidyr)
 library(stringr)
 library(SpiecEasi)
 library(igraph)
+library(data.table)
 
 cluster <- FALSE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
@@ -18,7 +19,7 @@ if (logi) {
   filtered <- TRUE
 }
 
-dirName <- c("multiSim_100sp_random_moreSamples")
+dirName <- c("multiSim_100sp")
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -57,23 +58,17 @@ linear_cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03
                       0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 1.01)
 
 if (logi) {
-  lin_resnames_cov <- sapply(X = linear_cutoffs, FUN = function(x) {
-                  paste0("linearReg_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
                                 paste0("linearReg_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   lin_resnames_covNoCount <- sapply(X = linear_cutoffs, FUN = function(x) {
-                      paste0("linearReg_mistakes_sampled", numSamples, "_covNoCount_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})     
+                      paste0("linearReg_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})     
 } else {
   if (filtered) {
-    lin_resnames_cov <- sapply(X = linear_cutoffs, FUN = function(x) {
-                          paste0("linearReg_mistakes_sampled", numSamples, "_cov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
     lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
                           paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
     lin_resnames_covNoCount <- sapply(X = linear_cutoffs, FUN = function(x) {
-                      paste0("linearReg_mistakes_sampled", numSamples, "_covNoCount_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})                          
+                      paste0("linearReg_mistakes_sampled", numSamples, "_cov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})                          
   } else {
-    lin_resnames_cov <- sapply(X = linear_cutoffs, FUN = function(x) {
-                              paste0("linearReg_mistakes_sampled", numSamples, "_cov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
     lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
                               paste0("linearReg_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
   }
@@ -143,13 +138,19 @@ if (logi) {
 if (logi) {
   ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_logi")
   ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov_logi")
+  ecName3 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov_logi")
+  ecName4 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov_logi")
 } else {
   if(filtered) {
     ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_filtered")
     ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov_filtered")
+    ecName3 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov_filtered")
+    ecName4 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov_filtered")
   } else {
     ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov")
     ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov")
+    ecName3 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov")
+    ecName4 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov")
   }
 }
 
@@ -170,6 +171,8 @@ if(covMode == "all") {
   se_include <- TRUE
   resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
               sparcc_resnames,
@@ -180,7 +183,6 @@ if(covMode == "all") {
               log_resnames_cov,
               log_resnames_noCov,
               log_resnames_covNoCount,
-              lin_resnames_cov,
               lin_resnames_noCov,
               lin_resnames_covNoCount,
               jags1)
@@ -188,11 +190,11 @@ if(covMode == "all") {
   se_include <- FALSE
   resNames <- c(inla1, 
                 inla_resnames_cov,
-                log_resnames_cov,
-                lin_resnames_cov)
+                log_resnames_cov)
 } else if (covMode == "noCov") {
   se_include <- TRUE
   resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
               sparcc_resnames,
@@ -202,6 +204,7 @@ if(covMode == "all") {
 } else if (covMode == "covNoCount") {
   se_include <- FALSE
   resNames <- c(paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
               inla_resnames_covNoCount,
               log_resnames_covNoCount,
               lin_resnames_covNoCount,
@@ -210,6 +213,8 @@ if(covMode == "all") {
   se_include <- TRUE
   resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
               sparcc_resnames,
@@ -264,7 +269,8 @@ thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
 multiSimResL <- list()
 for (i in seq_along(resNames)) {
   if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
-    thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
+    #print(resNames[i])
+    thisMultiSimRes <- fread(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
     thisMultiSimRes$totalMistakes <- thisMultiSimRes$num_incorrectInferences + thisMultiSimRes$num_missedEffectsL
     thisMultiSimRes$fp_fp_tp <- thisMultiSimRes$num_incorrectInferences / 
                                 (thisMultiSimRes$num_correctInferences + thisMultiSimRes$num_incorrectInferences)
@@ -429,6 +435,14 @@ for (i in seq_along(multiSimResL)) {
         methods[i] <- "logistic"
         modelSelect[i] <- FALSE
       }
+    } else if (str_detect(names(multiSimResL)[i], "linear")) {
+      if (str_detect(names(multiSimResL)[i], "noCov")) {
+        methods[i] <- "linear_noCov"
+        modelSelect[i] <- FALSE
+      } else {
+        methods[i] <- "linear_cov"
+        modelSelect[i] <- FALSE
+      }
     } else if (str_detect(names(multiSimResL)[i], "INLA")) {
       if (str_detect(names(multiSimResL)[i], "noCov")) {
         thisName <- "INLA_noCov"
@@ -446,6 +460,9 @@ for (i in seq_along(multiSimResL)) {
         methods[i] <- "ecoCopula_noCov"
       } else {
          methods[i] <- "ecoCopula_cov"
+      }
+      if(str_detect(names(multiSimResL)[i], "readAbd")) {
+        methods[i] <- paste0(methods[i], "_readAbd")
       }
       modelSelect[i] <- TRUE
     } else if (str_detect(names(multiSimResL)[i], "spiecEasi")) {
@@ -744,10 +761,14 @@ ROC_plot <- ggplot(ROC_data, aes(x = avg_FPR, y = avg_TPR, color = method, group
                                 "INLA_noCov" = "blue", 
                                 "INLA_cov" = "deepskyblue", 
                                 "ecoCopula_cov" = "green", 
-                                "ecoCopula_noCov" = "darkgreen", 
+                                "ecoCopula_noCov" = "#b1ff8d", 
+                                "ecoCopula_cov_readAbd" = "darkgreen", 
+                                "ecoCopula_noCov_readAbd" = "#00a200", 
                                 "logistic_noCov" = "yellow",
                                 "logistic_cov" = "brown1",
                                 "logistic" = "darkorange",
+                                "linear_cov" = "grey",
+                                "linear_noCov" = "black",
                                 "JAGS" = "darkorchid")) + # Manual color scale for method
   theme(text = element_text(size = 24))  # Set the base size for all text elements
 
