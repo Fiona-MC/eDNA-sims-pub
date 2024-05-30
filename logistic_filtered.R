@@ -67,7 +67,7 @@ TN_cluster <- rep(NA, times = numRuns * numTrials)
 FN_cluster <- rep(NA, times = numRuns * numTrials)
 
 # this is a hacky way to get the number of parms
-simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
+#simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
 
 logisticRes <- list()
 for (run in runs) {
@@ -352,16 +352,14 @@ for (cutoff in cutoffs) {
                 if ("time" %in% names(inferredParms)) {
                     timeL[i] <- inferredParms$time
                 }
-                    
-                
-            }
 
                 # count total number of actual effects in the model
                 num_actualEffects <- sum(abs(actualAlpha))
 
                 num_actualEffectsL[i] <- num_actualEffects
                 num_possibleEffectsL[i] <- dim(actualAlpha)[1]^2 - dim(actualAlpha)[1]
-                i <- i + 1
+            }
+            i <- i + 1
         }
     }
 
@@ -397,8 +395,8 @@ for (cutoff in cutoffs) {
 
     #print(df)
 
-    parmsDF$sim_run <- runL
-    parmsDF$trial <- trialL
+    parmsDF$sim_run <- runL[!(is.na(runL))]
+    parmsDF$trial <- trialL[!(is.na(trialL))]
     #print(parmsDF)
 
     fulldf <- merge(x = df, y = parmsDF, by = c("sim_run", "trial"))
@@ -429,6 +427,7 @@ if (plotZvals) {
         scale_color_manual(values = rainbow(length(unique(z_vals_df$actual_beta)))) +  # Adjust colors
         theme_minimal()  # Optional: Change the theme
     
+    write.csv(z_vals_df, paste0(data_dir, "zValsDistribution_", outName, "_", numRuns, "sims.csv"))
     ggsave(filename = paste0(data_dir, "zValsDistribution_", outName, "_", numRuns, "sims.png"), plot = plot1)
 
 }
