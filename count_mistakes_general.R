@@ -76,6 +76,10 @@ TP_sign <- rep(NA, times = numRuns * numTrials)
 FP_sign <- rep(NA, times = numRuns * numTrials)
 TN_sign <- rep(NA, times = numRuns * numTrials)
 FN_sign <- rep(NA, times = numRuns * numTrials)
+TP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+FP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+TN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+FN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
 
 i <- 1
 for (run in 1:numRuns) {
@@ -240,7 +244,15 @@ for (run in 1:numRuns) {
                 try(if (TN_ignoreSign[i] + FN_ignoreSign[i] + FP_ignoreSign[i] + TP_ignoreSign[i] != 
                         (numSpecies^2 - numSpecies + numSpecies * (simParms$numCovs - 1))) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx")})
-
+                TP_ignoreDirection[i] <- sum(abs(undirected_alpha_inferred) * abs(undirected_alpha_actual) == 1, na.rm = TRUE) + 
+                                        sum(abs(betaInferred) * abs(actualBeta) == 1, na.rm = TRUE)
+                FP_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 1) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) + 
+                                    sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0), na.rm = TRUE)
+                FN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 1), na.rm = TRUE) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1), na.rm = TRUE)
+                TN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) + 
+                                    sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE) -
+                                    numSpecies # subtract diagonal
             } else {
                 TP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 1))
                 FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0)) 
@@ -249,6 +261,11 @@ for (run in 1:numRuns) {
                                         numSpecies # subtract diagonal
                 try(if (TP_ignoreSign[i] + FP_ignoreSign[i] + FN_ignoreSign[i] + TN_ignoreSign[i] != numSpecies^2 - numSpecies) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx")})
+                TP_ignoreDirection[i] <- sum(abs(undirected_alpha_inferred) * abs(undirected_alpha_actual) == 1, na.rm = TRUE) 
+                FP_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 1) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) 
+                FN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 1), na.rm = TRUE) 
+                TN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) - 
+                                    numSpecies # subtract diagonal
             }
 
             if (covs) {
@@ -360,7 +377,11 @@ df <- data.frame(sim_run = runL,
             TP_sign = TP_sign,
             FP_sign = FP_sign,
             TN_sign = TN_sign,
-            FN_sign = FN_sign)
+            FN_sign = FN_sign,
+            TP_ignoreDirection = TP_ignoreDirection,
+            FP_ignoreDirection = FP_ignoreDirection,
+            TN_ignoreDirection = TN_ignoreDirection,
+            FN_ignoreDirection = FN_ignoreDirection)
 
 # print(df)
 
