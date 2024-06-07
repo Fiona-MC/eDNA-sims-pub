@@ -19,7 +19,7 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_10sp_random_1000/ 1 1000
+# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_examineSims/100sp_random/ 1 1
 # thisdir<-"/space/s1/fiona_callahan/multiSim5/"
 random <- TRUE
 #parmSet <- "indep" # indep means that all alphas will be 0
@@ -29,7 +29,7 @@ burn <- 100
 
 spNumMode <- "many"
 #nSp <- 2
-nSp <- 10
+nSp <- 100
 readAbdMode <- TRUE
 saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
 saveLess <- TRUE

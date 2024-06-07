@@ -16,6 +16,8 @@ locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 locDF <- as.data.frame(matrix(unlist(locList), nrow = length(locList), ncol = 2, byrow = TRUE))
 distMx <- as.matrix(dist(locDF, diag = TRUE, upper = TRUE))
 
+spTemp <- FALSE
+if (spTemp) {
 # for each distance, get the set of pairs that 
 distances <- unique(distMx[1, ])
 df_L <- list()
@@ -93,7 +95,7 @@ for (time_spl in time_splits) {
     df_L_time[[as.character(time_spl)]] <- y_df_time
 }
 
-# species covariance
+# species covariance in space
 covars <- c()
 for (d in round(distances, 2)) {
     covars <- c(covars, cov(df_L[[as.character(d)]]$ysp3_1, df_L[[as.character(d)]]$ysp3_2))
@@ -125,7 +127,18 @@ ggplot(covarData, aes(x = time_splits, y = covariance)) +
     theme(axis.text.x = element_text(size = 12),  
         axis.text.y = element_text(size = 12),
         axis.title = element_text(size = 16)) 
+}
 
+
+
+
+
+
+
+
+#######################################################
+################## covar by interaction ###############
+######################################################
 
 getCovarData <- function(data_dirs, logi = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE) {
     plotData_all <- data.frame()
@@ -145,12 +158,12 @@ getCovarData <- function(data_dirs, logi = FALSE, prec = FALSE, abd = TRUE, clus
                 }
             }
         } else {
-            sitetab_path <- paste0(data_dir, "sim_sitetab_sampled.csv")
+            sitetab_path <- paste0(data_dir, "sim_sitetab_sampled10000.csv")
         }
 
         if (!logi && abd) {
             # what about if we are using abundances? vvv
-            sitetab_path <- paste0(data_dir, "sim_sitetab_readAbd_sampled.csv")
+            sitetab_path <- paste0(data_dir, "sim_sitetab_readAbd_sampled10000.csv")
         }
 
         sitetab <- read.csv(sitetab_path)
@@ -236,9 +249,11 @@ getCovarData <- function(data_dirs, logi = FALSE, prec = FALSE, abd = TRUE, clus
     return(plotData_all)
 }
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
+
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples/"
+abd = FALSE
 data_dirs <- sapply(X = 1:100, FUN = function(num) {paste0(data_dir, "randomRun", num, "/")})
-plotData <- getCovarData(data_dirs, logi = FALSE, prec = FALSE, abd = TRUE, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
+plotData <- getCovarData(data_dirs, logi = FALSE, prec = FALSE, abd = abd, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
 # what if we do absolute value of covariance?
 #plotData <- data.frame(actual_interaction = c(rep("positive", times = length(covar_pos_interact)), 
 #                                            rep("negative", times = length(covar_neg_interact)), 
@@ -249,14 +264,25 @@ ggplot(data = plotData[plotData$covariance < 1, ], aes(x = actual_interaction, y
             geom_boxplot() #+ 
             #ggtitle(paste0(data_dir))
 
-plot1 <- ggplot(data = plotData, aes(x = covariance, fill = actual_interaction)) +
+plot1 <- ggplot(data = plotData[abs(plotData$covariance) < 1000, ], aes(x = covariance, fill = actual_interaction)) +
             geom_histogram(position = "dodge", stat = "density") #+
             #ggtitle(paste0(data_dir))
 plot1
-ggsave(plot1, filename = paste0(data_dir, "empiricalCovariance_smooth.png"))
+if (abd) {
+    ggsave(plot1, filename = paste0(data_dir, "empiricalCovariance_smooth_abd.png"))
+} else {
+    ggsave(plot1, filename = paste0(data_dir, "empiricalCovariance_smooth_presAbs.png"))
+}
 
-plot2 <- ggplot(data = plotData, aes(x = covariance, fill = actual_interaction)) +
+
+plot2 <- ggplot(data = plotData[abs(plotData$covariance) < 100, ], aes(x = covariance, fill = actual_interaction)) +
             geom_histogram(position = "dodge") #+
             #ggtitle(paste0(data_dir))
 plot2
-ggsave(plot2, filename = paste0(data_dir, "empiricalCovariance.png"))
+
+if (abd) {
+    ggsave(plot2, filename = paste0(data_dir, "empiricalCovariance_abd.png"))
+} else {
+    ggsave(plot2, filename = paste0(data_dir, "empiricalCovariance_presAbs.png"))
+}
+

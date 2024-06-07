@@ -65,21 +65,6 @@ sitetab_name=sim_sitetab_sampled${numSamples}_filtered.csv
 resDirName=${resDirName}_filtered
 fi
 
-#INLA_type="faster"
-
-#Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
-# Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
-
-# this takes a minute (cp takes awhile -- if we just delete them it will be fast)
-#mkdir ${sim_dir}/unrealisticRuns
-#while IFS=',' read -r lineNum runNum reason; do
-#    if [ -e "${sim_dir}/randomRun${runNum}" ]; then
-#        cp -pR "${sim_dir}/randomRun${runNum}" "${sim_dir}/unrealisticRuns/randomRun${runNum}"
-#        rm -r "${sim_dir}/randomRun${runNum}"
-#    fi
-#done < ${sim_dir}/unrealistic_runNums.csv
-
-
 
 N=1 # N=10 resulted in average usage around 30 cores
 # based on current rate with N=10 -- this should take ~6 days for 1000 runs (2 trials each)

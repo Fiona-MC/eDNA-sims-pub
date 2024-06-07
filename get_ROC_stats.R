@@ -5,12 +5,27 @@ library(SpiecEasi)
 library(igraph)
 library(data.table)
 
-cluster <- FALSE
+args <- commandArgs(trailingOnly = TRUE)
+
+
+setwd("/home/fiona_callahan/eDNA_sims_code")
+
+#./get_ROC_stats.R multiSim_100sp_random_moreSamples 1 100 0
+
+cluster <- TRUE
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
 numSamples <- 10000
 logi <- FALSE
-saveRes <- FALSE
+saveRes <- TRUE
+covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
+
+cluster <- as.numeric(args[2]) == 1
+ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
+numRuns <- 100
+numSamples <- args[3]
+logi <- as.numeric(args[4]) == 1
+saveRes <- TRUE
 covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
 
 if (logi) {
@@ -19,7 +34,9 @@ if (logi) {
   filtered <- TRUE
 }
 
-dirName <- c("multiSim_100sp")
+dirName <- c("multiSim_100sp_random_moreSamples")
+
+dirName <- c(args[1])
 #dirName <- c("multiSim_test2x10sp")
 multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -123,7 +140,9 @@ if(logi) {
   }
 }
 
-sparcc_cutoffs <- c(0.00001, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5, 0.005, 0.04, 0.06, 0.08, 0.125, 0.15, 0.175, 0.25)
+sparcc_cutoffs <- c(0.0000000000000001, 0.00000001, 0.00001, 0.0001, 0.001, 0.01, 0.1,
+                   0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99, 0.9999, 1,
+                    0.005, 0.04, 0.06, 0.08, 0.125, 0.15, 0.175, 0.25)
 if (logi) {
   sparcc_resnames <- sapply(X = sparcc_cutoffs, FUN = function(x) {
                         paste0("sparcc_res_sampled", numSamples, "_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
@@ -309,105 +328,7 @@ for (i in seq_along(resNames)) {
 # default ones
 #multiSimRes <- multiSimResL$logistic_mistakes_sampled50_noCov_100runs_cutoff0.9999_100sims.csv
 #multiSimRes <- multiSimResL$spiecEasi_res_mb_infResGathered.csv
-
-# if you need to check these later, look at obsidian ROC curve note
-# obsidian://open?vault=simulations&file=ROC%20curves
-get_TPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-    if (mode == "cluster") {
-        TP <- data$TP_cluster 
-        FN <- data$FN_cluster
-    } else if (mode == "ignore_sign") {
-        TP <- data$TP_ignoreSign
-        FN <- data$FN_ignoreSign
-    } else {
-        # tp/(tp+fn)
-        TP <- data$TP_sign
-        FN <- data$FN_sign
-    } 
-    TPR <- TP / (TP + FN)
-    if (return_components) {
-      return(list(TPR = TPR, TP = TP, FN = FN))
-    } else {
-      return(TPR)
-    }
-}
-
-get_FPR <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-    if (mode == "cluster") {
-      FP <- data$FP_cluster
-      TN <- data$TN_cluster
-    } else if (mode == "ignore_sign") {
-      FP <- data$FP_ignoreSign
-      TN <- data$TN_ignoreSign
-    } else {
-      FP <- data$FP_sign
-      TN <- data$TN_sign
-    } 
-    FPR <- FP / (FP + TN)
-    if (return_components) {
-      return(list(FPR = FPR, FP = FP, TN = TN))
-    } else {
-      return(FPR)
-    }
-}
-
-get_precision <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-    if (mode == "cluster") {
-        TP <- data$TP_cluster 
-        FP <- data$FP_cluster
-    } else if (mode == "ignore_sign") {
-        TP <- data$TP_ignoreSign
-        FP <- data$FP_ignoreSign
-    } else {
-      TP <- data$TP_sign
-      FP <- data$FP_sign
-    }
-    prec <- TP / (TP + FP)
-    if (return_components) {
-      return(list(prec = prec, TP = TP, FP = FP))
-    } else {
-      return(prec)
-    }
-}
-
-get_recall <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-    if (mode == "cluster") {
-      TP <- data$TP_cluster
-      FN <- data$FN_cluster
-    } else if (mode == "ignore_sign") {
-      TP <- data$TP_ignoreSign
-      FN <- data$FN_ignoreSign 
-    } else {      
-      TP <- data$TP_sign
-      FN <- data$FN_sign 
-    }
-    recall <- TP / (TP + FN)
-    if (return_components) {
-      return(list(recall = recall, TP = TP, FN = FN))
-    } else {
-      return(recall)
-    }
-}
-
-get_falseDiscovery <- function(data = multiSimRes, mode = "ignore_sign", return_components = FALSE) {
-    if (mode == "cluster") {
-      TP <- data$TP_cluster
-      FP <- data$FP_cluster
-    } else if (mode == "ignore_sign") {
-      TP <- data$TP_ignoreSign
-      FP <- data$FP_ignoreSign 
-    } else {      
-      TP <- data$TP_sign
-      FP <- data$FP_sign 
-    }
-    FDR <- FP / (FP + TP)
-    if (return_components) {
-      return(list(FDR = FDR, FP = FP, TP = TP))
-    } else {
-      return(FDR)
-    }
-}
-
+source("./confusion_stats.R")
 
 # method | threshold | avg_TPR | avg_FPR 
 file <- rep(NA, times = length(multiSimResL))
@@ -563,46 +484,59 @@ for (i in seq_along(multiSimResL)) {
 }
 
 if(se_include) {
-multiples <- FALSE
-if(multiples) {
-if (!cluster) {
-  # for spiec-easi, just put separate lines for a couple of individual sims rather than average
-  for (run in sample(1:numRuns, size = 5)) {
-    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName2, "/trial1/")
-    se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
-    if (filtered) {
-      params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/paramsFiltered", numSamples, ".Rdata"))
-      actualAlpha <- params$filteredAlpha
-    } else {
-      params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
-      actualAlpha <- params$alpha
-    }
+  multiples <- FALSE
+  if(multiples) {
+    # for spiec-easi, just put separate lines for a couple of individual sims rather than average
+    for (run in sample(1:numRuns, size = 5)) {
+      subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName2, "/trial1/")
+      se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
+      if (filtered) {
+        params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/paramsFiltered", numSamples, ".Rdata"))
+        actualAlpha <- params$filteredAlpha
+      } else {
+        params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
+        actualAlpha <- params$alpha
+      }
 
-    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
-    # theta = true_interactions
-    se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
-    avg_TPR <- c(avg_TPR, se.roc$tp)
-    avg_FPR <- c(avg_FPR, se.roc$fp)
+      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+      numSpecies <- dim(actualAlpha)[1]
 
-    TPR_sd <- c(TPR_sd, rep(NA, times = length(se.roc$fp))) 
-    FPR_sd <- c(FPR_sd, rep(NA, times = length(se.roc$fp)))
+      if (cluster) {
+        connected_alpha_actual <- (distances(alphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
+                                              (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
+        alphaG <- graph_from_adjacency_matrix(connected_alpha_actual != 0, mode = "max")
 
-    modelSelect <- c(modelSelect, rep(FALSE, times = length(se.roc$fp)))
-    numSamplesL <- c(numSamplesL, rep(NA, times = length(se.roc$fp)))
-    numSims <- c(numSims, rep(NA, times = length(se.roc$fp)))
-    numSp <- c(numSp, rep(NA, times = length(se.roc$fp)))
+        se_inferred_alpha <- lapply(se$est$path, FUN = function(inferredAlpha) {
+          inferredAlphaG <- graph_from_adjacency_matrix(as.matrix(inferredAlpha != 0), mode = "max")
+          connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
+                                              (diag(nrow = dim(inferredAlpha)[1], ncol = dim(inferredAlpha)[1]) == 0)
+          return(connected_alpha_inferred)
+        })
+      } else {
+        se_inferred_alpha <- se$est$path
+      }
 
-    avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
-    avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
-    methods <- c(methods, rep(paste0("SpiecEasi", run), times = length(se.roc$fp)))
-    file <- c(file, rep(NA, times = length(se.roc$fp)))
-    thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
-  } 
-}
-}
+      # theta = true_interactions
+      se.roc <- huge::huge.roc(se_inferred_alpha, theta = alphaG, verbose = FALSE)
+      avg_TPR <- c(avg_TPR, se.roc$tp)
+      avg_FPR <- c(avg_FPR, se.roc$fp)
 
+      TPR_sd <- c(TPR_sd, rep(NA, times = length(se.roc$fp))) 
+      FPR_sd <- c(FPR_sd, rep(NA, times = length(se.roc$fp)))
 
-if (!cluster) { 
+      modelSelect <- c(modelSelect, rep(FALSE, times = length(se.roc$fp)))
+      numSamplesL <- c(numSamplesL, rep(NA, times = length(se.roc$fp)))
+      numSims <- c(numSims, rep(NA, times = length(se.roc$fp)))
+      numSp <- c(numSp, rep(NA, times = length(se.roc$fp)))
+
+      avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
+      avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
+      methods <- c(methods, rep(paste0("SpiecEasi", run), times = length(se.roc$fp)))
+      file <- c(file, rep(NA, times = length(se.roc$fp)))
+      thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
+    } 
+  }
+
   if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", paste0(seName1, "_infResGathered_", numRuns, "sims.csv")))) {
 
     # for spiecEasi, get average for mb across a lot of lambdas
@@ -623,8 +557,25 @@ if (!cluster) {
         # direction of alpha
         #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
         alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+        numSpecies <- dim(actualAlpha)[1]
+
+        if (cluster) {
+          connected_alpha_actual <- (distances(alphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
+                                                (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
+          alphaG <- graph_from_adjacency_matrix(connected_alpha_actual != 0, mode = "max")
+
+          se_inferred_alpha <- lapply(se$est$path, FUN = function(inferredAlpha) {
+            inferredAlphaG <- graph_from_adjacency_matrix(as.matrix((inferredAlpha != 0)), mode = "max")
+            connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
+                                                (diag(nrow = dim(inferredAlpha)[1], ncol = dim(inferredAlpha)[1]) == 0)
+            return(connected_alpha_inferred)
+          })
+        } else {
+          se_inferred_alpha <- se$est$path
+        }
+
         # theta = true_interactions
-        se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
+        se.roc <- huge::huge.roc(se_inferred_alpha, theta = alphaG, verbose = FALSE)
         TPRs[, run] <- se.roc$tp
         FPRs[, run] <- se.roc$fp
       }
@@ -672,8 +623,25 @@ if (!cluster) {
         # direction
         #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
         alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+        numSpecies <- dim(actualAlpha)[1]
+
+        if (cluster) {
+          connected_alpha_actual <- (distances(alphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
+                                                (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
+          alphaG <- graph_from_adjacency_matrix(connected_alpha_actual != 0, mode = "max")
+
+          se_inferred_alpha <- lapply(se$est$path, FUN = function(inferredAlpha) {
+            inferredAlphaG <- graph_from_adjacency_matrix(as.matrix(inferredAlpha != 0), mode = "max")
+            connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
+                                                (diag(nrow = dim(inferredAlpha)[1], ncol = dim(inferredAlpha)[1]) == 0)
+            return(connected_alpha_inferred)
+          })
+        } else {
+          se_inferred_alpha <- se$est$path
+        }
+
         # theta = true_interactions
-        se.roc <- huge::huge.roc(se$est$path, theta = alphaG, verbose = FALSE)
+        se.roc <- huge::huge.roc(se_inferred_alpha, theta = alphaG, verbose = FALSE)
         TPRs[, run] <- se.roc$tp
         FPRs[, run] <- se.roc$fp
       }
@@ -699,35 +667,7 @@ if (!cluster) {
     file <- c(file, rep(NA, times = length(se.roc$fp)))
     thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
   }
-}
-}
-
-# this is not working yet for ec
-ecAdjust <- FALSE
-if (ecAdjust) {
-  TPRs <- matrix(nrow = 100, ncol = numRuns) # rows are lambda values, columns are runs
-  FPRs <- matrix(nrow = 100, ncol = numRuns)
-  for (run in 1:numRuns) {
-    subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/ecoCopula_res_noCov/trial1/")
-    ec <- readRDS(paste0(subdir, "EC_res.Rdata"))
-    params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
-    actualAlpha <- params$alpha
-    alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
-    # TODO
-    #ec.roc <- 
-    #TPRs[, run] <- 
-    #FPRs[, run] <- 
-  } 
-  this_avg_tpr <- apply(TPRs, MARGIN = 1, FUN = mean)
-  this_avg_fpr <- apply(FPRs, MARGIN = 1, FUN = mean)
-  avg_TPR <- c(avg_TPR, this_avg_tpr)
-  avg_FPR <- c(avg_FPR, this_avg_fpr)
-  avg_precision <- c(avg_precision, rep(NA, times = dim(TPRs)[1]))
-  avg_recall <- c(avg_recall, rep(NA, times = dim(TPRs)[1]))
-  methods <- c(methods, rep(paste0("SpiecEasi_avg"), times = dim(TPRs)[1]))
-  file <- c(file, rep(NA, times = dim(TPRs)[1]))
-  thresholds <- c(thresholds, rep(NA, times = dim(TPRs)[1]))
-}
+} # end of if se include
 
 ROC_data <- data.frame(file = file, method = as.factor(methods), threshold = thresholds, modelSelect = modelSelect,
                       numSamples = numSamplesL, numSims = numSims, numSp = numSp, 
@@ -802,7 +742,7 @@ if (saveRes) {
     saveName <- paste0(saveName, "_logi")
   }
 
-
+  
   ggsave(ROC_plot, filename = paste0(thisDir, "ROC_plot_", saveName, ".png"))
   write.csv(ROC_data, file = paste0(thisDir, "ROC_data_", saveName, ".csv"))
   ggsave(PR_plot, filename = paste0(thisDir, "PR_plot_", saveName, ".png"))

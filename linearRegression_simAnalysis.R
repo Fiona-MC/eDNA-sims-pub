@@ -30,9 +30,9 @@ runs <- 1:numRuns
 numTrials <- 1
 trials <- 1:1
 
-cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1)
-#cutoffs <- c(1e-128)
+cutoffs <- c(0,  "bonferroni", 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 0.00005, 0.000005)
+#cutoffs <- c(0, 0.05, "bonferroni")
 
 runL <- rep(NA, times = numRuns * numTrials)
 trialL <- rep(NA, times = numRuns * numTrials)
@@ -61,6 +61,10 @@ TP_cluster <- rep(NA, times = numRuns * numTrials)
 FP_cluster <- rep(NA, times = numRuns * numTrials)
 TN_cluster <- rep(NA, times = numRuns * numTrials)
 FN_cluster <- rep(NA, times = numRuns * numTrials)
+TP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+FP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+TN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+FN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
 
 # this is a hacky way to get the number of parms
 #simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
@@ -177,7 +181,12 @@ for (cutoff in cutoffs) {
                             speciesName <- speciesNames[spNum]
                             covName <- paste0("Cov", covNum)
                             model_summary <- sp_glm_L[[speciesName]]
-                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...t.."] < cutoff) * sign(model_summary[covName, "Estimate"])
+                            if (cutoff == "bonferroni") {
+                                thisCutoff <- 0.05 / numSpecies^2
+                            } else {
+                                thisCutoff <- cutoff
+                            }
+                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...t.."] < thisCutoff) * sign(model_summary[covName, "Estimate"])
                             if (cutoff == 0) {
                                 if (actualBeta[spNum, covNum] == 0) {
                                     t.values_0 <- c(t.values_0, model_summary[covName, "t.value"])
@@ -204,7 +213,12 @@ for (cutoff in cutoffs) {
                         if (spNum1 == spNum2) {
                             alphaInferred[spNum1, spNum2] <- 0
                         } else {
-                            alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...t.."] < cutoff) * 
+                            if (cutoff == "bonferroni") {
+                                thisCutoff <- 0.05 / numSpecies^2
+                            } else {
+                                thisCutoff <- cutoff
+                            }
+                            alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...t.."] < thisCutoff) * 
                                                             sign(model_summary[speciesName2, "Estimate"])
                             if (cutoff == 0) {
                                 if (actualAlpha[spNum1, spNum2] == 0) {
@@ -325,11 +339,26 @@ for (cutoff in cutoffs) {
                     TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) + 
                                         sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE) -
                                         numSpecies # subtract diagonal
+                    TP_ignoreDirection[i] <- sum(abs(undirected_alpha_inferred) * abs(undirected_alpha_actual) == 1, na.rm = TRUE) + 
+                                        sum(abs(betaInferred) * abs(actualBeta) == 1, na.rm = TRUE)
+                    FP_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 1) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0), na.rm = TRUE)
+                    FN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 1), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1), na.rm = TRUE)
+                    TN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE) -
+                                        numSpecies # subtract diagonal
                 } else {
                     TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1, na.rm = TRUE) 
                     FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0), na.rm = TRUE) 
                     FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1), na.rm = TRUE) 
                     TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) - 
+                                        numSpecies # subtract diagonal
+
+                    TP_ignoreDirection[i] <- sum(abs(undirected_alpha_inferred) * abs(undirected_alpha_actual) == 1, na.rm = TRUE) 
+                    FP_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 1) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) 
+                    FN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 1), na.rm = TRUE) 
+                    TN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) - 
                                         numSpecies # subtract diagonal
                 }
 
@@ -387,7 +416,11 @@ for (cutoff in cutoffs) {
                 TP_cluster = TP_cluster,
                 FP_cluster = FP_cluster,
                 TN_cluster = TN_cluster,
-                FN_cluster = FN_cluster)
+                FN_cluster = FN_cluster,
+                TP_ignoreDirection = TP_ignoreDirection,
+                FP_ignoreDirection = FP_ignoreDirection,
+                TN_ignoreDirection = TN_ignoreDirection,
+                FN_ignoreDirection = FN_ignoreDirection)
 
     #print(df)
 

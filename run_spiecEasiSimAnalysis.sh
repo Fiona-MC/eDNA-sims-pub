@@ -45,20 +45,7 @@ then
     resDirName=${resDirName}_filtered
 fi
 
-#Rscript /home/fiona_callahan/eDNA_sims_code/filter_sims.R ${sim_dir}/ ${numRuns}
-# Rscript /home/fiona_callahan/filter_sims.R /space/s1/fiona_callahan/multiSim3/
-
-# this takes a minute (cp takes awhile -- if we just delete them it will be fast)
-#mkdir ${sim_dir}/unrealisticRuns
-#while IFS=',' read -r lineNum runNum reason; do
-#    if [ -e "${sim_dir}/randomRun${runNum}" ]; then
-#        cp -pR "${sim_dir}/randomRun${runNum}" "${sim_dir}/unrealisticRuns/randomRun${runNum}"
-#        rm -r "${sim_dir}/randomRun${runNum}"
-#    fi
-#done < ${sim_dir}/unrealistic_runNums.csv
-
 N=1 # 
-
 
 # Declare an array to store the names
 folderNames=()

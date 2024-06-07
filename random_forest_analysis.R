@@ -17,7 +17,15 @@ resNames <- c("logistic_mistakes_sampled10000_noCov_filtered_100runs_cutoff0.05_
             #"INLA_res_paperSep_sampled10000_filtered_noCov_infResGathered_cutoff0.05_100sims.csv",
             "INLA_res_paperSep_sampled10000_filtered_covNoCount_infResGathered_cutoff0.05_100sims.csv")
 
-resName <- "linearReg_mistakes_sampled100_noCov_filtered_1000runs_cutoff0.05_1000sims.csv"
+numSamples <- 100
+bonferroni <- FALSE
+if (!bonferroni) {
+  resNames <- c(paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoff0.05_1000sims.csv"), 
+              paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoff0.05_1000sims.csv"))
+} else {
+  resNames <- c(paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoffbonferroni_1000sims.csv"), 
+              paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoffbonferroni_1000sims.csv"))
+}
 
 get_falseDiscovery <- function(data, mode = "ignore_sign", return_components = FALSE) {
     if (mode == "cluster") {
@@ -77,6 +85,7 @@ get_FPR <- function(data, mode = "ignore_sign", return_components = FALSE) {
     }
 }
 
+resName <- resNames[2]
 plotL <- list()
 for(resName in resNames) {
     method <- str_split(resName, pattern = "_")[[1]][1]
@@ -157,15 +166,73 @@ for(resName in resNames) {
     rf_rmse <- sqrt(sum((rf_predictions$predictions - data[[indep_var]])^2) / length(data[[indep_var]]))
     (rf_rmse - naive_rmse) / naive_rmse # training
 
+
+  # pdp plotting
+  pdp_resL <- list()
+  ice_permL <- list()
+  cice_permL <- list()
+
+  #for(parm in parms){
+  for (parm in fmlaParms) {
+    pdp_res <- pdp::partial(object = rf_res, pred.var = parm, plot = FALSE)
+    pdp_resL[[parm]] <- pdp_res
+    # ice plots
+    ice_perm <- partial(object = rf_res, ice = TRUE, pred.var = parm, plot = FALSE)
+    ice_permL[[parm]] <- ice_perm
+    #cice plots
+    cice_perm <- partial(object = rf_res, ice = TRUE, center = TRUE, pred.var = parm, plot = FALSE)
+    cice_permL[[parm]] <- cice_perm
+  }
+
+  #ICE plots
+  ICEplotL <- list()
+  orderImportances <- c()
+  for(parm in fmlaParms){
+    ice_perm <- ice_permL[[parm]]
+    ice_perm_subset <- ice_perm[ice_perm$yhat.id %% 30 == 1, ]
+    p <- ggplot(ice_perm_subset, aes(x = !!sym(parm), y = yhat, group = yhat.id)) +
+        geom_line() +
+        coord_cartesian() +
+        #coord_cartesian(ylim = c(.2, .6)) +
+        #labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
+        theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
+
+    ICEplotL[parm] <- list(p)
+    orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
+  }
+  rf_marginal_ice <- grid.arrange(grobs = ICEplotL[order(orderImportances, decreasing = TRUE)])
+
+  if (bonferroni) {
+    ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_ice_", method, "_bonferroni_sampled", numSamples, ".png"), 
+                plot = rf_marginal_ice, width = 16, height = 16)
+  } else {
+    ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_ice_", method, "_cutoff0.05_sampled", numSamples, ".png"), 
+                plot = rf_marginal_ice, width = 16, height = 16)
+  }
+
 }
 
-#ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_importance_allmethods.png"), 
-#                plot = grid.arrange(grobs = plotL), width = 16, height = 16)
+
+if(bonferroni) {
+ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_importance_allmethods_bonferroni_sampled", numSamples, ".png"), 
+                plot = grid.arrange(grobs = plotL), width = 16, height = 16)
+} else {
+ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_importance_allmethods_cutoff0.05_sampled", numSamples, ".png"), 
+                plot = grid.arrange(grobs = plotL), width = 16, height = 16)
+}
+
 
 
 ###### test set ########
 dirNames <- c("multiSim_10sp_random_testSet")
-resName <- "linearReg_mistakes_sampled100_noCov_filtered_100runs_cutoff0.05_100sims.csv"
+if (bonferroni) {
+  resName <- paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoffbonferroni_100sims.csv")
+  resName <- paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoffbonferroni_100sims.csv")
+
+} else {
+  resName <- paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoff0.05_100sims.csv")
+  resName <- paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoff0.05_100sims.csv")
+}
 
 method <- str_split(resName, pattern = "_")[[1]][1]
 
@@ -217,6 +284,7 @@ naive_rmse <- sqrt(sum((median(multiSimRes_test_na.rm[[indep_var]]) - multiSimRe
 
 
 #for test set
+resName
 rf_rmse
 naive_rmse
 (rf_rmse - naive_rmse) / naive_rmse
@@ -224,42 +292,6 @@ naive_rmse
 
 
  
-
-# pdp plotting
-pdp_resL <- list()
-ice_permL <- list()
-cice_permL <- list()
-
-#for(parm in parms){
-for (parm in fmlaParms) {
-  pdp_res <- pdp::partial(object = rf_res, pred.var = parm, plot = FALSE)
-  pdp_resL[[parm]] <- pdp_res
-  # ice plots
-  ice_perm <- partial(object = rf_res, ice = TRUE, pred.var = parm, plot = FALSE)
-  ice_permL[[parm]] <- ice_perm
-  #cice plots
-  cice_perm <- partial(object = rf_res, ice = TRUE, center = TRUE, pred.var = parm, plot = FALSE)
-  cice_permL[[parm]] <- cice_perm
-}
-
-#ICE plots
-ICEplotL <- list()
-orderImportances <- c()
-for(parm in fmlaParms){
-  ice_perm <- ice_permL[[parm]]
-  ice_perm_subset <- ice_perm#[ice_perm$yhat.id %% 30 == 1, ]
-  p <- ggplot(ice_perm_subset, aes(x = !!sym(parm), y = yhat, group = yhat.id)) +
-      geom_line() +
-      coord_cartesian() +
-      #coord_cartesian(ylim = c(.2, .6)) +
-      #labs(x = better_parmNames$Parameter_name[better_parmNames$Parameter == parm], y = paste0("Predicted ", indep_var)) +
-      theme(axis.text.y = element_text(size = 12), axis.title.x = element_text(size = 24), axis.text.x = element_text(size = 18))
-
-  ICEplotL[parm] <- list(p)
-  orderImportances <- c(orderImportances, importanceDF$RF_Importance[importanceDF$Parameter == parm])
-}
-rf_marginal_ice <- grid.arrange(grobs = ICEplotL[order(orderImportances, decreasing = TRUE)])
-
 
 #cice
 ICEplotL <- list()

@@ -1,8 +1,9 @@
 library(stringr)
 library(ggplot2)
+library(gridExtra)
 
-simdir <- "multiSim_100sp"
-nSamples <- 100
+simdir <- "multiSim_10sp"
+nSamples <- 10000
 
 nInteract <- c()
 nInferredInteract <- c()
@@ -19,9 +20,9 @@ parms <- readRDS(paste0("/space/s1/fiona_callahan/", simdir, "/randomRun", run, 
 actualAlpha <- parms$filteredAlpha
 
 cutoff <- 0.05
-inferredParms <- readRDS(paste0("/space/s1/fiona_callahan/", simdir, "/randomRun", run, "/logistic_mistakes_sampled100_noCov_filtered_100runs/inferenceRes_cutoff", cutoff, ".Rdata")) # nolint
+inferredParms <- readRDS(paste0("/space/s1/fiona_callahan/", simdir, "/randomRun", run, "/logistic_mistakes_sampled", nSamples, "_noCov_filtered_100runs/inferenceRes_cutoff", cutoff, ".Rdata")) # nolint
 alphaInferred <- inferredParms$alphaInferred
-nInferredInteract <- c(nInferredInteract, apply(alphaInferred, MARGIN = 1, FUN = sum))
+nInferredInteract <- c(nInferredInteract, apply(alphaInferred, MARGIN = 1, FUN = function(x) sum(x, na.rm = TRUE)))
 
 nInteract <- c(nInteract, apply(actualAlpha, MARGIN = 1, FUN = sum))
 spNames <- c(spNames, parms$filteredSpNames)
@@ -49,9 +50,14 @@ p <- ggplot(percentPresenceDF, aes(x = percentPresence, fill = interact_bool)) +
 p 
 
 p2 <- ggplot(percentPresenceDF, aes(x = percentPresence, fill = inferredInteract_bool)) +
-  geom_histogram(position = "fill") +
+  geom_histogram(position = "dodge") +
     labs(title = simdir) +
-    #scale_fill_manual(values = c("TRUE" = "blue", "FALSE" = "red")) +
+    scale_fill_manual(values = c("TRUE" = "blue", "FALSE" = "red")) +
     theme_minimal()
 
 p2
+
+p3 <- grid.arrange(p, p2, ncol = 2)
+
+ggsave(plot = p3, filename = paste0("/space/s1/fiona_callahan/", simdir, 
+                                    "/percentPresenceVsInteractions_sampled", nSamples, "_cutoff", cutoff, ".png"))

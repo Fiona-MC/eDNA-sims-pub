@@ -7,12 +7,12 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_50sp/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 numRuns <- as.numeric(100)
-covs <- (as.numeric("1") == 0)
+covs <- (as.numeric("1") == 1)
 logi <- (as.numeric("0") == 1)
 sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
-outName <- "logistic_mistakes_sampled100_noCov_filtered_100runs"
+outName <- "logistic_mistakes_sampled100_cov_filtered_100runs"
 countCovs <- FALSE
 
 data_dir <- args[1]
@@ -34,8 +34,9 @@ runs <- 1:numRuns
 numTrials <- 1
 trials <- 1:1
 
+#cutoffs <- c(0, "bonferroni")
 cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1)
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 0.00005, 0.000005, "bonferroni")
 #cutoffs <- c(1e-128)
 
 runL <- rep(NA, times = numRuns * numTrials)
@@ -65,6 +66,10 @@ TP_cluster <- rep(NA, times = numRuns * numTrials)
 FP_cluster <- rep(NA, times = numRuns * numTrials)
 TN_cluster <- rep(NA, times = numRuns * numTrials)
 FN_cluster <- rep(NA, times = numRuns * numTrials)
+TP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+FP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+TN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+FN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
 
 # this is a hacky way to get the number of parms
 #simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
@@ -181,7 +186,13 @@ for (cutoff in cutoffs) {
                             speciesName <- speciesNames[spNum]
                             covName <- paste0("Cov", covNum)
                             model_summary <- sp_glm_L[[speciesName]]
-                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < cutoff) * sign(model_summary[covName, "Estimate"])
+                            if (cutoff == "bonferroni") {
+                                thisCutoff <- 0.05 / numSpecies^2
+                            } else {
+                                thisCutoff <- cutoff
+                            }
+                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < thisCutoff) * 
+                                                            sign(model_summary[covName, "Estimate"])
                             if (cutoff == 0) {
                                 if (actualBeta[spNum, covNum] == 0) {
                                     z.values_0 <- c(z.values_0, model_summary[covName, "z.value"])
@@ -205,10 +216,15 @@ for (cutoff in cutoffs) {
                         speciesName1 <- speciesNames[spNum1]
                         speciesName2 <- speciesNames[spNum2]
                         model_summary <- sp_glm_L[[speciesName1]]
+                        if (cutoff == "bonferroni") {
+                            thisCutoff <- 0.05 / numSpecies^2
+                        } else {
+                            thisCutoff <- cutoff
+                        }
                         if (spNum1 == spNum2) {
                             alphaInferred[spNum1, spNum2] <- 0
                         } else {
-                            alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...z.."] < cutoff) * 
+                            alphaInferred[spNum1, spNum2] <- (model_summary[speciesName2, "Pr...z.."] < thisCutoff) * 
                                                             sign(model_summary[speciesName2, "Estimate"])
                             if (cutoff == 0) {
                                 if (actualAlpha[spNum1, spNum2] == 0) {
@@ -329,11 +345,26 @@ for (cutoff in cutoffs) {
                     TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) + 
                                         sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE) -
                                         numSpecies # subtract diagonal
+                    TP_ignoreDirection[i] <- sum(abs(undirected_alpha_inferred) * abs(undirected_alpha_actual) == 1, na.rm = TRUE) + 
+                                        sum(abs(betaInferred) * abs(actualBeta) == 1, na.rm = TRUE)
+                    FP_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 1) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 1) & (abs(actualBeta) == 0), na.rm = TRUE)
+                    FN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 1), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 1), na.rm = TRUE)
+                    TN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) + 
+                                        sum((abs(betaInferred) == 0) & (abs(actualBeta) == 0), na.rm = TRUE) -
+                                        numSpecies # subtract diagonal
                 } else {
                     TP_ignoreSign[i] <- sum(abs(alphaInferred) * abs(actualAlpha) == 1, na.rm = TRUE) 
                     FP_ignoreSign[i] <- sum((abs(alphaInferred) == 1) & (abs(actualAlpha) == 0), na.rm = TRUE) 
                     FN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 1), na.rm = TRUE) 
                     TN_ignoreSign[i] <- sum((abs(alphaInferred) == 0) & (abs(actualAlpha) == 0), na.rm = TRUE) - 
+                                        numSpecies # subtract diagonal
+
+                    TP_ignoreDirection[i] <- sum(abs(undirected_alpha_inferred) * abs(undirected_alpha_actual) == 1, na.rm = TRUE) 
+                    FP_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 1) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) 
+                    FN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 1), na.rm = TRUE) 
+                    TN_ignoreDirection[i] <- sum((abs(undirected_alpha_inferred) == 0) & (abs(undirected_alpha_actual) == 0), na.rm = TRUE) - 
                                         numSpecies # subtract diagonal
                 }
 
@@ -391,7 +422,11 @@ for (cutoff in cutoffs) {
                 TP_cluster = TP_cluster,
                 FP_cluster = FP_cluster,
                 TN_cluster = TN_cluster,
-                FN_cluster = FN_cluster)
+                FN_cluster = FN_cluster,
+                TP_ignoreDirection = TP_ignoreDirection,
+                FP_ignoreDirection = FP_ignoreDirection,
+                TN_ignoreDirection = TN_ignoreDirection,
+                FN_ignoreDirection = FN_ignoreDirection)
 
     #print(df)
 

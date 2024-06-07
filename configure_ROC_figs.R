@@ -2,13 +2,16 @@ library(ggplot2)
 library(gridExtra)
 library(stringr)
 
-dir_list <- c("/space/s1/fiona_callahan/multiSim_100sp/", 
-            "/space/s1/fiona_callahan/multiSim_100sp/", 
-            "/space/s1/fiona_callahan/multiSim_100sp_random_moreSamples/")
+nSp <- 100
+dir_list <- c(paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp/"), 
+            paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp/"), 
+            paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp_random_moreSamples/"))
 logiL <- c(TRUE, FALSE, FALSE)
 samplesL <- c(100, 10000)
 
 numRuns <- 100
+cluster <- TRUE
+ratio_of_avg <- FALSE
 
 full_ROC <- data.frame()
 simSetL <- c()
@@ -19,7 +22,19 @@ for (i in seq_along(dir_list)) {
     logi <- logiL[i]
 
     for (numSamples in samplesL) {
-        saveName <- paste0("_", numSamples, "samples_", numRuns, "runs")
+        if (cluster) {
+            if (ratio_of_avg) {
+            saveName <- paste0("_cluster_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
+            } else {
+            saveName <- paste0("_cluster_", numSamples, "samples_", numRuns, "runs")
+            }
+        } else {
+            if (ratio_of_avg) {
+            saveName <- paste0("_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
+            } else {
+            saveName <- paste0("_", numSamples, "samples_", numRuns, "runs")
+            }
+        }
 
         if (str_detect(thisDir, "random")) {
             simSet <- "random parameters"
@@ -108,5 +123,8 @@ mean(full_ROC$FPR_sd[full_ROC$sim_set == "random parameters"], na.rm = TRUE)
 
 mean(full_ROC$FPR_sd[full_ROC$sim_set == "set parameters"], na.rm = TRUE)
 
-
-ggsave("/space/s1/fiona_callahan/facet_wrapped_plots_100sp.png", ROC_plot)
+if (cluster) {
+    ggsave(paste0("/space/s1/fiona_callahan/facet_wrapped_plots_", nSp, "sp_cluster.pdf"), ROC_plot)
+} else {
+    ggsave(paste0("/space/s1/fiona_callahan/facet_wrapped_plots_", nSp, "sp.pdf"), ROC_plot)
+}

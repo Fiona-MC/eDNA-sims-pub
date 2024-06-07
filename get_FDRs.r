@@ -3,111 +3,18 @@ library(tidyr)
 library(stringr)
 library(igraph)
 
-cluster <- FALSE
+setwd("/home/fiona_callahan/eDNA_sims_code")
+
 numRuns <- 100
 numSamples <- 10000
 logi <- TRUE # include logi
 ratio_of_avg <- TRUE
+bonferroni <- TRUE
+mode <- "ignoreSign" #"cluster" # "ignoreSign" "cluster"
 
 dirNames <- c("multiSim_10sp", "multiSim_100sp", "multiSim_10sp_random_moreSamples", "multiSim_100sp_random_moreSamples")
 
-# if you need to check these later, look at obsidian ROC curve note
-# obsidian://open?vault=simulations&file=ROC%20curves
-get_TPR <- function(data, mode = "ignore_sign", return_components = FALSE) {
-  if (mode == "cluster") {
-      TP <- data$TP_cluster 
-      FN <- data$FN_cluster
-  } else if (mode == "ignore_sign") {
-      TP <- data$TP_ignoreSign
-      FN <- data$FN_ignoreSign
-  } else {
-      # tp/(tp+fn)
-      TP <- data$TP_sign
-      FN <- data$FN_sign
-  } 
-  TPR <- TP / (TP + FN)
-  if (return_components) {
-    return(list(TPR = TPR, TP = TP, FN = FN))
-  } else {
-    return(TPR)
-  }
-}
-
-get_FPR <- function(data, mode = "ignore_sign", return_components = FALSE) {
-  if (mode == "cluster") {
-    FP <- data$FP_cluster
-    TN <- data$TN_cluster
-  } else if (mode == "ignore_sign") {
-    FP <- data$FP_ignoreSign
-    TN <- data$TN_ignoreSign
-  } else {
-    FP <- data$FP_sign
-    TN <- data$TN_sign
-  } 
-  FPR <- FP / (FP + TN)
-  if (return_components) {
-    return(list(FPR = FPR, FP = FP, TN = TN))
-  } else {
-    return(FPR)
-  }
-}
-
-get_precision <- function(data, mode = "ignore_sign", return_components = FALSE) {
-  if (mode == "cluster") {
-      TP <- data$TP_cluster 
-      FP <- data$FP_cluster
-  } else if (mode == "ignore_sign") {
-      TP <- data$TP_ignoreSign
-      FP <- data$FP_ignoreSign
-  } else {
-    TP <- data$TP_sign
-    FP <- data$FP_sign
-  }
-  prec <- TP / (TP + FP)
-  if (return_components) {
-    return(list(prec = prec, TP = TP, FP = FP))
-  } else {
-    return(prec)
-  }
-}
-
-get_recall <- function(data, mode = "ignore_sign", return_components = FALSE) {
-  if (mode == "cluster") {
-    TP <- data$TP_cluster
-    FN <- data$FN_cluster
-  } else if (mode == "ignore_sign") {
-    TP <- data$TP_ignoreSign
-    FN <- data$FN_ignoreSign 
-  } else {      
-    TP <- data$TP_sign
-    FN <- data$FN_sign 
-  }
-  recall <- TP / (TP + FN)
-  if (return_components) {
-    return(list(recall = recall, TP = TP, FN = FN))
-  } else {
-    return(recall)
-  }
-}
-
-get_falseDiscovery <- function(data, mode = "ignore_sign", return_components = FALSE) {
-  if (mode == "cluster") {
-    TP <- data$TP_cluster
-    FP <- data$FP_cluster
-  } else if (mode == "ignore_sign") {
-    TP <- data$TP_ignoreSign
-    FP <- data$FP_ignoreSign 
-  } else {      
-    TP <- data$TP_sign
-    FP <- data$FP_sign 
-  }
-  FDR <- FP / (FP + TP)
-  if (return_components) {
-    return(list(FDR = FDR, FP = FP, TP = TP))
-  } else {
-    return(FDR)
-  }
-}
+source("./confusion_stats.R")
 
 #dirName <- c("multiSim_test2x10sp")
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
@@ -115,24 +22,32 @@ get_falseDiscovery <- function(data, mode = "ignore_sign", return_components = F
 #              "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
 #ls /space/s1/fiona_callahan/multiSim_100
-logistic_cutoffs <- c(0.05)
+if (bonferroni) {
+  logistic_cutoffs <- c("bonferroni")
+} else {
+  logistic_cutoffs <- c(0.05)
+}
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- 
 #   sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
 
 
 log_resnames_cov_logi <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                            paste0("logistic_mistakes_sampled", numSamples, "_covNoCount_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                            paste0("logistic_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 log_resnames_noCov_logi <- sapply(X = logistic_cutoffs, FUN = function(x) {
                             paste0("logistic_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 
 log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                            paste0("logistic_mistakes_sampled", numSamples, "_covNoCount_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
+                            paste0("logistic_mistakes_sampled", numSamples, "_cov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
                             paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 
 
-linear_cutoffs <- c(0.05)
+if (bonferroni) {
+  linear_cutoffs <- c("bonferroni")
+} else {
+  linear_cutoffs <- c(0.05)
+}
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- 
 #   sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
@@ -289,9 +204,16 @@ for (dirName in dirNames) { #iterate through sims
         cutoffIndex <- 9 # corresponds to 0.05
         thisMultiSimRes <- thisMultiSimRes[thisMultiSimRes$cutoff_val == cutoffIndex, ]
       } 
-      thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
-      thisTPR <- get_TPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
-      thisFPR <- get_FPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
+
+      if (mode == "cluster") {
+        thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = "cluster", return_components = TRUE)
+        thisTPR <- get_TPR(data = thisMultiSimRes, mode = "cluster", return_components = TRUE)
+        thisFPR <- get_FPR(data = thisMultiSimRes, mode = "cluster", return_components = TRUE)
+      } else {
+        thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
+        thisTPR <- get_TPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
+        thisFPR <- get_FPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
+      }
 
       tpL <- c(tpL, mean(thisFDR$TP, na.rm = TRUE))
       fpL <- c(fpL, mean(thisFDR$FP, na.rm = TRUE))
@@ -374,7 +296,7 @@ custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (noCov, pres-abs)",
 # Create the heatmap
 FDRplot <- ggplot(FDRs, aes(x = Simulation, y = Method, fill = FDR)) +
   geom_tile() +
-  scale_fill_gradient(low = "white", high = "blue", na.value = "gray") + # You can adjust colors as needed
+  scale_fill_gradient(low = "white", high = "blue", na.value = "gray", limits = c(0, 1)) + # You can adjust colors as needed
   geom_text(aes(label = sprintf("%.2f", FDR)), color = "black", size = 5) + # Display FDR values as text
   theme_minimal() + # You can change the theme as per your preference
   labs(x = "Simulation",
@@ -388,7 +310,11 @@ FDRplot <- ggplot(FDRs, aes(x = Simulation, y = Method, fill = FDR)) +
 
 FDRplot
 
-ggsave(filename = paste0("/space/s1/fiona_callahan/FDR_plot_", numSamples, "samples.png"), plot = FDRplot)
+if(logistic_cutoffs[1] == 0.05) {
+  ggsave(filename = paste0("/space/s1/fiona_callahan/FDR_plot_", numSamples, "samples_", mode, ".pdf"), plot = FDRplot)
+} else {
+  ggsave(filename = paste0("/space/s1/fiona_callahan/FDR_plot_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".pdf"), plot = FDRplot)
+}
 #ggplot(FPRs_filtered, aes(x = Simulation, y = Method, fill = FPR)) +
 #  geom_tile() +
 #  scale_fill_gradient(low = "gray", high = "blue") + # You can adjust colors as needed
