@@ -10,7 +10,7 @@ numSamples <- 10000
 logi <- TRUE # include logi
 ratio_of_avg <- TRUE
 bonferroni <- TRUE
-mode <- "ignoreSign" #"cluster" # "ignoreSign" "cluster"
+mode <- "ignore_sign" # "ignore_sign" "cluster" "ignore_direction"
 
 dirNames <- c("multiSim_10sp", "multiSim_100sp", "multiSim_10sp_random_moreSamples", "multiSim_100sp_random_moreSamples")
 
@@ -97,11 +97,20 @@ lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
 
 seName1_logi <- paste0("spiecEasi_res_sampled", numSamples, "_mb_logi")
 seName2_logi <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_logi")
-seName3_logi <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_logi")
 
 seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_filtered")
 seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_filtered")
-seName3 <- paste0("spiecEasi_res_sampled", numSamples, "_sparcc_filtered")
+
+
+sparcc_cutoffs <- c("pval_bootstrap")
+
+sparcc_resnames_logi <- sapply(X = sparcc_cutoffs, FUN = function(x) {
+                      paste0("sparcc_res_sampled", numSamples, "_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+
+sparcc_resnames <- sapply(X = sparcc_cutoffs, FUN = function(x) {
+                    paste0("sparcc_res_sampled", numSamples, "_filtered_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
+
+
 
 
 
@@ -132,7 +141,7 @@ resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"),
               paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName3, "_infResGathered_", numRuns, "sims.csv"),
+              sparcc_resnames,
               inla1, 
               #inla_resnames_noCov,
               #inla_resnames_cov,
@@ -147,7 +156,7 @@ resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"),
               paste0(ecName4_logi, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1_logi, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2_logi, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName3_logi, "_infResGathered_", numRuns, "sims.csv"),
+              sparcc_resnames_logi,
               inla1_logi, 
               #inla_resnames_noCov,
               #inla_resnames_cov,
@@ -163,7 +172,7 @@ resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"),
               paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName3, "_infResGathered_", numRuns, "sims.csv"),
+              sparcc_resnames,
               inla1, 
               #inla_resnames_noCov,
               #inla_resnames_cov,
@@ -205,15 +214,11 @@ for (dirName in dirNames) { #iterate through sims
         thisMultiSimRes <- thisMultiSimRes[thisMultiSimRes$cutoff_val == cutoffIndex, ]
       } 
 
-      if (mode == "cluster") {
-        thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = "cluster", return_components = TRUE)
-        thisTPR <- get_TPR(data = thisMultiSimRes, mode = "cluster", return_components = TRUE)
-        thisFPR <- get_FPR(data = thisMultiSimRes, mode = "cluster", return_components = TRUE)
-      } else {
-        thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
-        thisTPR <- get_TPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
-        thisFPR <- get_FPR(data = thisMultiSimRes, mode = "ignore_sign", return_components = TRUE)
-      }
+
+      thisFDR <- get_falseDiscovery(data = thisMultiSimRes, mode = mode, return_components = TRUE)
+      thisTPR <- get_TPR(data = thisMultiSimRes, mode = mode, return_components = TRUE)
+      thisFPR <- get_FPR(data = thisMultiSimRes, mode = mode, return_components = TRUE)
+    
 
       tpL <- c(tpL, mean(thisFDR$TP, na.rm = TRUE))
       fpL <- c(fpL, mean(thisFDR$FP, na.rm = TRUE))
@@ -241,9 +246,7 @@ for (fileName in fileNameL) {
     thisMethod <- paste0(baseName, "_mb")
   } else if (str_detect(fileName, "glasso")) {
     thisMethod <- paste0(baseName, "_glasso")
-  } else if (str_detect(fileName, "sparcc")) {
-    thisMethod <- paste0(baseName, "_sparcc")
-  }
+  } 
   if (str_detect(fileName, "cov")) {
     thisMethod <- paste0(baseName, "_cov")
   } else if (str_detect(fileName, "noCov")) {
@@ -323,3 +326,21 @@ if(logistic_cutoffs[1] == 0.05) {
 #  labs(x = "Simulation",
 #       y = "Method",
 #       fill = "FPR")
+
+FDRs$totalDiscoveries <- FDRs$FP + FDRs$TP
+
+DRplot <- ggplot(FDRs, aes(x = Simulation, y = Method, fill = totalDiscoveries)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "blue", na.value = "gray") + # You can adjust colors as needed
+  geom_text(aes(label = sprintf("%.2f", totalDiscoveries)), color = "black", size = 5) + 
+  theme_minimal() + # You can change the theme as per your preference
+  labs(x = "Simulation",
+       y = "Method",
+       fill = "totalDiscoveries") +
+  scale_x_discrete(labels = custom_labels_simulation) +  # Custom labels for the x-axis
+  scale_y_discrete(labels = custom_labels_method) +      # Custom labels for the y-axis
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14),  # Adjust the size value as needed
+        axis.text.y = element_text(size = 14),  # Adjust the size value as needed
+        axis.title = element_text(size = 14))   # Adjust the size value as needed
+
+#DRplot

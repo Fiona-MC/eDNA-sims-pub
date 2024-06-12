@@ -31,7 +31,11 @@ cutoff=0
 data_dir <- args[1]
 outdir <- args[2]
 covs <- (as.numeric(args[3]) == 1)
-cutoff <- as.numeric(args[4]) # MUST BE LAST ARGUMENT because of if(!is.na(cutoff))
+cutoff <- args[4] # MUST BE LAST ARGUMENT because of if(!is.na(cutoff))
+
+if (cutoff != "pval_bootstrap") {
+ cutoff <- as.numeric(cutoff)
+}
 
 numRuns <- 1 # runs per folder (1 is correct)
 numTrials <- 1

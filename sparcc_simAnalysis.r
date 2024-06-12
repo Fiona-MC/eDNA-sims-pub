@@ -9,11 +9,11 @@ library(igraph)
 #note -- so far not controlling for covs
 args <- commandArgs(trailingOnly = TRUE)
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
-#save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/sparcc_res_sampled100_filtered/"
-#cutoff <- "0.3"
-#numTrials <- "1"
-#sitetab_name <- "sim_sitetab_readAbd_sampled100_filtered.csv"
+data_dir <- "/space/s1/fiona_callahan/multiSim_100sp/randomRun1/"
+save_dir <- "/space/s1/fiona_callahan/multiSim_100sp/randomRun1/sparcc_res_sampled10000_logi/"
+cutoff <- "0.3"
+numTrials <- "1"
+sitetab_name <- "logiSim_sitetab_readAbd_sampled10000.csv"
 
 data_dir <- args[1]
 save_dir <- args[2]
@@ -42,7 +42,7 @@ for (trial in 1:numTrials) {
     #"Also, we should use a larger number of stars repetitions  for real data" (meaning >50)
     res <- sparcc(as.matrix(sitetab_data[, names_species]))
     ## Define arbitrary threshold for SparCC correlation matrix for the graph
-    res.graph <- abs(res$Cor) >= cutoff #fiona edited
+    res.graph <- abs(res$Cor) >= as.numeric(cutoff) #fiona edited
     diag(res.graph) <- 0
     res.graph <- Matrix(res.graph, sparse = TRUE)
 

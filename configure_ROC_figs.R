@@ -10,7 +10,7 @@ logiL <- c(TRUE, FALSE, FALSE)
 samplesL <- c(100, 10000)
 
 numRuns <- 100
-cluster <- TRUE
+mode <- "ignore_direction" # "cluster" "ignore_sign" "ignore_direction"
 ratio_of_avg <- FALSE
 
 full_ROC <- data.frame()
@@ -22,19 +22,12 @@ for (i in seq_along(dir_list)) {
     logi <- logiL[i]
 
     for (numSamples in samplesL) {
-        if (cluster) {
-            if (ratio_of_avg) {
-            saveName <- paste0("_cluster_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
-            } else {
-            saveName <- paste0("_cluster_", numSamples, "samples_", numRuns, "runs")
-            }
+        if (ratio_of_avg) {
+            saveName <- paste0("_", mode, "_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
         } else {
-            if (ratio_of_avg) {
-            saveName <- paste0("_ratioOfAv_", numSamples, "samples_", numRuns, "runs")
-            } else {
-            saveName <- paste0("_", numSamples, "samples_", numRuns, "runs")
-            }
+            saveName <- paste0("_", mode, "_", numSamples, "samples_", numRuns, "runs")
         }
+
 
         if (str_detect(thisDir, "random")) {
             simSet <- "random parameters"
@@ -49,6 +42,12 @@ for (i in seq_along(dir_list)) {
 
         if (file.exists(paste0(thisDir, "ROC_data_", saveName, ".csv"))) {
             ROC_data <- read.csv(file = paste0(thisDir, "ROC_data_", saveName, ".csv"))
+            file_info <- file.info(paste0(thisDir, "ROC_data_", saveName, ".csv"))
+            print(thisDir)
+            print(logi)
+            print(numSamples)
+            print(paste0(thisDir, "ROC_data_", saveName, ".csv"))
+            print(file_info$mtime)
             full_ROC <- rbind(full_ROC, ROC_data)
             simSetL <- c(simSetL, rep(simSet, times = dim(ROC_data)[1]))
             nSamplesL <- c(nSamplesL, rep(numSamples, times = dim(ROC_data)[1]))
@@ -67,6 +66,8 @@ custom_labeller <- function(variable, value) {
   return(value)
 }
 
+full_ROC$method[full_ROC$method == "spiecEasi_glasso"] <- "SpiecEasi_glasso"
+full_ROC$method[full_ROC$method == "spiecEasi_mb"] <- "SpiecEasi_mb"
 
 ROC_plot <- ggplot(full_ROC, aes(x = avg_FPR, y = avg_TPR, color = method, group = method)) +
         scale_shape_manual(values = 1:12) +
@@ -123,8 +124,6 @@ mean(full_ROC$FPR_sd[full_ROC$sim_set == "random parameters"], na.rm = TRUE)
 
 mean(full_ROC$FPR_sd[full_ROC$sim_set == "set parameters"], na.rm = TRUE)
 
-if (cluster) {
-    ggsave(paste0("/space/s1/fiona_callahan/facet_wrapped_plots_", nSp, "sp_cluster.pdf"), ROC_plot)
-} else {
-    ggsave(paste0("/space/s1/fiona_callahan/facet_wrapped_plots_", nSp, "sp.pdf"), ROC_plot)
-}
+
+ggsave(paste0("/space/s1/fiona_callahan/facet_wrapped_plots_", nSp, "sp_", mode, ".pdf"), ROC_plot)
+

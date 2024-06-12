@@ -7,16 +7,46 @@
 #saveRes <- TRUE
 #covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
 
-Rscript ./get_ROC_stats.R multiSim_10sp 1 100 0
-Rscript ./get_ROC_stats.R multiSim_10sp 1 10000 0
-Rscript ./get_ROC_stats.R multiSim_10sp 1 100 1
-Rscript ./get_ROC_stats.R multiSim_10sp 1 10000 1
-Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples 1 100 0
-Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples 1 10000 0
+Rscript ./get_ROC_stats.R multiSim_10sp cluster 100 0
+Rscript ./get_ROC_stats.R multiSim_10sp cluster 10000 0
+Rscript ./get_ROC_stats.R multiSim_10sp cluster 100 1
+Rscript ./get_ROC_stats.R multiSim_10sp cluster 10000 1
+Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples cluster 100 0
+Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples cluster 10000 0
 
-Rscript ./get_ROC_stats.R multiSim_100sp 1 100 0
-Rscript ./get_ROC_stats.R multiSim_100sp 1 10000 0
-Rscript ./get_ROC_stats.R multiSim_100sp 1 100 1
-Rscript ./get_ROC_stats.R multiSim_100sp 1 10000 1
-Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples 1 100 0
-Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples 1 10000 0
+Rscript ./get_ROC_stats.R multiSim_100sp cluster 100 0
+Rscript ./get_ROC_stats.R multiSim_100sp cluster 10000 0
+Rscript ./get_ROC_stats.R multiSim_100sp cluster 100 1
+Rscript ./get_ROC_stats.R multiSim_100sp cluster 10000 1
+Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples cluster 100 0
+Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples cluster 10000 0
+
+
+Rscript ./get_ROC_stats.R multiSim_10sp ignore_sign 100 0
+Rscript ./get_ROC_stats.R multiSim_10sp ignore_sign 10000 0
+Rscript ./get_ROC_stats.R multiSim_10sp ignore_sign 100 1
+Rscript ./get_ROC_stats.R multiSim_10sp ignore_sign 10000 1
+Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples ignore_sign 100 0
+Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples ignore_sign 10000 0
+
+Rscript ./get_ROC_stats.R multiSim_100sp ignore_sign 100 0
+Rscript ./get_ROC_stats.R multiSim_100sp ignore_sign 10000 0
+Rscript ./get_ROC_stats.R multiSim_100sp ignore_sign 100 1
+Rscript ./get_ROC_stats.R multiSim_100sp ignore_sign 10000 1
+Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples ignore_sign 100 0
+Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples ignore_sign 10000 0
+
+
+Rscript ./get_ROC_stats.R multiSim_10sp ignore_direction 100 0
+Rscript ./get_ROC_stats.R multiSim_10sp ignore_direction 10000 0
+Rscript ./get_ROC_stats.R multiSim_10sp ignore_direction 100 1
+Rscript ./get_ROC_stats.R multiSim_10sp ignore_direction 10000 1
+Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples ignore_direction 100 0
+Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples ignore_direction 10000 0
+
+Rscript ./get_ROC_stats.R multiSim_100sp ignore_direction 100 0
+Rscript ./get_ROC_stats.R multiSim_100sp ignore_direction 10000 0
+Rscript ./get_ROC_stats.R multiSim_100sp ignore_direction 100 1
+Rscript ./get_ROC_stats.R multiSim_100sp ignore_direction 10000 1
+Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples ignore_direction 100 0
+Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples ignore_direction 10000 0

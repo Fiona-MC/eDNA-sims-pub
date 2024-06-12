@@ -7,12 +7,12 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
 numRuns <- as.numeric(100)
 covs <- (as.numeric("0") == 1)
-logi <- (as.numeric("0") == 1)
-sitetab_name <- "sim_sitetab_readAbd_sampled10000_filtered.csv"
-outName <- "linearReg_mistakes_sampled10000_noCov_filtered_100runs"
+logi <- (as.numeric("1") == 1)
+sitetab_name <- "logiSim_sitetab_readAbd_sampled10000.csv"
+outName <- "linearReg_mistakes_sampled10000_noCov_logi_100runs"
 countCovs <- FALSE
 
 data_dir <- args[1]
@@ -30,41 +30,9 @@ runs <- 1:numRuns
 numTrials <- 1
 trials <- 1:1
 
-cutoffs <- c(0,  "bonferroni", 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
+cutoffs <- c(0, "bonferroni", 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
              0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 0.00005, 0.000005)
 #cutoffs <- c(0, 0.05, "bonferroni")
-
-runL <- rep(NA, times = numRuns * numTrials)
-trialL <- rep(NA, times = numRuns * numTrials)
-num_correctInferencesL <- rep(NA, times = numRuns * numTrials) # true pos
-num_incorrect_alphaL <- rep(NA, times = numRuns * numTrials) # species interaction incorrectInference
-num_incorrect_betaL <- rep(NA, times = numRuns * numTrials) # covariate interaction incorrectInference
-num_incorrectInferencesL <- rep(NA, times = numRuns * numTrials) # false pos (or wrong direction)
-num_actualEffectsL <- rep(NA, times = numRuns * numTrials) # total actual effects
-num_possibleEffectsL <- rep(NA, times = numRuns * numTrials) # n^2 + n*p -n (minus n because of the diagonal of alpha)
-num_missedEffects_alphaL <- rep(NA, times = numRuns * numTrials)
-num_missedEffects_betaL <- rep(NA, times = numRuns * numTrials)
-num_missedEffectsL <- rep(NA, times = numRuns * numTrials)# false negatives
-timeL <- rep(NA, times = numRuns * numTrials)
-finished_trL <- rep(NA, times = numRuns * numTrials) # T or F whether this trial finished the INLA part
-num_correct_clusterL <- rep(NA, times = numRuns * numTrials)
-num_incorrect_clusterL <- rep(NA, times = numRuns * numTrials)
-num_missed_clusterL <- rep(NA, times = numRuns * numTrials)
-alpha_direction_mistakesL <- rep(NA, times = numRuns * numTrials)
-alpha_incorrect_undirectedL <- rep(NA, times = numRuns * numTrials)
-alpha_correct_undirectedL <- rep(NA, times = numRuns * numTrials)
-TP_ignoreSign <- rep(NA, times = numRuns * numTrials)
-FP_ignoreSign <- rep(NA, times = numRuns * numTrials)
-TN_ignoreSign <- rep(NA, times = numRuns * numTrials)
-FN_ignoreSign <- rep(NA, times = numRuns * numTrials)
-TP_cluster <- rep(NA, times = numRuns * numTrials)
-FP_cluster <- rep(NA, times = numRuns * numTrials)
-TN_cluster <- rep(NA, times = numRuns * numTrials)
-FN_cluster <- rep(NA, times = numRuns * numTrials)
-TP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
-FP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
-TN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
-FN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
 
 # this is a hacky way to get the number of parms
 #simParms <- readRDS(paste0(data_dir, "randomRun", 1, "/params.Rdata"))
@@ -111,6 +79,41 @@ t.values_0 <- c()
 
 
 for (cutoff in cutoffs) {
+    if (cutoff != "bonferroni") {
+        cutoff <- as.numeric(cutoff)
+    }
+    runL <- rep(NA, times = numRuns * numTrials)
+    trialL <- rep(NA, times = numRuns * numTrials)
+    num_correctInferencesL <- rep(NA, times = numRuns * numTrials) # true pos
+    num_incorrect_alphaL <- rep(NA, times = numRuns * numTrials) # species interaction incorrectInference
+    num_incorrect_betaL <- rep(NA, times = numRuns * numTrials) # covariate interaction incorrectInference
+    num_incorrectInferencesL <- rep(NA, times = numRuns * numTrials) # false pos (or wrong direction)
+    num_actualEffectsL <- rep(NA, times = numRuns * numTrials) # total actual effects
+    num_possibleEffectsL <- rep(NA, times = numRuns * numTrials) # n^2 + n*p -n (minus n because of the diagonal of alpha)
+    num_missedEffects_alphaL <- rep(NA, times = numRuns * numTrials)
+    num_missedEffects_betaL <- rep(NA, times = numRuns * numTrials)
+    num_missedEffectsL <- rep(NA, times = numRuns * numTrials)# false negatives
+    timeL <- rep(NA, times = numRuns * numTrials)
+    finished_trL <- rep(NA, times = numRuns * numTrials) # T or F whether this trial finished the INLA part
+    num_correct_clusterL <- rep(NA, times = numRuns * numTrials)
+    num_incorrect_clusterL <- rep(NA, times = numRuns * numTrials)
+    num_missed_clusterL <- rep(NA, times = numRuns * numTrials)
+    alpha_direction_mistakesL <- rep(NA, times = numRuns * numTrials)
+    alpha_incorrect_undirectedL <- rep(NA, times = numRuns * numTrials)
+    alpha_correct_undirectedL <- rep(NA, times = numRuns * numTrials)
+    TP_ignoreSign <- rep(NA, times = numRuns * numTrials)
+    FP_ignoreSign <- rep(NA, times = numRuns * numTrials)
+    TN_ignoreSign <- rep(NA, times = numRuns * numTrials)
+    FN_ignoreSign <- rep(NA, times = numRuns * numTrials)
+    TP_cluster <- rep(NA, times = numRuns * numTrials)
+    FP_cluster <- rep(NA, times = numRuns * numTrials)
+    TN_cluster <- rep(NA, times = numRuns * numTrials)
+    FN_cluster <- rep(NA, times = numRuns * numTrials)
+    TP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+    FP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+    TN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+    FN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+
     i <- 1
 
     # TODO get df of actual and predicted values to test if I am making the confusion mx wrong
@@ -186,7 +189,8 @@ for (cutoff in cutoffs) {
                             } else {
                                 thisCutoff <- cutoff
                             }
-                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...t.."] < thisCutoff) * sign(model_summary[covName, "Estimate"])
+                            betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...t.."] < thisCutoff) * 
+                                                            sign(model_summary[covName, "Estimate"])
                             if (cutoff == 0) {
                                 if (actualBeta[spNum, covNum] == 0) {
                                     t.values_0 <- c(t.values_0, model_summary[covName, "t.value"])
@@ -432,7 +436,6 @@ for (cutoff in cutoffs) {
 
     #print(fulldf)
     write.csv(fulldf, paste0(data_dir, outName, "_cutoff", cutoff, "_", numRuns, "sims.csv"))
-     
 }
 
 plotTvals <- TRUE
