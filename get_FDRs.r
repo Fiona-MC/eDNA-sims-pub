@@ -10,7 +10,7 @@ numSamples <- 10000
 logi <- TRUE # include logi
 ratio_of_avg <- TRUE
 bonferroni <- TRUE
-mode <- "ignore_sign" # "ignore_sign" "cluster" "ignore_direction"
+mode <- "ignore_direction" # "ignore_sign" "cluster" "ignore_direction"
 
 dirNames <- c("multiSim_10sp", "multiSim_100sp", "multiSim_10sp_random_moreSamples", "multiSim_100sp_random_moreSamples")
 

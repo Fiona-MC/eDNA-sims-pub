@@ -13,7 +13,7 @@
 #filtered=$5 #100
 
 # 10sp
-./scr_run_sparcc_simAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 100 0 1
+#./scr_run_sparcc_simAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 100 0 1
 ./scr_run_sparcc_simAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 10000 0 1
 
 #logi

@@ -20,11 +20,11 @@ do
 #./runLogisticSimAnalysis.sh ${sim_dir} ${numRuns} 1 ${numSamples} 
 #./runLogisticSimAnalysis.sh ${sim_dir} ${numRuns} 0 ${numSamples} 
 
-#./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 1 ${numSamples} 0 ${logi} ${filtered}
-#./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 0 ${numSamples} 0 ${logi} ${filtered}
+./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 1 ${numSamples} 0 ${logi} ${filtered}
+./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 0 ${numSamples} 0 ${logi} ${filtered}
 
-#./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 1 ${numSamples} 1 ${logi} ${filtered}
-#./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 0 ${numSamples} 1 ${logi} ${filtered}
+./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 1 ${numSamples} 1 ${logi} ${filtered}
+./run_ecoCopulaSimAnalysis.sh ${sim_dir} ${numRuns} 0 ${numSamples} 1 ${logi} ${filtered}
 
 #./run_spiecEasiSimAnalysis.sh ${sim_dir} ${numRuns} mb ${numSamples} ${logi} ${filtered}
 #./run_spiecEasiSimAnalysis.sh ${sim_dir} ${numRuns} glasso ${numSamples} ${logi} ${filtered}

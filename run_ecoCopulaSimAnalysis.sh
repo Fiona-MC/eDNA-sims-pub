@@ -87,8 +87,15 @@ for folder in ${folderNames[@]}; do
             # run sim analysis
             # 0 in here is
             Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${scramble} ${sitetab_name} ${covs}
+            
+            for cutoff in 1 2 3 4 5 6 7 8 9 10;
+            do
+                Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 0 ${cutoff} #recall that even if covs is true, beta is not inferred so this 0 is right
+            done
+
             # covs here should be 0 because this is whether it infers the covariates, whereas above it just controls for them
             Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 0 #recall that even if covs is true, beta is not inferred so this 0 is right
+
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
         #fi
     ) &
@@ -105,6 +112,11 @@ done
 # no more jobs to be started but wait for pending jobs
 # (all need to be finished)
 wait
+
+for cutoff in 1 2 3 4 5 6 7 8 9 10;
+do
+Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
+done
 
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
 

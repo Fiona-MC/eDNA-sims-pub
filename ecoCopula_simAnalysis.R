@@ -13,13 +13,14 @@ if (length(args) < 2) {
 
 data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
 save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/ecoCopula_res_cov/"
+scramble <- FALSE
+sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
+cov <- 1
 
 data_dir <- args[1]
 save_dir <- args[2]
 dir.create(save_dir)
-#scramble <- FALSE
 scramble <- (as.numeric(args[3]) == 1)
-#sitetab_name <- "sim_sitetab_sampled.csv"
 sitetab_name <- args[4]
 cov <- as.numeric(args[5])
 
@@ -76,6 +77,29 @@ for (trial in 1:numTrials) {
   # vvv changing these within reason did not reduce the number of inferred edges by much
   #cgr_sim <- cgr(fit0, n.lambda = 100, n.samp = 1000, method = "BIC")
   cgr_sim <- cgr(fit0)
+
+  # for ROC curve
+  lambdaL <- cgr_sim$all_graphs$lambda
+
+  for (i in seq(from = 1, to = length(lambdaL), length.out = 10)) {
+    lambda <- lambdaL[i]
+    cgr_sim_lamb <- cgr(fit0, lambda = lambda)
+    if (prec == TRUE) {
+      inferred_mx_lamb <- -1 * cgr_sim_lamb$best_graph$prec
+    } else {
+      inferred_mx_lamb <- cgr_sim_lamb$best_graph$cov
+    }
+
+    # get inferred alpha and beta (just 1's -1's and 0's )
+    inferenceRes_lamb <- list()
+    inferenceRes_lamb$alphaInferred <- sign(inferred_mx_lamb)
+    inferenceRes_lamb$betaInferred <- NA
+    # put 0s on diagonal
+    inferenceRes_lamb$alphaInferred <- inferenceRes_lamb$alphaInferred * as.integer(diag(nrow = numSpecies, ncol = numSpecies) == 0)
+    inferenceRes_lamb$lambda <- lambda
+
+    saveRDS(inferenceRes_lamb, paste0(subdir, "inferenceRes_cutoff", i, ".Rdata"))
+  }
 
   saveRDS(cgr_sim, file = paste0(subdir, "EC_res.Rdata"))
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-# ./run_sparcc_simAnalysis.sh /space/s1/fiona_callahan/multiSim_100sp 100 100 0 1
+# ./run_sparcc_simAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 100 0 1
 
 
 sim_dir=$1
@@ -21,8 +21,6 @@ fi
 
 
 numTrials=1 # I think as this is implemented right now this needs to be 1
-#seMethod=sparcc
-#seMethod=glasso
 
 plot=1
 covs=0 # not a real option here
@@ -50,21 +48,16 @@ done
 
 for folder in ${folderNames[@]}; do
     (
-        #if test ! -d "${folder}/${resDirName}/trial1" # if the folder is not already there NOT WORKING
-        #then
             echo "starting task $folder.."
             mkdir "${folder}/${resDirName}/" 
-            # process as abundance
-            # run INLA sim analysis
-            #for cutoff in 0.0000000000000001 0.00000001 0.00001 0.0001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.99 0.9999 1 0.005 0.04 0.06 0.08 0.125 0.15 0.175 0.25;
-            for cutoff in 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09;
+
+            # run sim analysis
+            for cutoff in pval_bootstrap 0.0000000000000001 0.00000001 0.00001 0.0001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.99 0.9999 1 0.005 0.04 0.06 0.08 0.125 0.15 0.175 0.25;
             do
-            Rscript sparcc_simAnalysis.r ${folder}/ ${folder}/${resDirName}/ ${cutoff} ${numTrials} ${sitetab_name}
-            # this ecoCopula one should work I think
+            Rscript ./sparcc_simAnalysis_pval.R ${folder}/ ${folder}/${resDirName}/ ${cutoff} ${numTrials} ${sitetab_name} 10
             Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ ${covs} ${cutoff}
             done
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why
-        #fi
     ) &
 
     # allow to execute up to $N jobs in parallel
@@ -73,7 +66,6 @@ for folder in ${folderNames[@]}; do
         # to be finished so there is a place to start next one.
         wait -n
     fi
-
 done
 
 # no more jobs to be started but wait for pending jobs
@@ -81,8 +73,7 @@ done
 wait
 
 # this ecoCopula one should still work
-#for cutoff in 0.0000000000000001 0.00000001 0.00001 0.0001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.99 0.9999 1 0.005 0.04 0.06 0.08 0.125 0.15 0.175 0.25;
-for cutoff in 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09;
+for cutoff in pval_bootstrap 0.0000000000000001 0.00000001 0.00001 0.0001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.99 0.9999 1 0.005 0.04 0.06 0.08 0.125 0.15 0.175 0.25;
 do
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
 done

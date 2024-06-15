@@ -2,7 +2,7 @@ library(ggplot2)
 library(gridExtra)
 library(stringr)
 
-nSp <- 100
+nSp <- 10
 dir_list <- c(paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp/"), 
             paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp/"), 
             paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp_random_moreSamples/"))
@@ -10,7 +10,7 @@ logiL <- c(TRUE, FALSE, FALSE)
 samplesL <- c(100, 10000)
 
 numRuns <- 100
-mode <- "ignore_direction" # "cluster" "ignore_sign" "ignore_direction"
+mode <- "cluster" # "cluster" "ignore_sign" "ignore_direction"
 ratio_of_avg <- FALSE
 
 full_ROC <- data.frame()

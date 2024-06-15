@@ -17,7 +17,11 @@ thisDir <- args[1]
 numRuns <- as.numeric(args[2])
 numTrials <- as.numeric(args[3])
 resFolderName <- args[4]
-cutoff <- as.numeric(args[5])
+cutoff <- args[5]
+
+if (cutoff != "pval_bootstrap") {
+ cutoff <- as.numeric(cutoff)
+}
 
 runs <- 1:numRuns
 trials <- 1:numTrials
