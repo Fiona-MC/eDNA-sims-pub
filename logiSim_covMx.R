@@ -10,7 +10,7 @@ args <- commandArgs(trailingOnly = TRUE)
 #sim_dir="/space/s1/fiona_callahan/multiSim_10sp"
 #for folder in ${sim_dir}/randomRun*; do (Rscript logiSim_covMx.R ${folder}/) done
 
-#data_dir <- "/space/s1/fiona_callahan/multiSim_50sp_testing/randomRun1/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
 data_dir <- args[1]
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 

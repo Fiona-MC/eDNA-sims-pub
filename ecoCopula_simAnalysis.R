@@ -79,10 +79,15 @@ for (trial in 1:numTrials) {
   cgr_sim <- cgr(fit0)
 
   # for ROC curve
-  lambdaL <- cgr_sim$all_graphs$lambda
+  lambdaL <- c(cgr_sim$all_graphs$lambda)
 
-  for (i in seq(from = 1, to = length(lambdaL), length.out = 10)) {
-    lambda <- lambdaL[i]
+  for (i in c(0, seq(from = 1, to = length(lambdaL), length.out = 10))) {
+    if (i == 0) {
+      lambda <- 0 
+    } else {
+      lambda <- lambdaL[i]
+    }
+    
     cgr_sim_lamb <- cgr(fit0, lambda = lambda)
     if (prec == TRUE) {
       inferred_mx_lamb <- -1 * cgr_sim_lamb$best_graph$prec

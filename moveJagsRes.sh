@@ -1,7 +1,7 @@
 
 numSpecies=10
 numRuns=100
-numSamples=10000
+numSamples=100
 
 # /space/s1/KaiyuanLi/data/JAGS/results/filtered/sp10_100_filtered/mistakes.csv
 
@@ -11,7 +11,7 @@ cp /space/s1/KaiyuanLi/data/JAGS/results/filtered/sp${numSpecies}_${numSamples}_
 # for random
 numSpecies=10
 numRuns=100
-numSamples=10000
+numSamples=100
 
 # /space/s1/KaiyuanLi/data/JAGS/results/filtered/sp10_100_filtered/mistakes.csv
 
@@ -23,7 +23,7 @@ cp /space/s1/KaiyuanLi/data/JAGS/results/filtered/sp${numSpecies}_${numSamples}_
 # for logi
 numSpecies=10
 numRuns=100
-numSamples=10000
+numSamples=100
 
 # /space/s1/KaiyuanLi/data/JAGS/results/filtered/sp10_100_filtered/mistakes.csv
 

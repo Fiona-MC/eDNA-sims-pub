@@ -182,7 +182,7 @@ getCovarData <- function(data_dirs, logi = FALSE, prec = FALSE, abd = TRUE, clus
         pcor_mx <- matrix(NA, nrow = params$numSpecies, ncol = params$numSpecies)
         for (sp1 in 1:params$numSpecies) {
             for (sp2 in 1:params$numSpecies) {
-                covar_mx[sp1, sp2] <- cov(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
+                covar_mx[sp1, sp2] <- cor(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
                 corr_mx[sp1, sp2] <- cor(sitetab[, paste0("Sp", sp1)], sitetab[, paste0("Sp", sp2)])
                 if (covariates) {
                     # what about after controlling for covariates? 
@@ -250,8 +250,8 @@ getCovarData <- function(data_dirs, logi = FALSE, prec = FALSE, abd = TRUE, clus
 }
 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp_random_moreSamples/"
-abd = FALSE
+data_dir <- "/space/s1/fiona_callahan/multiSim_100sp/"
+abd = TRUE
 data_dirs <- sapply(X = 1:100, FUN = function(num) {paste0(data_dir, "randomRun", num, "/")})
 plotData <- getCovarData(data_dirs, logi = FALSE, prec = FALSE, abd = abd, cluster = FALSE, covariates = FALSE, actualMx = FALSE)
 # what if we do absolute value of covariance?

@@ -19,8 +19,10 @@ numTrials <- as.numeric(args[3])
 resFolderName <- args[4]
 cutoff <- args[5]
 
+if (!is.na(cutoff)) {
 if (cutoff != "pval_bootstrap") {
  cutoff <- as.numeric(cutoff)
+}
 }
 
 runs <- 1:numRuns

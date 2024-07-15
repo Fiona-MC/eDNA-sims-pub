@@ -15,6 +15,10 @@ get_TPR <- function(data, mode = "ignore_sign", return_components = FALSE) {
         # tp/(tp+fn)
         TP <- data$TP_sign
         FN <- data$FN_sign
+    } else if (mode == "cluster_cov") {
+        # tp/(tp+fn)
+        TP <- data$TP_clusterCov
+        FN <- data$FN_clusterCov
     } else {
         print("mode get_TPR not implemented")
     }
@@ -39,6 +43,9 @@ get_FPR <- function(data, mode = "ignore_sign", return_components = FALSE) {
     } else if (mode == "sign") {
       FP <- data$FP_sign
       TN <- data$TN_sign
+    } else if (mode == "cluster_cov") {
+      FP <- data$FP_clusterCov
+      TN <- data$TN_clusterCov
     } else {
         print("mode get_FPR not implemented")
     }
@@ -63,6 +70,9 @@ get_precision <- function(data, mode = "ignore_sign", return_components = FALSE)
     } else if(mode == "sign") {
       TP <- data$TP_sign
       FP <- data$FP_sign 
+    } else if (mode == "cluster_cov") {
+      TP <- data$TP_clusterCov
+      FP <- data$FP_clusterCov
     } else {
         print("mode get_precision not implemented")
     }
@@ -87,6 +97,9 @@ get_recall <- function(data, mode = "ignore_sign", return_components = FALSE) {
     } else if (mode == "sign") {      
       TP <- data$TP_sign
       FN <- data$FN_sign 
+    } else if (mode == "cluster_cov") {
+      TP <- data$TP_clusterCov
+      FN <- data$FN_clusterCov
     } else {
         print("mode get_recall not implemented")
     }
@@ -111,8 +124,11 @@ get_falseDiscovery <- function(data, mode = "ignore_sign", return_components = F
     } else if (mode == "sign") {      
       TP <- data$TP_sign
       FP <- data$FP_sign 
+    } else if (mode == "cluster_cov") {
+      TP <- data$TP_clusterCov
+      FP <- data$FP_clusterCov
     } else {
-        print("mode get_TPR not implemented")
+        print("mode get_falseDiscovery not implemented")
     }
     FDR <- FP / (FP + TP)
     if (return_components) {

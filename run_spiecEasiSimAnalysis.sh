@@ -60,10 +60,10 @@ for folder in ${folderNames[@]}; do
         #if test ! -d "${folder}/${resDirName}/trial1" # if the folder is not already there NOT WORKING
         #then
             echo "starting task $folder.."
-            mkdir "${folder}/${resDirName}/" 
+            #mkdir "${folder}/${resDirName}/" 
             # process as abundance
             # run INLA sim analysis
-            Rscript spiecEasi_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${seMethod} ${numTrials} ${sitetab_name}
+            #Rscript spiecEasi_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${seMethod} ${numTrials} ${sitetab_name}
             # this ecoCopula one should work I think
             Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ ${covs}
             sleep $(( (RANDOM % 3) + 1)) # choose random number 1, 2, or 3 and sleep for that long -- no idea why

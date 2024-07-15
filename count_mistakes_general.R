@@ -33,8 +33,10 @@ outdir <- args[2]
 covs <- (as.numeric(args[3]) == 1)
 cutoff <- args[4] # MUST BE LAST ARGUMENT because of if(!is.na(cutoff))
 
+if (!is.na(cutoff)) {
 if (cutoff != "pval_bootstrap") {
  cutoff <- as.numeric(cutoff)
+}
 }
 
 numRuns <- 1 # runs per folder (1 is correct)
@@ -84,6 +86,10 @@ TP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
 FP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
 TN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
 FN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+TP_clusterCov <- rep(NA, times = numRuns * numTrials)
+FP_clusterCov <- rep(NA, times = numRuns * numTrials)
+TN_clusterCov <- rep(NA, times = numRuns * numTrials)
+FN_clusterCov <- rep(NA, times = numRuns * numTrials)
 
 i <- 1
 for (run in 1:numRuns) {
@@ -112,17 +118,17 @@ for (run in 1:numRuns) {
             actualAlpha <- sign(simParms$alpha)
         }
 
-        if (covs) {
-            if (filtered) {
-                actualBeta <- simParms$filteredBeta
-            } else {
-                actualBeta <- sign(simParms$beta)
-            }
-            covTypes <- unlist(lapply(simParms$covVars, FUN = function(x) {return(x[["type"]])}))
-            if (dim(actualBeta)[2] == length(covTypes)) {
-                actualBeta <- actualBeta[, covTypes != "constant"]
-            }
+
+        if (filtered) {
+            actualBeta <- simParms$filteredBeta
+        } else {
+            actualBeta <- sign(simParms$beta)
         }
+        covTypes <- unlist(lapply(simParms$covVars, FUN = function(x) {return(x[["type"]])}))
+        if (dim(actualBeta)[2] == length(covTypes)) {
+            actualBeta <- actualBeta[, covTypes != "constant"]
+        }
+
 
         if (!is.na(cutoff)) {
             # check if the inference for this trial finished and store info
@@ -154,6 +160,23 @@ for (run in 1:numRuns) {
             connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
                                        (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
             # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
+
+            connectedCov_alpha_actual <- connected_alpha_actual
+            for (cov in 1:(simParms$numCovs - 1)) {
+                for (sp1 in 1:numSpecies) {
+                    for (sp2 in 1:numSpecies) {
+                        if (sp1 != sp2) {
+                            if (actualBeta[sp1, cov] != 0 && actualBeta[sp2, cov] != 0) {
+                                connectedCov_alpha_actual[sp1, sp2] <- 1
+                                connectedCov_alpha_actual[sp2, sp1] <- 1
+                            } 
+                        }
+                    }
+                }
+            }
+
+            connectedCov_alpha_inferred <- connected_alpha_inferred
+
             num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1)
             if (covs) {
                 num_correct_beta <- sum(inferredParms$betaInferred * actualBeta == 1)
@@ -219,6 +242,14 @@ for (run in 1:numRuns) {
                                     numSpecies # subtract diagonal
                 try(if (TP_cluster[i] + FP_cluster[i] + FN_cluster[i] + TN_cluster[i] != numSpecies^2 - numSpecies) 
                             {stop("count_mistakes_general.R something is wrong with the confusion mx in cluster")})
+
+                TP_clusterCov[i] <- sum(abs(connectedCov_alpha_inferred) * abs(connectedCov_alpha_actual) == 1, na.rm = TRUE) 
+                FP_clusterCov[i] <- sum((abs(connectedCov_alpha_inferred) == 1) & (abs(connectedCov_alpha_actual) == 0), na.rm = TRUE) 
+                FN_clusterCov[i] <- sum((abs(connectedCov_alpha_inferred) == 0) & (abs(connectedCov_alpha_actual) == 1), na.rm = TRUE) 
+                TN_clusterCov[i] <- sum((abs(connectedCov_alpha_inferred) == 0) & (abs(connectedCov_alpha_actual) == 0), na.rm = TRUE) - 
+                                    numSpecies #diagonal 
+                try(if (TP_clusterCov[i] + FP_clusterCov[i] + FN_clusterCov[i] + TN_clusterCov[i] != numSpecies^2 - numSpecies) 
+                            {stop("count_mistakes_general.R something is wrong with the confusion mx in clusterCov")})
             }
 
             # undirected meaning that a-->b iff b-->a in "actual alpha". This also ignores the sign.
@@ -385,7 +416,11 @@ df <- data.frame(sim_run = runL,
             TP_ignoreDirection = TP_ignoreDirection,
             FP_ignoreDirection = FP_ignoreDirection,
             TN_ignoreDirection = TN_ignoreDirection,
-            FN_ignoreDirection = FN_ignoreDirection)
+            FN_ignoreDirection = FN_ignoreDirection,
+            TP_clusterCov = TP_clusterCov,
+            FP_clusterCov = FP_clusterCov,
+            TN_clusterCov = TN_clusterCov,
+            FN_clusterCov = FN_clusterCov)
 
 # print(df)
 

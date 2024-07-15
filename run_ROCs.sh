@@ -6,6 +6,19 @@
 #logi <- as.numeric(args[4]) == 1
 #saveRes <- TRUE
 #covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
+Rscript ./get_ROC_stats.R multiSim_10sp cluster_cov 100 0
+Rscript ./get_ROC_stats.R multiSim_10sp cluster_cov 10000 0
+Rscript ./get_ROC_stats.R multiSim_10sp cluster_cov 100 1
+Rscript ./get_ROC_stats.R multiSim_10sp cluster_cov 10000 1
+Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples cluster_cov 100 0
+Rscript ./get_ROC_stats.R multiSim_10sp_random_moreSamples cluster_cov 10000 0
+
+Rscript ./get_ROC_stats.R multiSim_100sp cluster_cov 100 0
+Rscript ./get_ROC_stats.R multiSim_100sp cluster_cov 10000 0
+Rscript ./get_ROC_stats.R multiSim_100sp cluster_cov 100 1
+Rscript ./get_ROC_stats.R multiSim_100sp cluster_cov 10000 1
+Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples cluster_cov 100 0
+Rscript ./get_ROC_stats.R multiSim_100sp_random_moreSamples cluster_cov 10000 0
 
 Rscript ./get_ROC_stats.R multiSim_10sp cluster 100 0
 Rscript ./get_ROC_stats.R multiSim_10sp cluster 10000 0

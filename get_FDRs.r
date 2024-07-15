@@ -10,7 +10,7 @@ numSamples <- 10000
 logi <- TRUE # include logi
 ratio_of_avg <- TRUE
 bonferroni <- TRUE
-mode <- "ignore_direction" # "ignore_sign" "cluster" "ignore_direction"
+mode <- "cluster_cov" # "ignore_sign" "cluster" "ignore_direction" "cluster_cov"
 
 dirNames <- c("multiSim_10sp", "multiSim_100sp", "multiSim_10sp_random_moreSamples", "multiSim_100sp_random_moreSamples")
 
@@ -208,6 +208,7 @@ for (dirName in dirNames) { #iterate through sims
 
   for (i in seq_along(resNames)) {
     if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
+      #print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
       thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
       if (str_detect(resNames[i], "JAGS")) {
         cutoffIndex <- 9 # corresponds to 0.05
@@ -296,6 +297,13 @@ custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (noCov, pres-abs)",
                           "linearReg_noCov" = "linear (noCov)",     
                           "JAGS" = "JSDM-MCMC")
 
+
+if(logistic_cutoffs[1] == 0.05) {
+  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/FDR_stats_", numSamples, "samples_", mode, ".csv"))
+} else {
+  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/FDR_stats_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".csv"))
+}
+
 # Create the heatmap
 FDRplot <- ggplot(FDRs, aes(x = Simulation, y = Method, fill = FDR)) +
   geom_tile() +
@@ -336,11 +344,23 @@ DRplot <- ggplot(FDRs, aes(x = Simulation, y = Method, fill = totalDiscoveries))
   theme_minimal() + # You can change the theme as per your preference
   labs(x = "Simulation",
        y = "Method",
-       fill = "totalDiscoveries") +
+       fill = "Average Discoveries") +
   scale_x_discrete(labels = custom_labels_simulation) +  # Custom labels for the x-axis
   scale_y_discrete(labels = custom_labels_method) +      # Custom labels for the y-axis
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 14),  # Adjust the size value as needed
         axis.text.y = element_text(size = 14),  # Adjust the size value as needed
         axis.title = element_text(size = 14))   # Adjust the size value as needed
 
+
+if(logistic_cutoffs[1] == 0.05) {
+  ggsave(filename = paste0("/space/s1/fiona_callahan/DR_plot_", numSamples, "samples_", mode, ".pdf"), plot = FDRplot)
+} else {
+  ggsave(filename = paste0("/space/s1/fiona_callahan/DR_plot_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".pdf"), plot = FDRplot)
+}
+
+if(logistic_cutoffs[1] == 0.05) {
+  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/DR_stats_", numSamples, "samples_", mode, ".csv"))
+} else {
+  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/DR_stats_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".csv"))
+}
 #DRplot

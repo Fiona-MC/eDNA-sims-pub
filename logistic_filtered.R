@@ -7,12 +7,12 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/"
+data_dir <- "/space/s1/fiona_callahan/multiSim_100sp_logi0.5/"
 numRuns <- as.numeric(100)
 covs <- (as.numeric("1") == 1)
-logi <- (as.numeric("0") == 1)
-sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
-outName <- "logistic_mistakes_sampled100_cov_filtered_100runs"
+logi <- (as.numeric("1") == 1)
+sitetab_name <- "logiSim_sitetab_sampled250.csv"
+outName <- "logistic_mistakes_sampled250_cov_logi_100runs"
 countCovs <- FALSE
 
 data_dir <- args[1]
@@ -36,7 +36,9 @@ trials <- 1:1
 
 #cutoffs <- c(0, "bonferroni")
 cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 0.00005, 0.000005, "bonferroni")
+             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99991, 0.99993, 0.99995, 0.99997, 0.99999, 
+             0.999999, 0.9999999, 0.99999999, 1, 0.00005, 0.000005, "bonferroni")
+
 #cutoffs <- c(1e-128)
 
 # this is a hacky way to get the number of parms
@@ -119,6 +121,10 @@ for (cutoff in cutoffs) {
     FP_ignoreDirection <- rep(NA, times = numRuns * numTrials)
     TN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
     FN_ignoreDirection <- rep(NA, times = numRuns * numTrials)
+    TP_clusterCov <- rep(NA, times = numRuns * numTrials)
+    FP_clusterCov <- rep(NA, times = numRuns * numTrials)
+    TN_clusterCov <- rep(NA, times = numRuns * numTrials)
+    FN_clusterCov <- rep(NA, times = numRuns * numTrials)
 
     i <- 1
 
@@ -263,6 +269,24 @@ for (cutoff in cutoffs) {
                 connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
                                             (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
                 # Note: inferredParms$betaInferred * actualBeta == 1 if and only if both are 1 or both are -1
+
+
+                connectedCov_alpha_actual <- connected_alpha_actual
+                for (cov in 1:(simParms$numCovs - 1)) {
+                    for (sp1 in 1:numSpecies) {
+                        for (sp2 in 1:numSpecies) {
+                            if (sp1 != sp2) {
+                                if (actualBeta[sp1, cov] != 0 && actualBeta[sp2, cov] != 0) {
+                                    connectedCov_alpha_actual[sp1, sp2] <- 1
+                                    connectedCov_alpha_actual[sp2, sp1] <- 1
+                                } 
+                            }
+                        }
+                    }
+                }
+
+                connectedCov_alpha_inferred <- connected_alpha_inferred
+
                 num_correct_alpha <- sum(inferredParms$alphaInferred * actualAlpha == 1, na.rm = TRUE)
                 if (countCovs && covs) {
                     num_correct_beta <- sum(inferredParms$betaInferred * actualBeta == 1, na.rm = TRUE)
@@ -306,6 +330,11 @@ for (cutoff in cutoffs) {
                     FP_cluster[i] <- sum((abs(connected_alpha_inferred) == 1) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) 
                     FN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 1), na.rm = TRUE) 
                     TN_cluster[i] <- sum((abs(connected_alpha_inferred) == 0) & (abs(connected_alpha_actual) == 0), na.rm = TRUE) - 
+                                        numSpecies #diagonal 
+                    TP_clusterCov[i] <- sum(abs(connectedCov_alpha_inferred) * abs(connectedCov_alpha_actual) == 1, na.rm = TRUE) 
+                    FP_clusterCov[i] <- sum((abs(connectedCov_alpha_inferred) == 1) & (abs(connectedCov_alpha_actual) == 0), na.rm = TRUE) 
+                    FN_clusterCov[i] <- sum((abs(connectedCov_alpha_inferred) == 0) & (abs(connectedCov_alpha_actual) == 1), na.rm = TRUE) 
+                    TN_clusterCov[i] <- sum((abs(connectedCov_alpha_inferred) == 0) & (abs(connectedCov_alpha_actual) == 0), na.rm = TRUE) - 
                                         numSpecies #diagonal 
                 }
                 
@@ -430,7 +459,11 @@ for (cutoff in cutoffs) {
                 TP_ignoreDirection = TP_ignoreDirection,
                 FP_ignoreDirection = FP_ignoreDirection,
                 TN_ignoreDirection = TN_ignoreDirection,
-                FN_ignoreDirection = FN_ignoreDirection)
+                FN_ignoreDirection = FN_ignoreDirection,
+                TP_clusterCov = TP_clusterCov,
+                FP_clusterCov = FP_clusterCov,
+                TN_clusterCov = TN_clusterCov,
+                FN_clusterCov = FN_clusterCov)
 
     #print(df)
 

@@ -12,15 +12,16 @@ setwd("/home/fiona_callahan/eDNA_sims_code")
 
 #./get_ROC_stats.R multiSim_100sp_random_moreSamples 1 100 0
 
-mode <- "cluster_cov" # ignore_sign ignore_direction cluster cluster_cov
+mode <- "ignore_direction" # ignore_sign ignore_direction cluster cluster_cov
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
-numSamples <- 10000
-logi <- TRUE
+numSamples <- 100
+logi <- FALSE
 saveRes <- TRUE
 covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
-dirName <- c("multiSim_100sp")
+dirName <- c("multiSim_10sp")
 plot <- TRUE
+seMode <- "negOnly" # negOnly both
 
 mode <- args[2]
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
@@ -31,6 +32,7 @@ saveRes <- TRUE
 covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
 dirName <- c(args[1])
 plot <- FALSE
+seMode <- args[5] # "posOnly" # negOnly both
 
 if (logi) {
   filtered <- FALSE
@@ -43,84 +45,6 @@ multiSimRes <- data.frame()
 #resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
 #resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", 
 #              "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
-
-#ls /space/s1/fiona_callahan/multiSim_100
-logistic_cutoffs <- c(0, "bonferroni", 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-                      0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99991, 0.99993, 0.99995, 0.99997, 0.99999, 0.999999, 0.9999999, 0.99999999, 1)
-
-if (logi) {
-  log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                                paste0("logistic_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
-  log_resnames_covNoCount <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                      paste0("logistic_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})     
-} else {
-  if (filtered) {
-    log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                          paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
-    log_resnames_covNoCount <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                      paste0("logistic_mistakes_sampled", numSamples, "_cov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})                          
-  } else {
-    log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
-                              paste0("logistic_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
-  }
-}
-
-linear_cutoffs <- c(0, "bonferroni", 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
-             0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99999, 0.999999, 0.9999999, 0.99999999, 1, 0.00005, 0.000005)
-
-if (logi) {
-  lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
-                                paste0("linearReg_mistakes_sampled", numSamples, "_noCov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
-  lin_resnames_covNoCount <- sapply(X = linear_cutoffs, FUN = function(x) {
-                      paste0("linearReg_mistakes_sampled", numSamples, "_cov_logi_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})     
-} else {
-  if (filtered) {
-    lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
-                          paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
-    lin_resnames_covNoCount <- sapply(X = linear_cutoffs, FUN = function(x) {
-                      paste0("linearReg_mistakes_sampled", numSamples, "_cov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})                          
-  } else {
-    lin_resnames_noCov <- sapply(X = linear_cutoffs, FUN = function(x) {
-                              paste0("linearReg_mistakes_sampled", numSamples, "_noCov_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
-  }
-}
-
-#inla_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
-#inla_cutoffs <- c(0, 0.0000000000001, 0.0000001, 0.00001, .3, .5, .7, .9, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
-#inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_infResGathered_cutoff", x, ".csv")})
-
-#inla_cutoffs <- c(0, 0.0000000000001, 0.0000001, 0.00001, .3, .5, .7, .9, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
-#inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paperSep_infResGathered_cutoff", x, ".csv")})
-
-inla_cutoffs <- c(0, 1, 0.0000001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, .3, .5)
-if (logi) {
-  inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_logi_cov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-  inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_logi_noCov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-  inla_resnames_covNoCount <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_logi_covNoCount_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-} else {
-  if(filtered) {
-    inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_filtered_cov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-    inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_filtered_noCov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-    inla_resnames_covNoCount <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_filtered_covNoCount_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-  } else {
-    inla_resnames_cov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_cov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-    inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
-                        paste0("INLA_res_paperSep_sampled", numSamples, "_noCov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-  }
-}
-
-#inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
-#inla_resnames <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
-
-#inla_cutoffs <- c(0, 0.0000001, .3, .5, 1, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15)
-#inla_resnames_500 <- sapply(X = inla_cutoffs, FUN = function(x) {paste0("INLA_res_paper_sampled500_infResGathered_cutoff", x, ".csv")})
 if(logi) {
   seName1 <- paste0("spiecEasi_res_sampled", numSamples, "_mb_logi")
   seName2 <- paste0("spiecEasi_res_sampled", numSamples, "_glasso_logi")
@@ -134,190 +58,11 @@ if(logi) {
   }
 }
 
-sparcc_cutoffs <- c(0.0000000000000001, 0.00000001, 0.00001, 0.0001, 0.001, 0.01, 
-                    0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1,
-                   0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99, 0.9999, 1,
-                    0.005, 0.04, 0.06, 0.08, 0.125, 0.15, 0.175, 0.25)
-if (logi) {
-  sparcc_resnames <- sapply(X = sparcc_cutoffs, FUN = function(x) {
-                        paste0("sparcc_res_sampled", numSamples, "_logi_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-} else {
-  if(filtered) {
-    sparcc_resnames <- sapply(X = sparcc_cutoffs, FUN = function(x) {
-                        paste0("sparcc_res_sampled", numSamples, "_filtered_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-  } 
-}
 
-
-if (logi) {
-  ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_logi")
-  ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov_logi")
-  ecName3 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov_logi")
-  ecName4 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov_logi")
-} else {
-  if(filtered) {
-    ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_filtered")
-    ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov_filtered")
-    ecName3 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov_filtered")
-    ecName4 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov_filtered")
-  } else {
-    ecName1 <- paste0("ecoCopula_res_sampled", numSamples, "_noCov")
-    ecName2 <- paste0("ecoCopula_res_sampled", numSamples, "_cov")
-    ecName3 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov")
-    ecName4 <- paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov")
-  }
-}
-
-ec_cutoffs <- c(0, 1, 12, 23, 34, 45, 56, 67, 78, 89, 100)
-if (logi) {
-  ecNames1 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                paste0("ecoCopula_res_sampled", numSamples, "_noCov_logi", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-  ecNames2 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                paste0("ecoCopula_res_sampled", numSamples, "_cov_logi", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-  ecNames3 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov_logi", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-  ecNames4 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov_logi", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-} else {
-  if(filtered) {
-    ecNames1 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                  paste0("ecoCopula_res_sampled", numSamples, "_noCov_filtered", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-    ecNames2 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                  paste0("ecoCopula_res_sampled", numSamples, "_cov_filtered", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-    ecNames3 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                  paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov_filtered", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-    ecNames4 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                  paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov_filtered", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-  } else {
-    ecNames1 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                  paste0("ecoCopula_res_sampled", numSamples, "_noCov", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-    ecNames2 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                  paste0("ecoCopula_res_sampled", numSamples, "_cov", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-    ecNames3 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                  paste0("ecoCopula_res_readAbd_sampled", numSamples, "_noCov", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-    ecNames4 <- sapply(X = ec_cutoffs, FUN = function(cutoff) {
-                  paste0("ecoCopula_res_readAbd_sampled", numSamples, "_cov", "_infResGathered_cutoff", cutoff, "_", numRuns, "sims.csv")})
-  }
-}
-
-if (logi) {
-  inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_logi_infResGathered_", numRuns, "sims.csv")
-  jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_logi_", numRuns, "sims.csv")
-} else {
-  if (filtered) {
-    inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_filtered_infResGathered_", numRuns, "sims.csv")
-    jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_filtered_", numRuns, "sims.csv")
-  } else {
-    inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_infResGathered_", numRuns, "sims.csv")
-    jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_", numRuns, "sims.csv")
-  }
-}
-
-if(covMode == "all") { 
-  se_include <- TRUE
-  resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
-              ecNames1,
-              ecNames2,
-              ecNames3,
-              ecNames4,
-              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              sparcc_resnames,
-              inla1, 
-              inla_resnames_noCov,
-              inla_resnames_cov,
-              inla_resnames_covNoCount,
-              log_resnames_noCov,
-              log_resnames_covNoCount,
-              lin_resnames_noCov,
-              lin_resnames_covNoCount,
-              jags1)
-} else if (covMode == "cov") {
-  se_include <- FALSE
-  resNames <- c(inla1, 
-                inla_resnames_cov)
-} else if (covMode == "noCov") {
-  se_include <- TRUE
-  resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
-              ecNames1,
-              ecNames3,
-              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              sparcc_resnames,
-              inla_resnames_noCov,
-              log_resnames_noCov,
-              lin_resNames_noCov)
-} else if (covMode == "covNoCount") {
-  se_include <- FALSE
-  resNames <- c(paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
-              ecNames2,
-              ecNames4,
-              inla_resnames_covNoCount,
-              log_resnames_covNoCount,
-              lin_resnames_covNoCount,
-              jags1)
-} else if (covMode == "noCount") {
-  se_include <- TRUE
-  resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
-              ecNames1,
-              ecNames2,
-              ecNames3,
-              ecNames4,
-              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              sparcc_resnames,
-              inla1, 
-              inla_resnames_noCov,
-              inla_resnames_covNoCount,
-              log_resnames_noCov,
-              log_resnames_covNoCount,
-              lin_resnames_noCov,
-              lin_resnames_covNoCount,
-              jags1)
-} else {
-  print("covMode not a valid option")
-}
-#if (filtered) {
-#  seName1 <- "spiecEasi_res_sampled1000_mb_filtered100"
-#  seName2 <- "spiecEasi_res_sampled1000_glasso_filtered100"
-#  inla_resnames_noCov <- sapply(X = inla_cutoffs, FUN = function(x) {
-#                        paste0("INLA_res_paperSep_sampled", numSamples, "_noCov_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
-#  resNames <- c(log_resnames_noCov, 
-#              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
-#              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"),
-#              inla_resnames_noCov)
-#}
-
-# check if runs exist
-thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
-for (i in seq_along(resNames)) {
-  if(!file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
-    print("This file does not exist:")
-    print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
-  }
-}
-
-#for (i in seq_along(resNames)) {
-#  if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
-#    print("This file exists:")
-#    print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
-##  }
-#}
-
-#resNames <- c(inla_resnames,
- #             inla_resnames_500)
-
-#logistic_cutoffs <- c(0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
-#log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_logi_cutoff", x, ".csv")})
-#resNames <- log_resnames
+resNames <- c(
+            paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
+            paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
+            )
 
 
 thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
@@ -327,15 +72,6 @@ for (i in seq_along(resNames)) {
   if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
     #print(resNames[i])
     thisMultiSimRes <- fread(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
-
-    #debugging
-    #resName <- "linearReg_mistakes_sampled10000_noCov_logi_100runs_cutoff1e-04_100sims.csv"
-    #thisMultiSimRes <- fread(paste0("/space/s1/fiona_callahan/", dirName, "/", resName), header = TRUE)
-    #get_FPR(thisMultiSimRes, mode = "cluster", return_components = TRUE)
-    #get_TPR(thisMultiSimRes, mode = "cluster", return_components = TRUE)
-    # last modification time
-    #file_info <- file.info(paste0("/space/s1/fiona_callahan/", dirName, "/", resName))
-    #file_info$mtime #1:18
 
     thisMultiSimRes$totalMistakes <- thisMultiSimRes$num_incorrectInferences + thisMultiSimRes$num_missedEffectsL
     thisMultiSimRes$fp_fp_tp <- thisMultiSimRes$num_incorrectInferences / 
@@ -525,59 +261,8 @@ for (i in seq_along(multiSimResL)) {
     }
 }
 
+se_include <- TRUE
 if(se_include) {
-  multiples <- FALSE
-  if(multiples) {
-    # for spiec-easi, just put separate lines for a couple of individual sims rather than average
-    for (run in sample(1:numRuns, size = 5)) {
-      subdir <- paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/", seName2, "/trial1/")
-      se <- readRDS(paste0(subdir, "se_rawRes.Rdata"))
-      if (filtered) {
-        params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/paramsFiltered", numSamples, ".Rdata"))
-        actualAlpha <- params$filteredAlpha
-      } else {
-        params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
-        actualAlpha <- params$alpha
-      }
-
-      alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
-      numSpecies <- dim(actualAlpha)[1]
-
-      if (mode == "cluster") {
-        connected_alpha_actual <- (distances(alphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
-                                              (diag(nrow = dim(actualAlpha)[1], ncol = dim(actualAlpha)[1]) == 0)
-        alphaG <- graph_from_adjacency_matrix(connected_alpha_actual != 0, mode = "max")
-
-        se_inferred_alpha <- lapply(se$est$path, FUN = function(inferredAlpha) {
-          inferredAlphaG <- graph_from_adjacency_matrix(as.matrix(inferredAlpha != 0), mode = "max")
-          connected_alpha_inferred <- (distances(inferredAlphaG, v = 1:numSpecies, to = 1:numSpecies) != Inf) * 
-                                              (diag(nrow = dim(inferredAlpha)[1], ncol = dim(inferredAlpha)[1]) == 0)
-          return(connected_alpha_inferred)
-        })
-      } else {
-        se_inferred_alpha <- se$est$path
-      }
-
-      # theta = true_interactions
-      se.roc <- huge::huge.roc(se_inferred_alpha, theta = alphaG, verbose = FALSE)
-      avg_TPR <- c(avg_TPR, se.roc$tp)
-      avg_FPR <- c(avg_FPR, se.roc$fp)
-
-      TPR_sd <- c(TPR_sd, rep(NA, times = length(se.roc$fp))) 
-      FPR_sd <- c(FPR_sd, rep(NA, times = length(se.roc$fp)))
-
-      modelSelect <- c(modelSelect, rep(FALSE, times = length(se.roc$fp)))
-      numSamplesL <- c(numSamplesL, rep(NA, times = length(se.roc$fp)))
-      numSims <- c(numSims, rep(NA, times = length(se.roc$fp)))
-      numSp <- c(numSp, rep(NA, times = length(se.roc$fp)))
-
-      avg_precision <- c(avg_precision, rep(NA, times = length(se.roc$fp)))
-      avg_recall <- c(avg_recall, rep(NA, times = length(se.roc$fp)))
-      methods <- c(methods, rep(paste0("SpiecEasi", run), times = length(se.roc$fp)))
-      file <- c(file, rep(NA, times = length(se.roc$fp)))
-      thresholds <- c(thresholds, rep(NA, times = length(se.roc$fp)))
-    } 
-  }
 
   if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", paste0(seName1, "_infResGathered_", numRuns, "sims.csv")))) {
 
@@ -599,8 +284,15 @@ if(se_include) {
           actualBeta <- params$beta
         }
         # direction of alpha
-        #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
-        alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+        if (seMode == "posOnly") {
+            alphaG <- graph_from_adjacency_matrix(actualAlpha > 0, mode = "max")
+        } else if (seMode == "negOnly") {
+            alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+        } else {
+            #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+            alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+        }
+
         numSpecies <- dim(actualAlpha)[1]
 
         if (mode == "cluster") {
@@ -693,8 +385,15 @@ if(se_include) {
           actualAlpha <- params$beta
         }
         # direction
-        #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
-        alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+        if (seMode == "posOnly") {
+            alphaG <- graph_from_adjacency_matrix(actualAlpha > 0, mode = "max")
+        } else if (seMode == "negOnly") {
+            alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+        } else {
+            #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
+            alphaG <- graph_from_adjacency_matrix(actualAlpha != 0, mode = "max")
+        }
+
         numSpecies <- dim(actualAlpha)[1]
 
         if (mode == "cluster") {
@@ -836,6 +535,14 @@ if (saveRes) {
     saveName <- paste0(saveName, "_logi")
   }
 
+    if (seMode == "posOnly") {
+        saveName <- paste0(saveName, "_sePosOnly")
+    } else if (seMode == "negOnly") {
+        saveName <- paste0(saveName, "_seNegOnly")
+    } else {
+        saveName <- paste0(saveName, "_seBoth")
+    }
+
   write.csv(ROC_data, file = paste0(thisDir, "ROC_data_", saveName, ".csv"))
 
   if (plot) {
@@ -844,6 +551,3 @@ if (saveRes) {
   }
 }
 
-
-
-#ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/ROC_plot_sampled", numSamples, "_logi", logi, "_mode", mode, ".pdf"), plot = ROC_plot)

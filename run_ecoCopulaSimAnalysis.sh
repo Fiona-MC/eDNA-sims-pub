@@ -66,7 +66,7 @@ resDirName=${resDirName}_filtered
 fi
 
 
-N=1 # N=10 resulted in average usage around 30 cores
+N=3 # N=10 resulted in average usage around 30 cores
 # based on current rate with N=10 -- this should take ~6 days for 1000 runs (2 trials each)
 
 
@@ -86,9 +86,9 @@ for folder in ${folderNames[@]}; do
             mkdir "$folder/${resDirName}/" 
             # run sim analysis
             # 0 in here is
-            Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${scramble} ${sitetab_name} ${covs}
+            #Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${scramble} ${sitetab_name} ${covs}
             
-            for cutoff in 1 2 3 4 5 6 7 8 9 10;
+            for cutoff in 0 1 12 23 34 45 56 67 78 89 100;
             do
                 Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 0 ${cutoff} #recall that even if covs is true, beta is not inferred so this 0 is right
             done
@@ -113,7 +113,7 @@ done
 # (all need to be finished)
 wait
 
-for cutoff in 1 2 3 4 5 6 7 8 9 10;
+for cutoff in 0 1 12 23 34 45 56 67 78 89 100;
 do
 Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
 done
