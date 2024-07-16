@@ -23,10 +23,12 @@ Rscript ./multiSim_Mar2023.R /path/to/output/directory/ 1 100 1 10
 ```
 
 This depends on functions in the following files:
+
 multiSimFunctions.R
 multiSimParms.R
 
 This also depends on R libraries:
+
 library(ggplot2)
 library(reshape)
 library(gridExtra)
@@ -45,11 +47,20 @@ This will output the final simulated data.
 
 ### Pipelines 
 runLinearSimAnalysis_filtered.sh
+
 runLogisticSimAnalysis_filtered.sh
+
 runINLAsimAnalysis.sh (this analysis depends on scripts from https://github.com/wyc661217/Arctic_eDNA_2021)
+
+Additonal note about INLA: For parallelized analysis using slurm scripts: 
+run_INLA_oneRun.sh for each simulation run, followed by run_INLA_gatheringRes.sh
+
 run_sparcc_simAnalysis.sh
+
 run_spiecEasiSimAnalysis.sh
+
 run_ecoCopulaSimAnalysis.sh
+
 
 All of these files will output a mistakes.csv file with all of the information to make ROC curves or get FDR.
 
