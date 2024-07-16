@@ -62,7 +62,7 @@ run_spiecEasiSimAnalysis.sh
 run_ecoCopulaSimAnalysis.sh
 
 
-All of these files will output a mistakes.csv file with all of the information to make ROC curves or get FDR.
+All of these files will output a csv file with all of the information to make ROC curves or get FDR.
 
 ### Curves and plots
 get_ROC_stats.R will make a csv file with the statistics for all methods to make a ROC curve. 
