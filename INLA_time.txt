@@ -1,4 +1,4 @@
 starting task /space/s1/fiona_callahan/multiSim_100sp/randomRun1..
-Mon 15 Jul 2024 11:06:39 AM PDT
+Tue 16 Jul 2024 11:54:48 AM PDT
 none
-Rscript ./INLA_simAnalysis_paperSep.R /space/s1/fiona_callahan/multiSim_100sp/randomRun1/ /space/s1/fiona_callahan/multiSim_100sp/randomRun1/INLA_res_paperSep_sampled100_filtered/ sim_sitetab_sampled100_filtered.csv none 1
+Rscript ./INLA_simAnalysis_paperSep.R /space/s1/fiona_callahan/multiSim_100sp/randomRun1/ /space/s1/fiona_callahan/multiSim_100sp/randomRun1/INLA_res_paperSep_sampled10000_filtered/ sim_sitetab_sampled10000_filtered.csv none 1

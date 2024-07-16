@@ -16,7 +16,7 @@ mode <- "ignore_direction" # ignore_sign ignore_direction cluster cluster_cov
 ratio_of_avg <- FALSE #do we compute the average of the ratio or ratio of averages
 numRuns <- 100
 numSamples <- 100
-logi <- FALSE
+logi <- TRUE
 saveRes <- TRUE
 covMode <- "noCount" # "all" "noCov" "cov" "covNoCount" "noCount"
 dirName <- c("multiSim_10sp")
@@ -61,7 +61,7 @@ if(logi) {
 
 resNames <- c(
             paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
-            paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
+            paste0(seName2, "_infResGathered_", numRuns, "sims.csv")
             )
 
 
@@ -382,7 +382,7 @@ if(se_include) {
         } else {
           params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
           actualAlpha <- params$alpha
-          actualAlpha <- params$beta
+          actualBeta <- params$beta
         }
         # direction
         if (seMode == "posOnly") {

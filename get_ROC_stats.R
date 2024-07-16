@@ -690,7 +690,7 @@ if(se_include) {
         } else {
           params <- readRDS(paste0("/space/s1/fiona_callahan/", dirName, "/randomRun", run, "/params.Rdata"))
           actualAlpha <- params$alpha
-          actualAlpha <- params$beta
+          actualBeta <- params$beta
         }
         # direction
         #alphaG <- graph_from_adjacency_matrix(actualAlpha < 0, mode = "max")
