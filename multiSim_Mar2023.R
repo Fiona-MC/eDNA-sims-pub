@@ -11,17 +11,16 @@ library(data.table)
 source("./multiSimFunctions.R")
 source("./multiSimParms.R")
 
-# Note to self about a bug you're going to create someday: 
-# count_INLAmistakes is going to fail if there is a constant covariate that is not the last one in the list
-
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) < 3) {
   stop("input folder and runstart to run end need to be supplied", call. = FALSE)
 } 
-# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_examineSims/100sp_random/ 1 1
-# thisdir<-"/space/s1/fiona_callahan/multiSim5/"
-random <- TRUE
+# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_examineSims/100sp_random/ 1 100 1 100
+
+random <- as.numeric(args[4]) == 1
+nSp <- args[5]
+
 #parmSet <- "indep" # indep means that all alphas will be 0
 parmSet <- 1 # this is default
 # amount of generations to prime the sim before starting to record -- (not implemented TODO)
@@ -29,7 +28,7 @@ burn <- 100
 
 spNumMode <- "many"
 #nSp <- 2
-nSp <- 100
+
 readAbdMode <- TRUE
 saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
 saveLess <- TRUE

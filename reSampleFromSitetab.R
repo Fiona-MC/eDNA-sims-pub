@@ -9,7 +9,7 @@ numRuns <- 100
 
 resample <- TRUE # do you want to just copy the stuff or resample it?
 nSamplesL <- c(100, 10000)
-nSamplesL <- c(250)
+#nSamplesL <- c(250)
 #nSamplesL <- c(50, 100, 500, 1000)
 #nSamplesL <- c(1000, 10000)
 logi <- TRUE

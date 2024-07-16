@@ -1,3 +1,4 @@
+# used to delete simulations where too many species went extinct or were present at very low frequency.
 library(stats)
 library(igraph)
 library(stringr)

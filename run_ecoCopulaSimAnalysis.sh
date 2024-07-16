@@ -86,7 +86,7 @@ for folder in ${folderNames[@]}; do
             mkdir "$folder/${resDirName}/" 
             # run sim analysis
             # 0 in here is
-            #Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${scramble} ${sitetab_name} ${covs}
+            Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${scramble} ${sitetab_name} ${covs}
             
             for cutoff in 0 1 12 23 34 45 56 67 78 89 100;
             do
@@ -115,9 +115,9 @@ wait
 
 for cutoff in 0 1 12 23 34 45 56 67 78 89 100;
 do
-Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
+Rscript ./gather_inferenceRes_general.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
 done
 
-Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
+Rscript ./gather_inferenceRes_general.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
 
 echo "all done"

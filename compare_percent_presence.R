@@ -1,3 +1,5 @@
+#used to make figures showing percent presence of each species split by whether they had (inferred or actual) interactions
+
 library(stringr)
 library(ggplot2)
 library(gridExtra)

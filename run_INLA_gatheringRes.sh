@@ -58,15 +58,15 @@ ROC_mode="noModelSelect" # this will mean there is no WAIC selection for the one
 for cutoff in 0 1 0.0000001 0.001 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.15 .3 .5;
 do
 saveDirName=${resDirName}_cov
-Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
+Rscript ./gather_inferenceRes_general.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
 
 saveDirName=${resDirName}_noCov
-Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
+Rscript ./gather_inferenceRes_general.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
 
 saveDirName=${resDirName}_covNoCount
-Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
+Rscript ./gather_inferenceRes_general.R ${sim_dir}/ ${numRuns} ${numTrials} ${saveDirName} ${cutoff}
 done
 
-Rscript ./gather_inferenceRes_ecoCopula.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
+Rscript ./gather_inferenceRes_general.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName}
 
 echo "all done"

@@ -1,18 +1,7 @@
 library(ggplot2)
 library(reshape)
 library(gridExtra)
-library(jsonlite)
 
-
-getParms_json <- function(parmFile = "parameters.json") { #TODO this is not implemented at all
-  params <- fromJSON(parmFile)
-  for(parm in params) {
-    # check if random
-    # sample if random
-  }
-  # do a bunch of the transformaation and function stuff here
-  return(params)
-}
 
 #any number of species should work
 getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSetCov = "indep") { 
