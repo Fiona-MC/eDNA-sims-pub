@@ -2,7 +2,7 @@ library(ggplot2)
 library(gridExtra)
 library(stringr)
 
-nSp <- 100
+nSp <- 10
 dir_list <- c(paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp/"), 
             paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp/"), 
             paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp_random_moreSamples/"))
