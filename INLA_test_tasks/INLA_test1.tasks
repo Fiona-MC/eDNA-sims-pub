@@ -1,2 +1,0 @@
-./run_INLA_oneRun.sh /global/scratch/users/fionacallahan/multiSim_10sp_random 55 100
-./run_INLA_oneRun.sh /global/scratch/users/fionacallahan/multiSim_10sp_random 2 100
