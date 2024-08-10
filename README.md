@@ -50,6 +50,7 @@ runLinearSimAnalysis_filtered.sh
 
 runLogisticSimAnalysis_filtered.sh
 
+SDM-INLA:
 runINLAsimAnalysis.sh (this analysis depends on scripts from https://github.com/wyc661217/Arctic_eDNA_2021)
 
 Additonal note about INLA: For parallelized analysis using slurm scripts: 
