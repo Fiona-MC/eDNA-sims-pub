@@ -2,7 +2,6 @@ library(ggplot2)
 library(reshape)
 library(gridExtra)
 
-
 #any number of species should work
 getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSetCov = "indep") { 
     if (random == TRUE) {
@@ -270,22 +269,6 @@ getParms_many <- function(random = FALSE, parmSet = 1, numSpecies = 100, parmSet
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 getParms_5 <- function(random = FALSE, parmSet = 1) { # only for 5 species
     if (random == TRUE) {
         num_samples_time <- sample(x = 2:50, size = 1) # sample times per location
@@ -421,15 +404,6 @@ getParms_5 <- function(random = FALSE, parmSet = 1) { # only for 5 species
                num_samples_time = num_samples_time, num_samples_space = num_samples_space, radius = radius)
     return(params)
 }
-
-
-
-
-
-
-
-
-
 
 
 getParms <- function(random = TRUE, parmSet = 1) { # only for 3 species
