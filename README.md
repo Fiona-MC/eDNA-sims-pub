@@ -50,10 +50,16 @@ runLinearSimAnalysis_filtered.sh
 
 runLogisticSimAnalysis_filtered.sh
 
+SDM-INLA:
 runINLAsimAnalysis.sh (this analysis depends on scripts from https://github.com/wyc661217/Arctic_eDNA_2021)
 
 Additonal note about INLA: For parallelized analysis using slurm scripts: 
 run_INLA_oneRun.sh for each simulation run, followed by run_INLA_gatheringRes.sh
+
+JSDM-MCMC:
+JAGS_filtered.sh (fixed-parameter), JAGS_randompara.sh (random-parameter) (this analysis depends on scripts from https://besjournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1111%2F2041-210X.12180&file=mee312180-sup-0002-AppendixS1.pdf)
+
+Additonal note about JSDM-MCMC: The only difference between JAGS_filtered.sh and JAGS_randompara.sh is whether to delete the intercept column of environmental covariates in the simulated data or not.
 
 run_sparcc_simAnalysis.sh
 
@@ -69,7 +75,9 @@ get_ROC_stats.R will make a csv file with the statistics for all methods to make
 
 get_FDRs.r will make tables and plots with statistics for false discovery rates and overall discovery rates
 
-Both depend on confusion_stats.R
+Both depend on confusion_stats.R 
+
+ROC.R is the same as get_ROC_stats.R but only for JSDM_MCMC outputs
 
 ### Influence of specific parameters
 
