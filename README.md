@@ -17,9 +17,13 @@ Then, to create final sampled datasets: reSampleFromSitetab.R will re-sample ran
 
 Main code for the ecological simulations can be found in multiSim_Mar2023.R
 
+```
+Rscript ./multiSim.R /path/to/output/directory/ <number of runs> <random (1) or set parameter (0) mode> <number of species> <save less results for efficiency?>
+```
+
 To run 100 simulations, with random parameters and 10 species: 
 ```
-Rscript ./multiSim_Mar2023.R /path/to/output/directory/ 1 100 1 10
+Rscript ./multiSim.R /path/to/output/directory/ 100 1 10 0
 ```
 
 This depends on functions in the following files:
@@ -67,8 +71,7 @@ run_spiecEasiSimAnalysis.sh
 
 run_ecoCopulaSimAnalysis.sh
 
-
-All of these files will output a csv file with all of the information to make ROC curves or get FDR.
+All of these pipelines will output a csv file with all of the information to make ROC curves or get FDR.
 
 ### Curves and plots
 get_ROC_stats.R will make a csv file with the statistics for all methods to make a ROC curve. 
@@ -77,7 +80,7 @@ get_FDRs.r will make tables and plots with statistics for false discovery rates 
 
 Both depend on confusion_stats.R 
 
-ROC.R is the same as get_ROC_stats.R but only for JSDM_MCMC outputs
+ROC.R is the same as get_ROC_stats.R but only for JSDM_MCMC outputs.
 
 ### Influence of specific parameters
 
