@@ -1,50 +1,34 @@
-#setwd("/home/fiona_callahan/eDNA_sims_code")
-#library(Rlab)
 library(ggplot2)
 library(reshape)
 library(gridExtra)
-#install.packages(c('gapminder','gganimate','gifski'))
 library(gapminder)
-#install.packages("data.table")
 library(data.table)
-#library(gganimate)
 source("./multiSimFunctions.R")
 source("./multiSimParms.R")
 
+# Rscript ./multiSim.R /path/to/output/directory/ <number of runs> <random (1) or set parameter (0) mode> <number of species> <save less results for efficiency?>
+# Rscript ./multiSim.R /path/to/output/directory/ 100 1 10 0
+
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) < 3) {
-  stop("input folder and runstart to run end need to be supplied", call. = FALSE)
+if (length(args) < 4) {
+  stop("output folder, number of runs, random (0 or 1), number of species, and saveLess (0 or 1) need to be supplied", call. = FALSE)
 } 
-# Rscript ./multiSim_Mar2023.R /space/s1/fiona_callahan/multiSim_examineSims/100sp_random/ 1 100 1 100
 
-random <- as.numeric(args[4]) == 1
-nSp <- args[5]
-
-#parmSet <- "indep" # indep means that all alphas will be 0
-parmSet <- 1 # this is default
-# amount of generations to prime the sim before starting to record -- (not implemented TODO)
-burn <- 100
-
-spNumMode <- "many"
-#nSp <- 2
-
-readAbdMode <- TRUE
-saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
-saveLess <- TRUE
-
-#thisdir <- "/space/s1/fiona_callahan/multiSim_test2/"
 thisdir <- args[1]
-dir.create(thisdir)
+runend <- args[2]
+random <- as.numeric(args[3]) == 1
+nSp <- args[4]
+saveLess <- args[5]
 
-runstart <- args[2]
-runend <- args[3]
-runs <- runstart:runend
-#runs <- c(16,36,39,50,56,58,70,77,85)
-#runs <- c(5,6,22,38,59,81)
-#runs <- c(30,35,43)
-# controls whether sim_sitetab_longer.csv is created with all time points or just the sampled table
-longer <- FALSE 
+parmSet <- 1 # this is default for set-parameter mode
+burn <- 100 # amount of generations to prime the sim before starting to record -- (not implemented TODO)
+spNumMode <- "many"
+readAbdMode <- TRUE
+dir.create(thisdir)
+runs <- 1:runend
+saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
+longer <- FALSE # controls whether sim_sitetab_longer.csv is created with all time points or just the sampled table
 
 print(Sys.time())
 for (run in runs) {
@@ -114,7 +98,6 @@ for (run in runs) {
   }
   
   #Run simulation
-  #5 seconds for 64 locations and 1000 time steps
   ######################################################################
   #Run sim
   ######################################################################
@@ -138,8 +121,6 @@ for (run in runs) {
     
     FP_count <- 0
     
-    # TODO where should I implement adding squares of covariates?
-    # TODO think more about this normalization scheme -- normalizing at each time point across space
     # get covariates (normalize)
     covL_norm <- list()
     for (covNum in 1:params$numCovs) {
@@ -197,7 +178,6 @@ for (run in runs) {
       thisK[[s]] <- thisK_cov[[s]] + thisK_sp[[s]]
       thisK[[s]] <- apply(thisK[[s]], FUN = function(x) {max(x, 0.001)}, MARGIN = 1) # truncate at 0-ish
 
-
       # calculate new abundances
       # calculate noise
       dWt <- rnorm(n = params$numSpecies, mean = 0, sd = 1)
@@ -224,7 +204,7 @@ for (run in runs) {
       # truncate at 0 -- no negative populations
       thisN[[s]] <- apply(matrix(thisN[[s]]), FUN = function(x) {max(x, 0)}, MARGIN = 1)  # nolint: brace_linter.
       
-      if(readAbdMode) {
+      if (readAbdMode) { # this mode was used in the paper for BOTH read abundance and presence-abs data
         #lambdaDep <- params$indivSampleRate * thisN
         N_depDNA <- rbinom(n = params$numSpecies, size = as.integer(thisN[[s]]), p = params$indivSampleProb)
         lambdaReads <- params$readSampleRate * N_depDNA 
@@ -237,7 +217,6 @@ for (run in runs) {
         thisY[[s]] <- rbinom(n = params$numSpecies, size = 1, prob = detect_prob)
         
         # add false detections (positives)
-        # TODO how to add option of whether fpr changes with location and time?
         # fpr_mode = "constant" # fpr is constant 
         # sample an fpr for this time and location
         fpr_mode <- params$fpr$mode
@@ -282,9 +261,8 @@ for (run in runs) {
 
   #timePts<-1:params$num_gens #time points to "collect"
   timePts <- seq(from = 1, to = params$num_gens, by = 1)
-  if (longer) {
+  if (longer) { # this takes too long with many species
     # Wrangle data
-    #TODO -- this is taking WAY too long with more species lol
     sitetab_data <- numeric(length(timePts) * length(params$locList) * params$numSpecies * (7 + params$numCovs))
     i <- 1
     for (t in timePts){
@@ -311,16 +289,14 @@ for (run in runs) {
     namesCov <- sapply(1:params$numCov, FUN = function(cov) {paste0("Cov", cov)})
     names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "Presence", "Abundance")
     
-    # TODO this is taking a stupid long time
     fwrite(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
-    #write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer.csv"))
   }
   
   # sample from full sitetab
   time_pts_sample <- seq(from = 1, to = params$num_gens, by = round(params$num_gens / params$num_samples_time))
   locations_sample <- sort(sample(x = seq_along(locList), size = params$num_samples_space))
 
-  # Wrangle data into format for analysis
+  # put data into format for analysis
   # the 4 is for the spatial index, generation, x-location, and y-location
   sitetab_data_sampled <- numeric(length(time_pts_sample) * length(locations_sample) *
                     (4 + params$numCovs + params$numSpecies))
@@ -361,7 +337,6 @@ for (run in runs) {
   saveRDS(locList, paste0(subdir, "locList.Rdata"))
   saveRDS(covList, paste0(subdir, "covList.Rdata"))
   fwrite(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_sampled.csv"))
-  #write.csv(sim_sitetab_sampled, paste0(subdir, "sim_sitetab_sampled.csv"))
 
   if(readAbdMode) {
     if (longer) {
@@ -393,7 +368,6 @@ for (run in runs) {
       names(sim_sitetab_longer) <- c("labID", "Age", "Lat", "Long", namesCov, "Species", "ReadAbd", "Abundance")
 
       fwrite(sim_sitetab_longer, paste0(subdir, "sitetab_longer_readAbd.csv"))
-      #write.csv(sim_sitetab_longer, paste0(subdir, "sitetab_longer_readAbd.csv"))
     }
 
     # sample from full sitetab

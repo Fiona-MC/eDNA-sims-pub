@@ -4,12 +4,9 @@ library(gridExtra)
 library(fields)
 library(MASS)
 
-
 # Functions
-get_locations <- function(xdim = xdim1, ydim = ydim1, mode = "grid", xSplit = x_split, ySplit = y_split) {
+get_locations <- function(xdim, ydim, mode = "grid", xSplit, ySplit) {
   if (mode == "grid") {
-    # need to figure out the data type that's gonna be good for locations?
-    # why is r?
     thisX <- 0
     thisY <- 0
     locList <- list()
@@ -23,7 +20,7 @@ get_locations <- function(xdim = xdim1, ydim = ydim1, mode = "grid", xSplit = x_
       }
       thisY <- 0
     }
-  }else{
+  } else {
     print("mode not implemented yet in get_locations") 
   }
   return(locList)
@@ -44,26 +41,15 @@ mvnorm_inverse_covariance <- function(n_samples = 1, mean, inv_covariance) {
   return(samples)
 }
 
-# separable space-time covariance function
 spatial_covariance <- function(point1, point2, covar_scale_space) {
-  #point2 = c(loc2x, loc2y, t2)
   distance <- sqrt((point1[1] - point2[1])^2 + (point1[2] - point2[2])^2)
   spatial_covariance <- exp(-1 * distance / covar_scale_space)  # exponential Spatial covariance
-  # temporal_covariance <- exp(-1 * abs(point1[3] - point2[3]) / covar_scale_time) # exponential Temporal covariance
-  #return(spatial_covariance * temporal_covariance)
   return(spatial_covariance)
 }
 
 get_cov_gaussian <- function(locDF, meanVal, inv_covar_mx = inv_covar_mx) {
-    # for testing
-    #space_points.x <- seq(0, 10, length.out = 10)  # Adjust based on your space range
-    #space_points.y <- seq(0, 10, length.out = 10)  # Adjust based on your space range
-    #locDF <- expand.grid(locX = space_points.x, locY = space_points.y)
-    #covar_scale_space <- 30 
-
     # Generate random samples
     cov <- mvnorm_inverse_covariance(1, mean = rep(meanVal, nrow(locDF)), inv_covariance = inv_covar_mx)
-
     return(cov)
 }
 
@@ -74,7 +60,7 @@ get_cov_spTime <- function(locDF, time, inv_covar_mx = inv_covar_mx, temporalPer
   return(covVals)
 }
 
-#TODO make it so that you can just read covs in from other place
+# for covariates
 get_cov <- function(location, type = "peaks", coef1func = NA, coef2func = NA, t = NA, t_minus_1 = NA, params = params) {
   x <- location[1]
   y <- location[2]
@@ -123,9 +109,6 @@ abundanceEffectTransform <- function(mx, type = "none") {
     return(mx)
   }
 }
-
-
-
 
 makePlots <- function(sim_data = sim_data, params = params, locList = locList, locPlots = c(19, 8, 6, 37, 64, 46), outDir, sitetab_sampled, spList = c(1, 2, 3), readAbdMode = TRUE) { # nolint: line_length_linter.
     if (!readAbdMode) {
@@ -232,48 +215,8 @@ makePlots <- function(sim_data = sim_data, params = params, locList = locList, l
     }
     covplots <- arrangeGrob(grobs = covPlotsL)
     ggsave(covplots, file = paste0(outDir, "covPlots.png"), height = 8, width = 10)
-
-
-    #plot env over space
-    
-    #data wrangling
-    #x_coords <- lapply(locList, FUN = function(x) {return(x[1])})
-    #y_coords <- lapply(locList, FUN = function(x) {return(x[2])})
-    #env_df <- data.frame(s_index = seq_along(locList), x = unlist(x_coords), 
-    #                  y = unlist(y_coords)) 
-    #for (cov in 1:params$numCovs){
-      # TODO this covariate thing is jsut for one time point and that's misleading if they change thru time
-    #  env_df[[paste0("cov", cov, "_norm")]] <- covL_norm[[cov]]
-    #}
-    #for (k in 1:params$numSpecies){
-    #  envSp <- sapply(seq_along(locList), FUN = function(s_index) {return(params$beta[k, ] %*% covList[[s_index]])})
-    #  env_df[[paste0("species", k, "Environment")]] <- envSp
-    #}
-    
-    #plot environments
-    #aesNamesString <- lapply(1:params$numSpecies, FUN = function(sp) {paste0("species", sp, "Environment")})
-    #plot environment for each species over space
-    #envPlotsL <- lapply(aesNamesString, FUN = function(varName) {
-    #  p <- ggplot(env_df, aes_string(x = "x", y = "y", label = "s_index", color = varName)) +
-    #    geom_text() +
-    #    scale_color_gradient(low = "blue", high = "red")
-    #  return(p)
-    #})
-    #envPlots <- grid.arrange(grobs = envPlotsL)
-    
-    #Plot covariates for single time pt
-    #aesNamesString <- lapply(1:params$numCovs, FUN = function(cov) {paste0("cov", cov, "_norm")})
-    #covPlotsL <- lapply(aesNamesString, FUN = function(varName) {
-    #  p <- ggplot(env_df, aes_string(x = "x", y = "y", label = "s_index", color = varName)) +
-    #    geom_text() +
-    #    scale_color_gradient(low = "blue", high = "red")
-    #  return(p)
-    #})
-    # this is only for one time point --misleading if change thru time
-    #covPlots <- grid.arrange(grobs = covPlotsL)
 }
 
-#plot P(#reads>0) vs number of indiv
 plotDetectProb <- function(abdParms) {
     N_max <- 1000
     N_set <- seq(1, N_max, 10)
