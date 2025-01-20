@@ -3,10 +3,11 @@ library(gridExtra)
 library(stringr)
 
 mode_list <- c("ignore_sign", "ignore_direction", "cluster")
-samples_list <- c(100, 10000)
+samples_list <- c(100, 250, 10000)
+correct_method <- "bh"
 
 numRuns <- 100
-ratio_of_avg <- TRUE
+ratio_of_avg <- FALSE
 
 full_FDR <- data.frame()
 full_DR <- data.frame()
@@ -18,8 +19,8 @@ for (i in seq_along(mode_list)) {
 
     for (numSamples in samples_list) {
 
-        FDRs <- read.csv(file = paste0("/space/s1/fiona_callahan/FDR_stats_", numSamples, "samples_cutoffbonferroni_", mode, ".csv"))
-        DRs <- read.csv(file = paste0("/space/s1/fiona_callahan/DR_stats_", numSamples, "samples_cutoffbonferroni_", mode, ".csv"))
+        FDRs <- read.csv(file = paste0("/space/s1/fiona_callahan/sim_paper_stuff/FDR_stats_", numSamples, "samples_cutoff", correct_method, "_", mode, ".csv"))
+        DRs <- read.csv(file = paste0("/space/s1/fiona_callahan/sim_paper_stuff/DR_stats_", numSamples, "samples_cutoff", correct_method, "_", mode, ".csv"))
 
         full_FDR <- rbind(full_FDR, FDRs)
         full_DR <- rbind(full_DR, DRs)
@@ -29,48 +30,86 @@ for (i in seq_along(mode_list)) {
     }
 }
 
-nSamplesL <- sapply(nSamplesL, FUN = function(x) {paste(x, "samples")})
+nSamplesL <- sapply(nSamplesL, FUN = function(x) {
+                                      paste(x, "samples")
+                                      })
+nSamplesL_factor <- factor(nSamplesL, levels = c("100 samples", "250 samples", "10000 samples"))
+
 full_FDR$mistake_mode <- modeL
-full_FDR$Num_Samples <- as.factor(nSamplesL)
+full_FDR$Num_Samples <- nSamplesL_factor
 
 full_FDR$mistake_mode[full_FDR$mistake_mode == "cluster"] <- "indirect"
-full_FDR$mistake_mode[full_FDR$mistake_mode == "ignore_sign"] <- "direct"
+full_FDR$mistake_mode[full_FDR$mistake_mode == "ignore_direction"] <- "direct symmetric"
+full_FDR$mistake_mode[full_FDR$mistake_mode == "ignore_sign"] <- "direct causal"
 
 full_FDR$mistake_mode <- as.factor(full_FDR$mistake_mode)
 
 
 
 full_DR$mistake_mode <- modeL
-full_DR$Num_Samples <- as.factor(nSamplesL)
+full_DR$Num_Samples <- nSamplesL_factor
 
 full_DR$mistake_mode[full_DR$mistake_mode == "cluster"] <- "indirect"
-full_DR$mistake_mode[full_DR$mistake_mode == "ignore_sign"] <- "direct"
+full_DR$mistake_mode[full_DR$mistake_mode == "ignore_direction"] <- "direct symmetric"
+full_DR$mistake_mode[full_DR$mistake_mode == "ignore_sign"] <- "direct causal"
 
 full_DR$mistake_mode <- as.factor(full_DR$mistake_mode)
 
 
-custom_labels_simulation <- c("multiSim_10sp" = "Set parms, 10sp",
-                              "multiSim_10sp_logi" = "Covariance Mx, 10sp",
-                              "multiSim_100sp" = "Set parms, 100sp",
-                              "multiSim_100sp_logi" = "Covariance Mx, 100sp",
-                              "multiSim_10sp_random" = "Random parms, 10sp",
-                              "multiSim_100sp_random" = "Random parms, 100sp")
+custom_labels_simulation <- c("multiSim_10sp" = "Ecological (Set, 10 species)",
+                              "multiSim_10sp_logi" = "Covariance Mx alt, (10 species)",
+                              "multiSim_100sp" = "Ecological (Set, 100 species)",
+                              "multiSim_100sp_logi" = "Covariance Mx alt, 100 species",
+                              "multiSim_10sp_random" = "Ecological (Random, 10 species)",
+                              "multiSim_100sp_random" = "Ecological (Random, 100 species)",
+                              "multiSim_10sp_revision2_logi" = "Covariance Mx (no cov effect, 10 species)",
+                              "multiSim_100sp_revision2_logi" = "Covariance Mx (no cov effect, 100 species)",
+                              "multiSim_10sp_revision3_logi" = "Covariance Mx (+cov effect, 10 species)",
+                              "multiSim_100sp_revision3_logi" = "Covariance Mx (+cov effect, 100 species)")
 
-custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (noCov, pres-abs)",
-                          "ecoCopula_cov" = "ecoCopula (cov, pres-abs)",
-                          "ecoCopula_noCov_readAbd" = "ecoCopula (noCov, readAbd)",
-                          "ecoCopula_cov_readAbd" = "ecoCopula (cov, readAbd)",
-                          "spiecEasi_mb" = "spiecEasi (mb)",
-                          "spiecEasi_glasso" = "spiecEasi (glasso)",      
-                          "spiecEasi_sparcc" = "SPARCC",
-                          "INLA" = "SDM-INLA",              
-                          "logistic_cov" = "logistic (cov)",          
-                          "logistic_noCov" = "logistic (noCov)",
-                          "linearReg_cov" = "linear (cov)",
-                          "linearReg_noCov" = "linear (noCov)",     
-                          "JAGS" = "JSDM-MCMC")
-
-
+if (correct_method == "bonferroni") {
+  custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (no cov, pres-abs)",
+                            "ecoCopula_cov" = "ecoCopula (with cov, pres-abs)",
+                            "ecoCopula_noCov_readAbd" = "ecoCopula (no cov, read abd)",
+                            "ecoCopula_cov_readAbd" = "ecoCopula (with cov, read abd)",
+                            "spiecEasi_mb" = "spiecEasi (mb)",
+                            "spiecEasi_glasso" = "spiecEasi (glasso)",      
+                            "spiecEasi_sparcc" = "SPARCC",
+                            "INLA" = "SDM-INLA",              
+                            "logistic_cov" = "logistic (with cov, Bonferroni adj)",          
+                            "logistic_noCov" = "logistic (no cov, Bonferroni adj)",
+                            "linearReg_cov" = "linear (with cov, Bonferroni adj)",
+                            "linearReg_noCov" = "linear (no cov, Bonferroni adj)",     
+                            "JAGS" = "JSDM-MCMC")
+} else if (correct_method == "bh") {
+  custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (no cov, pres-abs)",
+                            "ecoCopula_cov" = "ecoCopula (with cov, pres-abs)",
+                            "ecoCopula_noCov_readAbd" = "ecoCopula (no cov, read abd)",
+                            "ecoCopula_cov_readAbd" = "ecoCopula (with cov, read abd)",
+                            "spiecEasi_mb" = "spiecEasi (mb)",
+                            "spiecEasi_glasso" = "spiecEasi (glasso)",      
+                            "spiecEasi_sparcc" = "SPARCC",
+                            "INLA" = "SDM-INLA",              
+                            "logistic_cov" = "logistic (with cov, BH adjusted)",          
+                            "logistic_noCov" = "logistic (no cov, BH adjusted)",
+                            "linearReg_cov" = "linear (with cov, BH adjusted)",
+                            "linearReg_noCov" = "linear (no cov, BH adjusted)",     
+                            "JAGS" = "JSDM-MCMC")
+} else {
+    custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (no cov, pres-abs)",
+                            "ecoCopula_cov" = "ecoCopula (with cov, pres-abs)",
+                            "ecoCopula_noCov_readAbd" = "ecoCopula (no cov, read abd)",
+                            "ecoCopula_cov_readAbd" = "ecoCopula (with cov, read abd)",
+                            "spiecEasi_mb" = "spiecEasi (mb)",
+                            "spiecEasi_glasso" = "spiecEasi (glasso)",      
+                            "spiecEasi_sparcc" = "SPARCC",
+                            "INLA" = "SDM-INLA",              
+                            "logistic_cov" = "logistic (with cov)",          
+                            "logistic_noCov" = "logistic (no cov)",
+                            "linearReg_cov" = "linear (with cov)",
+                            "linearReg_noCov" = "linear (no cov)",     
+                            "JAGS" = "JSDM-MCMC")
+}
 
 # Create the heatmap
 # Create the heatmap
@@ -115,7 +154,8 @@ DRplot <- ggplot(full_DR, aes(x = Simulation, y = Method, fill = totalDiscoverie
         plot.margin = margin(t = 10, r = 10, b = 30, l = 10)) +   # Adjust the size value as needed
   facet_grid(mistake_mode ~ Num_Samples)  # Facet by mode and Num_Samples
 
-print(DRplot)
-#ggsave("/space/s1/fiona_callahan/FDR_faceted_3.pdf")
+#print(DRplot)
 
-ggsave("/space/s1/fiona_callahan/DR_faceted_3.pdf", width = 16, height = 12)
+ggsave(plot = FDRplot, file = paste0("/space/s1/fiona_callahan/sim_paper_stuff/FDR_faceted_3_", correct_method, ".pdf"), width = 20, height = 12)
+
+ggsave(plot = DRplot, file = paste0("/space/s1/fiona_callahan/sim_paper_stuff/DR_faceted_3_", correct_method, ".pdf"), width = 24, height = 12)

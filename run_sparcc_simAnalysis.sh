@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-# ./run_sparcc_simAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 100 0 1
+# ./run_sparcc_simAnalysis.sh /space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test 1 10000 1 0
 
 
 sim_dir=$1

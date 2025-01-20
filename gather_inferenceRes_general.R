@@ -5,13 +5,13 @@ if (length(args) < 3) {
   stop("input folders need to be supplied", call. = FALSE)
 } 
 
-#Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_ecoCopula.R /space/s1/fiona_callahan/multiSim_5sp_testing/ 5 1
+#Rscript /home/fiona_callahan/eDNA_sims_code/gather_inferenceRes_general.R /space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test/ 5 1
 
-thisDir="/space/s1/fiona_callahan/savio/multiSim_10sp_random/"
-numRuns=100
+thisDir="/space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test/"
+numRuns=1
 numTrials=1
-resFolderName <- "INLA_res_paperSep_sampled100"
-#cutoff=0.05
+resFolderName <- "ecoCopula_res_readAbd_sampled10000_cov_logi"
+cutoff=23 # for eco copula, cutoff is an int not a float in [0,1]
 
 thisDir <- args[1]
 numRuns <- as.numeric(args[2])

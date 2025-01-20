@@ -25,7 +25,7 @@ sitetab_name <- args[5]
 dir.create(save_dir)
 
 # load data
-locList <- readRDS(paste0(data_dir, "locList.Rdata"))
+#locList <- readRDS(paste0(data_dir, "locList.Rdata"))
 params <- readRDS(paste0(data_dir, "params.Rdata"))
 #sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_logi.csv"))
 #sitetab_data <- read.csv(paste0(data_dir, "sitetab_abd_logi_dir.csv"))

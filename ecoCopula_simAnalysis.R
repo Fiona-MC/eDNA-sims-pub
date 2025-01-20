@@ -11,10 +11,10 @@ if (length(args) < 2) {
   stop("input and output files need to be supplied", call. = FALSE)
 } 
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
-save_dir <- "/space/s1/fiona_callahan/multiSim_10sp/randomRun1/ecoCopula_res_cov/"
+data_dir <- "/space/s1/fiona_callahan/sim_paper_stuff/multiSim_10sp_revision2/randomRun2/"
+save_dir <- "/space/s1/fiona_callahan/sim_paper_stuff/multiSim_10sp/randomRun2/ecoCopula_res_cov/"
 scramble <- FALSE
-sitetab_name <- "sim_sitetab_sampled100_filtered.csv"
+sitetab_name <- "logiSim_sitetab_sampled250.csv"
 cov <- 1
 
 data_dir <- args[1]
@@ -81,7 +81,7 @@ for (trial in 1:numTrials) {
   # for ROC curve
   lambdaL <- c(cgr_sim$all_graphs$lambda)
 
-  for (i in c(0, seq(from = 1, to = length(lambdaL), length.out = 10))) {
+  for (i in seq(from = 0, to = length(lambdaL), length.out = 51)) {
     if (i == 0) {
       lambda <- 0 
     } else {

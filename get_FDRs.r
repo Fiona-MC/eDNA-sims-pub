@@ -5,25 +5,41 @@ library(igraph)
 
 setwd("/home/fiona_callahan/eDNA_sims_code")
 
+# Rscript ~/eDNA_sims_code/get_FDRs.r 100 bh ignore_sign
+
 numRuns <- 100
 numSamples <- 10000
-logi <- TRUE # include logi
-ratio_of_avg <- TRUE
-bonferroni <- TRUE
-mode <- "cluster_cov" # "ignore_sign" "cluster" "ignore_direction" "cluster_cov"
+ratio_of_avg <- FALSE
+correct_method <- "bh" # "bonferroni" "bh" "none" # for linear and logistic regression
+mode <- "ignore_direction" # "ignore_sign" "cluster" "ignore_direction" "cluster_cov"
+# dont do this unless you change the names of the places it saves to -- this was for bonferroni supplement
+regOnly <- FALSE
 
-dirNames <- c("multiSim_10sp", "multiSim_100sp", "multiSim_10sp_random_moreSamples", "multiSim_100sp_random_moreSamples")
+args <- commandArgs(trailingOnly = TRUE)
+numSamples <- as.numeric(args[1])
+correct_method <- args[2] # "bonferroni" "bh" "none" # for linear and logistic regression
+mode <- args[3] # "ignore_sign" "cluster" "ignore_direction" "cluster_cov"
+regOnly <- FALSE
+
+
+
+dirNames <- c("multiSim_10sp", "multiSim_100sp", "multiSim_10sp_random_moreSamples", "multiSim_100sp_random_moreSamples", 
+          "multiSim_10sp_revision2", "multiSim_100sp_revision2", "multiSim_10sp_revision3", "multiSim_100sp_revision3")
+
+#dirNames <- c("multiSim_10sp", "multiSim_100sp")
+
+logi <- c(FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE) # is corresponding directory meant to be logi?
+#logi <- c(TRUE, TRUE) # is corresponding directory meant to be logi?
+
+spNumbers <- as.numeric(sub(".*_(\\d+)sp.*", "\\1", dirNames))
 
 source("./confusion_stats.R")
 
-#dirName <- c("multiSim_test2x10sp")
-#resNames <- c("ecoCopula_res_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", "INLA_infResGathered.csv", "logistic_mistakes.csv")
-#resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", 
-#              "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
-
-#ls /space/s1/fiona_callahan/multiSim_100
-if (bonferroni) {
+#ls /space/s1/fiona_callahan/sim_paper_stuff/multiSim_100
+if (correct_method == "bonferroni") {
   logistic_cutoffs <- c("bonferroni")
+} else if (correct_method == "bh") {
+  logistic_cutoffs <- c("bh")
 } else {
   logistic_cutoffs <- c(0.05)
 }
@@ -43,8 +59,10 @@ log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {
                             paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_", numRuns, "runs_cutoff", x, "_", numRuns, "sims.csv")})
 
 
-if (bonferroni) {
+if (correct_method == "bonferroni") {
   linear_cutoffs <- c("bonferroni")
+} else if (correct_method == "bh") {
+  linear_cutoffs <- c("bh")
 } else {
   linear_cutoffs <- c(0.05)
 }
@@ -111,9 +129,6 @@ sparcc_resnames <- sapply(X = sparcc_cutoffs, FUN = function(x) {
                     paste0("sparcc_res_sampled", numSamples, "_filtered_infResGathered_cutoff", x, "_", numRuns, "sims.csv")})
 
 
-
-
-
 ecName1_logi <- paste0("ecoCopula_res_sampled", numSamples, "_noCov_logi")
 ecName2_logi <- paste0("ecoCopula_res_sampled", numSamples, "_cov_logi")
 
@@ -134,28 +149,12 @@ jags1_logi <- paste0("JAGS_infResGathered_sampled", numSamples, "_logi_", numRun
 inla1 <- paste0("INLA_res_paperSep_sampled", numSamples, "_filtered_infResGathered_", numRuns, "sims.csv")
 jags1 <- paste0("JAGS_infResGathered_sampled", numSamples, "_filtered_", numRuns, "sims.csv")
 
-if(logi) {
-resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
-              sparcc_resnames,
-              inla1, 
-              #inla_resnames_noCov,
-              #inla_resnames_cov,
-              log_resnames_cov,
-              log_resnames_noCov,
-              lin_resnames_cov,
-              lin_resnames_noCov,
-              jags1,
-              paste0(ecName1_logi, "_infResGathered_", numRuns, "sims.csv"), 
+resNames_logi <- c(paste0(ecName1_logi, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(ecName2_logi, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(ecName3_logi, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(ecName4_logi, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1_logi, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName2_logi, "_infResGathered_", numRuns, "sims.csv"), 
+              #paste0(seName2_logi, "_infResGathered_", numRuns, "sims.csv"), 
               sparcc_resnames_logi,
               inla1_logi, 
               #inla_resnames_noCov,
@@ -165,13 +164,13 @@ resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"),
               lin_resnames_cov_logi,
               lin_resnames_noCov_logi,
               jags1_logi)
-} else {
-  resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
+
+resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
               paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
-              paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
+              #paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
               sparcc_resnames,
               inla1, 
               #inla_resnames_noCov,
@@ -181,8 +180,48 @@ resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"),
               lin_resnames_cov,
               lin_resnames_noCov,
               jags1)
-}
 
+resNames_logi_noReg <- c(paste0(ecName1_logi, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName2_logi, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName3_logi, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName4_logi, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(seName1_logi, "_infResGathered_", numRuns, "sims.csv"), 
+              #paste0(seName2_logi, "_infResGathered_", numRuns, "sims.csv"), 
+              sparcc_resnames_logi,
+              inla1_logi, 
+              #inla_resnames_noCov,
+              #inla_resnames_cov,
+              #log_resnames_cov_logi,
+              #log_resnames_noCov_logi,
+              #lin_resnames_cov_logi,
+              #lin_resnames_noCov_logi,
+              jags1_logi)
+
+resNames_noReg <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName2, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName3, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(ecName4, "_infResGathered_", numRuns, "sims.csv"), 
+              paste0(seName1, "_infResGathered_", numRuns, "sims.csv"), 
+              #paste0(seName2, "_infResGathered_", numRuns, "sims.csv"), 
+              sparcc_resnames,
+              inla1, 
+              #inla_resnames_noCov,
+              #inla_resnames_cov,
+              #log_resnames_cov,
+              #log_resnames_noCov,
+              #lin_resnames_cov,
+              #lin_resnames_noCov,
+              jags1)
+
+resNames_logi_regOnly <- c(log_resnames_cov_logi,
+              log_resnames_noCov_logi,
+              lin_resnames_cov_logi,
+              lin_resnames_noCov_logi)
+
+resNames_regOnly <- c(log_resnames_cov,
+              log_resnames_noCov,
+              lin_resnames_cov,
+              lin_resnames_noCov)
 
 
 ########################################
@@ -196,21 +235,40 @@ fnL <- c()
 fileNameL <- c()
 simL <- c()
 
-for (dirName in dirNames) { #iterate through sims
+for (ii in seq_along(dirNames)) { #iterate through sims
+  dirName <- dirNames[ii]
+  this_resNames <- resNames
+  if (spNumbers[ii] >= numSamples) { # p >= n, regression won't work
+    this_resNames <- resNames_noReg
+  }
+  if (logi[ii]) {
+    this_resNames <- resNames_logi
+    if (spNumbers[ii] >= numSamples) { # p >= n, regression won't work
+      this_resNames <- resNames_logi_noReg
+    }
+  } 
+  if (regOnly) {
+    this_resNames <- resNames_regOnly
+    if (logi[ii]) {
+      this_resNames <- resNames_logi_regOnly
+    }
+    if (spNumbers[ii] >= numSamples) { # p >= n, regression won't work
+      this_resNames <- c()
+    }
+  }
   # check if runs exist
-  thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
-  for (i in seq_along(resNames)) {
-    if(!file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
+  thisDir <-  paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/")
+  for (i in seq_along(this_resNames)) {
+    if (!file.exists(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", this_resNames[i]))) {
       print("This file does not exist:")
-      print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
+      print(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", this_resNames[i]))
     }
   }
 
-  for (i in seq_along(resNames)) {
-    if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
-      #print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
-      thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
-      if (str_detect(resNames[i], "JAGS")) {
+  for (i in seq_along(this_resNames)) {
+    if (file.exists(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", this_resNames[i]))) {
+      thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", this_resNames[i]), header = TRUE)
+      if (str_detect(this_resNames[i], "JAGS")) {
         cutoffIndex <- 9 # corresponds to 0.05
         thisMultiSimRes <- thisMultiSimRes[thisMultiSimRes$cutoff_val == cutoffIndex, ]
       } 
@@ -227,9 +285,9 @@ for (dirName in dirNames) { #iterate through sims
       fnL <- c(fnL, mean(thisTPR$FN, na.rm = TRUE))
       fdrL <- c(fdrL, mean(thisFDR$FDR, na.rm = TRUE))
       fprL <- c(fprL, mean(thisFPR$FPR, na.rm = TRUE))
-      fileNameL <- c(fileNameL, resNames[i])
+      fileNameL <- c(fileNameL, this_resNames[i])
       
-      if (str_detect(resNames[i], "_logi")) {
+      if (str_detect(this_resNames[i], "_logi")) {
         thisSim <- paste0(dirName, "_logi")
       } else {
         thisSim <- dirName
@@ -267,41 +325,75 @@ if (ratio_of_avg) {
   FDRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FDR = fpL / (fpL + tpL), FP = fpL, TP = tpL)
   FPRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FPR = fpL / (fpL + tnL))
 } else {
-  FDRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FDR = fdrL)
-  FPRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FPR = fprL)
+  FDRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FDR = fdrL, FP = fpL, TP = tpL)
+  FPRs <- data.frame(File = fileNameL, Method = methodL, Simulation = simL, FPR = fprL, FP = fpL, TP = tpL)
 }
 
-head(FPRs)
+head(FDRs)
 
 FDRs_filtered <- FDRs[!is.na(FDRs$FDR) & !is.nan(FDRs$FDR), ]
 FPRs_filtered <- FPRs[!is.na(FPRs$FPR) & !is.nan(FPRs$FPR), ]
 
-custom_labels_simulation <- c("multiSim_10sp" = "Set parms, 10sp",
-                              "multiSim_10sp_logi" = "Covariance Mx, 10sp",
-                              "multiSim_100sp" = "Set parms, 100sp",
-                              "multiSim_100sp_logi" = "Covariance Mx, 100sp",
-                              "multiSim_10sp_random" = "Random parms, 10sp",
-                              "multiSim_100sp_random" = "Random parms, 100sp")
+custom_labels_simulation <- c("multiSim_10sp" = "Ecological (Set, 10 species)",
+                              "multiSim_10sp_logi" = "Covariance Mx alt, (10 species)",
+                              "multiSim_100sp" = "Ecological (Set, 100 species)",
+                              "multiSim_100sp_logi" = "Covariance Mx alt, 100 species",
+                              "multiSim_10sp_random" = "Ecological (Random, 10 species)",
+                              "multiSim_100sp_random" = "Ecological (Random, 100 species)",
+                              "multiSim_10sp_revision2_logi" = "Covariance Mx (no cov, 10 species)",
+                              "multiSim_100sp_revision2_logi" = "Covariance Mx (no cov, 100 species)",
+                              "multiSim_10sp_revision3_logi" = "Covariance Mx (with cov, 10 species)",
+                              "multiSim_100sp_revision3_logi" = "Covariance Mx (with cov, 100 species)")
 
-custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (noCov, pres-abs)",
-                          "ecoCopula_cov" = "ecoCopula (cov, pres-abs)",
-                          "ecoCopula_noCov_readAbd" = "ecoCopula (noCov, readAbd)",
-                          "ecoCopula_cov_readAbd" = "ecoCopula (cov, readAbd)",
-                          "spiecEasi_mb" = "spiecEasi (mb)",
-                          "spiecEasi_glasso" = "spiecEasi (glasso)",      
-                          "spiecEasi_sparcc" = "SPARCC",
-                          "INLA" = "SDM-INLA",              
-                          "logistic_cov" = "logistic (cov)",          
-                          "logistic_noCov" = "logistic (noCov)",
-                          "linearReg_cov" = "linear (cov)",
-                          "linearReg_noCov" = "linear (noCov)",     
-                          "JAGS" = "JSDM-MCMC")
+if (linear_cutoffs == "bonferroni") {
+  custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula \n (no cov, pres-abs)",
+                            "ecoCopula_cov" = "ecoCopula \n (with cov, pres-abs)",
+                            "ecoCopula_noCov_readAbd" = "ecoCopula \n (no cov, read abd)",
+                            "ecoCopula_cov_readAbd" = "ecoCopula \n (with cov, read abd)",
+                            "spiecEasi_mb" = "spiecEasi (mb)",
+                            "spiecEasi_glasso" = "spiecEasi (glasso)",      
+                            "spiecEasi_sparcc" = "SPARCC",
+                            "INLA" = "SDM-INLA",              
+                            "logistic_cov" = "logistic \n (with cov, Bonferroni adj)",          
+                            "logistic_noCov" = "logistic \n (no cov, Bonferroni adj)",
+                            "linearReg_cov" = "linear \n (with cov, Bonferroni adj)",
+                            "linearReg_noCov" = "linear \n (no cov, Bonferroni adj)",     
+                            "JAGS" = "JSDM-MCMC")
+} else if (linear_cutoffs == "bh") {
+  custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula \n (no cov, pres-abs)",
+                            "ecoCopula_cov" = "ecoCopula \n (with cov, pres-abs)",
+                            "ecoCopula_noCov_readAbd" = "ecoCopula \n (no cov, read abd)",
+                            "ecoCopula_cov_readAbd" = "ecoCopula \n (with cov, read abd)",
+                            "spiecEasi_mb" = "spiecEasi (mb)",
+                            "spiecEasi_glasso" = "spiecEasi (glasso)",      
+                            "spiecEasi_sparcc" = "SPARCC",
+                            "INLA" = "SDM-INLA",              
+                            "logistic_cov" = "logistic \n (with cov, BH adjusted)",          
+                            "logistic_noCov" = "logistic \n (no cov, BH adjusted)",
+                            "linearReg_cov" = "linear \n (with cov, BH adjusted)",
+                            "linearReg_noCov" = "linear \n (no cov, BH adjusted)",     
+                            "JAGS" = "JSDM-MCMC")
+} else {
+    custom_labels_method <- c("ecoCopula_noCov" = "ecoCopula (no cov, pres-abs)",
+                            "ecoCopula_cov" = "ecoCopula (with cov, pres-abs)",
+                            "ecoCopula_noCov_readAbd" = "ecoCopula (no cov, read abd)",
+                            "ecoCopula_cov_readAbd" = "ecoCopula (with cov, read abd)",
+                            "spiecEasi_mb" = "spiecEasi (mb)",
+                            "spiecEasi_glasso" = "spiecEasi (glasso)",      
+                            "spiecEasi_sparcc" = "SPARCC",
+                            "INLA" = "SDM-INLA",              
+                            "logistic_cov" = "logistic (with cov)",          
+                            "logistic_noCov" = "logistic (no cov)",
+                            "linearReg_cov" = "linear (with cov)",
+                            "linearReg_noCov" = "linear (no cov)",     
+                            "JAGS" = "JSDM-MCMC")
+}
 
 
 if(logistic_cutoffs[1] == 0.05) {
-  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/FDR_stats_", numSamples, "samples_", mode, ".csv"))
+  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/sim_paper_stuff/FDR_stats_", numSamples, "samples_", mode, ".csv"))
 } else {
-  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/FDR_stats_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".csv"))
+  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/sim_paper_stuff/FDR_stats_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".csv"))
 }
 
 # Create the heatmap
@@ -322,9 +414,9 @@ FDRplot <- ggplot(FDRs, aes(x = Simulation, y = Method, fill = FDR)) +
 FDRplot
 
 if(logistic_cutoffs[1] == 0.05) {
-  ggsave(filename = paste0("/space/s1/fiona_callahan/FDR_plot_", numSamples, "samples_", mode, ".pdf"), plot = FDRplot)
+  ggsave(filename = paste0("/space/s1/fiona_callahan/sim_paper_stuff/FDR_plot_", numSamples, "samples_", mode, ".pdf"), plot = FDRplot)
 } else {
-  ggsave(filename = paste0("/space/s1/fiona_callahan/FDR_plot_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".pdf"), plot = FDRplot)
+  ggsave(filename = paste0("/space/s1/fiona_callahan/sim_paper_stuff/FDR_plot_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".pdf"), plot = FDRplot)
 }
 #ggplot(FPRs_filtered, aes(x = Simulation, y = Method, fill = FPR)) +
 #  geom_tile() +
@@ -351,16 +443,17 @@ DRplot <- ggplot(FDRs, aes(x = Simulation, y = Method, fill = totalDiscoveries))
         axis.text.y = element_text(size = 14),  # Adjust the size value as needed
         axis.title = element_text(size = 14))   # Adjust the size value as needed
 
-
-if(logistic_cutoffs[1] == 0.05) {
-  ggsave(filename = paste0("/space/s1/fiona_callahan/DR_plot_", numSamples, "samples_", mode, ".pdf"), plot = FDRplot)
+if (logistic_cutoffs[1] == 0.05) {
+  ggsave(filename = paste0("/space/s1/fiona_callahan/sim_paper_stuff/DR_plot_", numSamples, "samples_", mode, ".pdf"), plot = FDRplot)
 } else {
-  ggsave(filename = paste0("/space/s1/fiona_callahan/DR_plot_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".pdf"), plot = FDRplot)
+  ggsave(filename = paste0("/space/s1/fiona_callahan/sim_paper_stuff/DR_plot_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".pdf"), plot = FDRplot)
 }
 
-if(logistic_cutoffs[1] == 0.05) {
-  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/DR_stats_", numSamples, "samples_", mode, ".csv"))
+if (logistic_cutoffs[1] == 0.05) {
+  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/sim_paper_stuff/DR_stats_", numSamples, "samples_", mode, ".csv"))
 } else {
-  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/DR_stats_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".csv"))
+  write.csv(FDRs, file = paste0("/space/s1/fiona_callahan/sim_paper_stuff/DR_stats_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".csv"))
 }
 #DRplot
+
+print(paste0("/space/s1/fiona_callahan/sim_paper_stuff/FDR_plot_", numSamples, "samples_cutoff", logistic_cutoffs[1], "_", mode, ".pdf"))

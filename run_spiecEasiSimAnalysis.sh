@@ -1,11 +1,14 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-# ./run_spiecEasiSimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 10 glasso 100 0 1
+# ./run_spiecEasiSimAnalysis.sh /space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test 1 glasso 100 1 0
 
-#sim_dir="/space/s1/fiona_callahan/multiSim_100"
-#numRuns=100
-#seMethod=mb #glasso sparcc
+sim_dir=/space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test
+numRuns=1
+seMethod=glasso
+numSamples=100
+logi=1
+filtered=0
 
 sim_dir=$1
 numRuns=$2

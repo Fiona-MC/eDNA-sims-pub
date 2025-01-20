@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=5
 
-# ./run_ecoCopulaSimAnalysis.sh /space/s1/fiona_callahan/multiSim_10sp 100 0
+# ./run_ecoCopulaSimAnalysis.sh /space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test 1 1 10000 1 1 0
 
 #sim_dir="/space/s1/fiona_callahan/multiSim_100"
 #numRuns=100
@@ -88,7 +88,8 @@ for folder in ${folderNames[@]}; do
             # 0 in here is
             Rscript ecoCopula_simAnalysis.R ${folder}/ ${folder}/${resDirName}/ ${scramble} ${sitetab_name} ${covs}
             
-            for cutoff in 0 1 12 23 34 45 56 67 78 89 100;
+            # for cutoff in 0 1 12 23 34 45 56 67 78 89 100;
+            for cutoff in {0..100..2};
             do
                 Rscript ./count_mistakes_general.R ${folder}/ ${folder}/${resDirName}/ 0 ${cutoff} #recall that even if covs is true, beta is not inferred so this 0 is right
             done
@@ -113,7 +114,8 @@ done
 # (all need to be finished)
 wait
 
-for cutoff in 0 1 12 23 34 45 56 67 78 89 100;
+# for cutoff in 0 1 12 23 34 45 56 67 78 89 100;
+for cutoff in {0..100..2};
 do
 Rscript ./gather_inferenceRes_general.R ${sim_dir}/ ${numRuns} ${numTrials} ${resDirName} ${cutoff}
 done

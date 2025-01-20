@@ -1,16 +1,21 @@
 library(ggplot2)
 library(gridExtra)
 library(stringr)
+library(dplyr)
 
-nSp <- 10
-dir_list <- c(paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp/"), 
-            paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp/"), 
-            paste0("/space/s1/fiona_callahan/multiSim_", nSp, "sp_random_moreSamples/"))
-logiL <- c(TRUE, FALSE, FALSE)
-samplesL <- c(100, 10000)
+nSp <- 100
+dir_list <- c(paste0("/space/s1/fiona_callahan/sim_paper_stuff/multiSim_", nSp, "sp/"), 
+            paste0("/space/s1/fiona_callahan/sim_paper_stuff/multiSim_", nSp, "sp_random_moreSamples/"),
+            paste0("/space/s1/fiona_callahan/sim_paper_stuff/multiSim_", nSp, "sp_revision2/"),
+            paste0("/space/s1/fiona_callahan/sim_paper_stuff/multiSim_", nSp, "sp_revision3/"))
+logiL <- c(FALSE, FALSE, TRUE, TRUE)
+samplesL <- c(100, 250, 10000)
 
+noGlasso <- TRUE
+no_PgeN <- TRUE
+correct_method <- "bh" # "bh" or "bonferroni"
 numRuns <- 100
-mode <- "cluster_cov" # "cluster" "ignore_sign" "ignore_direction" "cluster_cov"
+mode <- "cluster" # "cluster" "ignore_sign" "ignore_direction" "cluster_cov"
 ratio_of_avg <- FALSE
 
 full_ROC <- data.frame()
@@ -30,13 +35,20 @@ for (i in seq_along(dir_list)) {
 
 
         if (str_detect(thisDir, "random")) {
-            simSet <- "random parameters"
+            simSet <- "ecological (random params)"
         } else {
-            simSet <- "set parameters"
+            simSet <- "ecological (set params)"
+        }
+
+        if (str_detect(thisDir, "revision2")) {
+            simSet <- "covariance mx (no cov effect)"
+        }
+        if (str_detect(thisDir, "revision3")) {
+            simSet <- "covariance mx (+cov effect)"
         }
 
         if (logi) {
-            simSet <- "covariance matrix"
+            #simSet <- "covariance matrix"
             saveName <- paste0(saveName, "_logi")
         }
 
@@ -58,6 +70,26 @@ for (i in seq_along(dir_list)) {
 full_ROC$sim_set <- simSetL
 full_ROC$Num_Samples <- nSamplesL
 
+if (noGlasso) {
+    if (!sum(is.na(full_ROC$method)) == 0) {
+        print("WARNING: may be filtering because some of the full_ROC$method are NA")
+    }
+    full_ROC <- full_ROC[full_ROC$method != "spiecEasi_glasso" & full_ROC$method != "SpiecEasi_glasso", ]
+}
+
+if (no_PgeN) { # delete regression runs for 100 species and 100 samples bc p>=n is not allowed
+    if (!sum(is.na(full_ROC$method)) == 0) {
+        print("WARNING: may be filtering because some of the full_ROC$method are NA")
+    }
+    if (!sum(is.na(full_ROC$Num_Samples)) == 0) {
+        print("WARNING: may be filtering because some of the full_ROC$Num_Samples are NA")
+    }
+    regressionNames <- c("logistic_noCov", "logistic", "linear_noCov", "linear_cov")
+    # remember for each run of this file, nSp is constant
+    deleteRegression <- nSp >= as.numeric(full_ROC$Num_Samples) 
+    delete <- deleteRegression & (full_ROC$method %in% regressionNames)
+    full_ROC <- full_ROC[!delete, ]
+}
 
 custom_labeller <- function(variable, value) {
   if (variable == "Num_Samples") {
@@ -69,11 +101,25 @@ custom_labeller <- function(variable, value) {
 full_ROC$method[full_ROC$method == "spiecEasi_glasso"] <- "SpiecEasi_glasso"
 full_ROC$method[full_ROC$method == "spiecEasi_mb"] <- "SpiecEasi_mb"
 
+full_ROC$file[is.na(full_ROC$file)] <- "not recorded"
+
+if (correct_method == "bonferroni") {
+    # delete bh corrected lines (keep bonferroni)
+    full_ROC <- full_ROC[!str_detect(full_ROC$file, "bh"), ]
+} else if (correct_method == "bh") {
+    # delete bonferroni corrected lines (keep bh)
+    full_ROC <- full_ROC[!str_detect(full_ROC$file, "bonferroni"), ]
+}
+
+full_ROC[full_ROC$method == "ecoCopula_noCov",]
+full_ROC <- full_ROC %>%
+  arrange(sim_set, Num_Samples, method, avg_TPR)
+
 ROC_plot <- ggplot(full_ROC, aes(x = avg_FPR, y = avg_TPR, color = method, group = method)) +
         scale_shape_manual(values = 1:12) +
         #geom_point(size = 5, aes(shape = modelSelect)) +
         geom_point(data = subset(full_ROC, modelSelect == TRUE), size = 5) +  # Show points only when modelSelect = TRUE
-        stat_summary(aes(group = method), fun.y = mean, geom = "line", size = 1) +
+        stat_summary(data = subset(full_ROC, modelSelect == FALSE), aes(group = method), fun.y = mean, geom = "line", size = 1) +
         labs(x = "False Positive Rate (FPR)", y = "True Positive Rate (TPR)") +
         geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +   # Add y=x line (no skill)
         #geom_errorbar(aes(ymin = pmax(0, avg_TPR - TPR_sd), ymax = pmin(1, avg_TPR + TPR_sd)), width = 0.03) +  # Add TPR error bars
@@ -102,17 +148,17 @@ ROC_plot <- ggplot(full_ROC, aes(x = avg_FPR, y = avg_TPR, color = method, group
                                 "spiecEasi_glasso" = "SpiecEasi (glasso)", 
                                 "spiecEasi_mb" = "SpiecEasi (mb)",
                                 "sparcc" = "SPARCC",
-                                "INLA_noCov" = "SDM-INLA (noCov)", 
-                                "INLA_cov" = "SDM-INLA (cov)", 
-                                "ecoCopula_cov" = "ecoCopula (cov)", 
-                                "ecoCopula_noCov" = "ecoCopula (noCov)", 
-                                "ecoCopula_cov_readAbd" = "ecoCopula (cov readAbd)", 
-                                "ecoCopula_noCov_readAbd" = "ecoCopula (noCov readAbd)", 
-                                "logistic_noCov" = "Logistic (noCov)",
-                                "logistic_cov" = "Logistic (cov)",
-                                "logistic" = "Logistic (cov)",
-                                "linear_cov" = "Linear (cov)",
-                                "linear_noCov" = "Linear (noCov)",
+                                "INLA_noCov" = "SDM-INLA (no cov)", 
+                                "INLA_cov" = "SDM-INLA (with cov)", 
+                                "ecoCopula_cov" = "ecoCopula (with cov, pres-abs)", 
+                                "ecoCopula_noCov" = "ecoCopula (no cov, pres-abs)", 
+                                "ecoCopula_cov_readAbd" = "ecoCopula (with cov, read abd)", 
+                                "ecoCopula_noCov_readAbd" = "ecoCopula (no cov, read abd)", 
+                                "logistic_noCov" = "Logistic (no cov)",
+                                "logistic_cov" = "Logistic (with cov)",
+                                "logistic" = "Logistic (with cov)",
+                                "linear_cov" = "Linear (with cov)",
+                                "linear_noCov" = "Linear (no cov)",
                                 "JAGS" = "JSDM-MCMC"
                                 )) + # Manual color scale for method
         theme(text = element_text(size = 18))  + # Set the base size for all text elements
@@ -125,5 +171,5 @@ mean(full_ROC$FPR_sd[full_ROC$sim_set == "random parameters"], na.rm = TRUE)
 mean(full_ROC$FPR_sd[full_ROC$sim_set == "set parameters"], na.rm = TRUE)
 
 
-ggsave(paste0("/space/s1/fiona_callahan/facet_wrapped_plots_", nSp, "sp_", mode, ".pdf"), ROC_plot)
+ggsave(paste0("/space/s1/fiona_callahan/sim_paper_stuff/facet_wrapped_plots_", nSp, "sp_", mode, ".pdf"), ROC_plot, width = 16, height = 18)
 

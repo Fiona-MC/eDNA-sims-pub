@@ -16,7 +16,7 @@ multiSimRes <- data.frame()
 #resNames <- c("spiecEasi_res_glasso_infResGathered.csv", "spiecEasi_res_mb_infResGathered.csv", 
 #              "spiecEasi_res_sparcc_infResGathered.csv", "ecoCopula_res_noCov_infResGathered.csv")
 
-#ls /space/s1/fiona_callahan/multiSim_100
+#ls /space/s1/fiona_callahan/sim_paper_stuff/multiSim_100
 logistic_cutoffs <- c(0.05)
 #log_resnames_cov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _cov_2runs_cutoff", x, ".csv")})
 #log_resnames_noCov <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_sampled", numSamples, _noCov_2runs_cutoff", x, ".csv")})
@@ -149,18 +149,18 @@ resNames <- c(paste0(ecName1, "_infResGathered_", numRuns, "sims.csv"),
 #}
 
 # check if runs exist
-thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
+thisDir <-  paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/")
 for (i in seq_along(resNames)) {
-  if(!file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
+  if(!file.exists(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", resNames[i]))) {
     print("This file does not exist:")
-    print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
+    print(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", resNames[i]))
   }
 }
 
 #for (i in seq_along(resNames)) {
-#  if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
+#  if(file.exists(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", resNames[i]))) {
 #    print("This file exists:")
-#    print(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))
+#    print(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", resNames[i]))
 ##  }
 #}
 
@@ -171,14 +171,14 @@ for (i in seq_along(resNames)) {
 #log_resnames <- sapply(X = logistic_cutoffs, FUN = function(x) {paste0("logistic_mistakes_logi_cutoff", x, ".csv")})
 #resNames <- log_resnames
 
-file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", paste0("JAGS_infResGathered_sampled", numSamples, "_", numRuns, "sims.csv")))
+file.exists(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", paste0("JAGS_infResGathered_sampled", numSamples, "_", numRuns, "sims.csv")))
 
-thisDir <-  paste0("/space/s1/fiona_callahan/", dirName, "/")
+thisDir <-  paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/")
 # load results into list
 multiSimResL <- list()
 for (i in seq_along(resNames)) {
-  if(file.exists(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]))) {
-    thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/", dirName, "/", resNames[i]), header = TRUE)
+  if(file.exists(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", resNames[i]))) {
+    thisMultiSimRes <- read.csv(paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/", resNames[i]), header = TRUE)
     thisMultiSimRes$totalMistakes <- thisMultiSimRes$num_incorrectInferences + thisMultiSimRes$num_missedEffectsL
     thisMultiSimRes$fp_fp_tp <- thisMultiSimRes$num_incorrectInferences / 
                                 (thisMultiSimRes$num_correctInferences + thisMultiSimRes$num_incorrectInferences)

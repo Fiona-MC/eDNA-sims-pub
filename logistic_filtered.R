@@ -7,12 +7,12 @@ library(stringr)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-data_dir <- "/space/s1/fiona_callahan/multiSim_100sp_logi0.5/"
-numRuns <- as.numeric(100)
+data_dir <- "/space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test/"
+numRuns <- as.numeric(1)
 covs <- (as.numeric("1") == 1)
 logi <- (as.numeric("1") == 1)
-sitetab_name <- "logiSim_sitetab_sampled250.csv"
-outName <- "logistic_mistakes_sampled250_cov_logi_100runs"
+sitetab_name <- "logiSim_sitetab_sampled10000.csv"
+outName <- "logistic_mistakes_sampled10000_cov_logi_1runs"
 countCovs <- FALSE
 
 data_dir <- args[1]
@@ -37,7 +37,9 @@ trials <- 1:1
 #cutoffs <- c(0, "bonferroni")
 cutoffs <- c(0, 1e-128, 1e-64, 1e-32, 1e-16, 1e-8, 1e-4, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15,
              0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.9999, 0.99991, 0.99993, 0.99995, 0.99997, 0.99999, 
-             0.999999, 0.9999999, 0.99999999, 1, 0.00005, 0.000005, "bonferroni")
+             0.999999, 0.9999999, 0.99999999, 1, 0.00005, 0.000005, "bonferroni", "bh",
+             0.009, 0.008, 0.007, 0.006, 0.005, 0.004, 0.003, 0.002, 0.001, 0.011, 0.012, 0.013, 0.014, 0.015, 
+            1e-10, 1e-12, 1e-14, 1e-18, 1e-22, 1e-26, 1e-30, 1e-36, 1e-40, 1e-44, 1e-52, 1e-60, 1e-68, 1e-76, 1e-80, 1e-88, 1e-100)
 
 #cutoffs <- c(1e-128)
 
@@ -86,7 +88,7 @@ z.values_0 <- c()
 
 
 for (cutoff in cutoffs) {
-    if (cutoff != "bonferroni") {
+    if (cutoff != "bonferroni" && cutoff != "bh") {
         cutoff <- as.numeric(cutoff)
     }
 
@@ -187,7 +189,19 @@ for (cutoff in cutoffs) {
                 #simParmsFiltered <- readRDS(paste0(data_dir, "randomRun", run, "/paramsFiltered.Rdata"))
                 #actualBeta <- simParmsFiltered$filteredBeta
                 #actualAlpha <- simParmsFiltered$filteredAlpha
-
+                if (cutoff == "bh") {
+                    all_pvals <- c()
+                    for (spNum1 in 1:numSpecies) {
+                        model_summary <- sp_glm_L[[speciesNames[spNum1]]]
+                        all_pvals <- c(all_pvals, model_summary[, "Pr...z.."])
+                    }
+                    fdrs <- p.adjust(all_pvals, method = "BH")
+                    if (sum(fdrs < 0.05) == 0) { # none are significant
+                        bh_cutoff <- 0 
+                    } else {
+                        bh_cutoff <- max(all_pvals[fdrs < 0.05]) + 1 * 10^(-6)
+                    }
+                }
                 ############### GET INFERRED ALPHA AND BETA ######################
                 betaInferred <- matrix(NA, nrow = numSpecies, ncol = (simParms$numCovs - 1))
                 if (countCovs && covs) {
@@ -198,12 +212,14 @@ for (cutoff in cutoffs) {
                             model_summary <- sp_glm_L[[speciesName]]
                             if (cutoff == "bonferroni") {
                                 thisCutoff <- 0.05 / numSpecies^2
+                            } else if (cutoff == "bh") {
+                                thisCutoff <- bh_cutoff
                             } else {
                                 thisCutoff <- cutoff
                             }
                             betaInferred[spNum, covNum] <- (model_summary[covName, "Pr...z.."] < thisCutoff) * 
                                                             sign(model_summary[covName, "Estimate"])
-                            if (cutoff == 0) {
+                            if (cutoff == 0) { # this is just to do this only once
                                 if (actualBeta[spNum, covNum] == 0) {
                                     z.values_0 <- c(z.values_0, model_summary[covName, "z.value"])
                                 } else if (actualBeta[spNum, covNum] < 0) {
@@ -214,7 +230,7 @@ for (cutoff in cutoffs) {
                             }
                         }
                     }
-                    if(!is.na(sum(betaInferred)) && !randomSim && !filtered) {
+                    if (!is.na(sum(betaInferred)) && !randomSim && !filtered) {
                         avg_betInferred <- avg_betInferred + betaInferred
                         nCompleteB <- nCompleteB + 1
                     }   
@@ -222,12 +238,14 @@ for (cutoff in cutoffs) {
 
                 alphaInferred <- matrix(NA, nrow = numSpecies, ncol = numSpecies)
                 for (spNum1 in 1:numSpecies) {
+                    speciesName1 <- speciesNames[spNum1]
+                    model_summary <- sp_glm_L[[speciesName1]]
                     for (spNum2 in 1:numSpecies) {
-                        speciesName1 <- speciesNames[spNum1]
                         speciesName2 <- speciesNames[spNum2]
-                        model_summary <- sp_glm_L[[speciesName1]]
                         if (cutoff == "bonferroni") {
                             thisCutoff <- 0.05 / numSpecies^2
+                        } else if (cutoff == "bh") {
+                            thisCutoff <- bh_cutoff
                         } else {
                             thisCutoff <- cutoff
                         }
@@ -255,6 +273,9 @@ for (cutoff in cutoffs) {
                 inferredParms$alphaInferred <- alphaInferred
                 inferredParms$betaInferred <- betaInferred
                 inferredParms$cutoff <- cutoff
+                if (cutoff == "bh") {
+                    inferredParms$bh_cutoff <- bh_cutoff
+                }
                 
                 #numSamples <- as.numeric(str_extract(sitetab_name, "(?<=sampled)\\d+"))
                 savedir <- paste0(data_dir, "randomRun", run, "/", outName)

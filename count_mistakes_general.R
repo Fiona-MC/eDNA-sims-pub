@@ -23,8 +23,8 @@ if (length(args) < 2) {
 #covs <- (as.numeric(0) == 1)
 #cutoff <- as.numeric(NA)
 
-data_dir="/space/s1/fiona_callahan/multiSim_10sp/randomRun1/"
-outdir="/space/s1/fiona_callahan/multiSim_10sp/randomRun1/INLA_res_paperSep_sampled100_filtered_covNoCount/"
+data_dir="/space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test/randomRun1/"
+outdir="/space/s1/fiona_callahan/sim_paper_stuff/multiSim_100sp_revision_test/randomRun1/ecoCopula_res_readAbd_sampled10000_cov_logi/"
 covs=FALSE
 cutoff=0
 

@@ -20,21 +20,27 @@ dirNames <- c("multiSim_10sp_random_1000")
             #"INLA_res_paperSep_sampled10000_filtered_noCov_infResGathered_cutoff0.05_100sims.csv",
 #            "INLA_res_paperSep_sampled10000_filtered_covNoCount_infResGathered_cutoff0.05_100sims.csv")
 
-numSamples <- 10000
-bonferroni <- TRUE
-mode <- "ignore_direction"
-if (!bonferroni) {
+numSamples <- 100
+correct_method <- "bh" # "bh" "bonferroni" or "none"
+mode <- "ignore_direction" # "cluster" "ignore_direction"
+if (correct_method == "none") {
   resNames <- c(paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoff0.05_1000sims.csv"), 
               paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoff0.05_1000sims.csv"))
-} else {
+} else if (correct_method == "bonferroni") {
   resNames <- c(paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoffbonferroni_1000sims.csv"), 
               paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoffbonferroni_1000sims.csv"))
+} else if (correct_method == "bh") {
+  resNames <- c(paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoffbh_1000sims.csv"), 
+              paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_1000runs_cutoffbh_1000sims.csv"))
+} else {
+  print("correct_method must be bh, bonferroni, or none")
 }
 
 source("./confusion_stats.R")
 
-resName <- resNames[2]
+# resName <- resNames[2]
 plotL <- list()
+rf_resL <- list()
 for(resName in resNames) {
     method <- str_split(resName, pattern = "_")[[1]][1]
 
@@ -46,7 +52,7 @@ for(resName in resNames) {
 
     dirNameL <- c()
     for (dirName in dirNames) {
-    thisDir <- paste0("/space/s1/fiona_callahan/", dirName, "/")
+    thisDir <- paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/")
     thisMultiSimRes <- read.csv(paste0(thisDir, resName), header = TRUE)
     dirNameL <- c(dirNameL, rep(dirName, times = length(thisMultiSimRes$sim_run)))
     multiSimRes <- plyr::rbind.fill(multiSimRes, thisMultiSimRes)
@@ -81,6 +87,7 @@ for(resName in resNames) {
     # random forest res
     #rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "impurity") 
     rf_res <- ranger(data = multiSimRes_na.rm, formula = fmla, importance = "permutation") 
+    rf_resL[[method]] <- rf_res
     summary(rf_res)
     sort(importance(rf_res))
     importanceDF <- as.data.frame(sort(importance(rf_res)))
@@ -89,17 +96,17 @@ for(resName in resNames) {
 
     # Create a named vector for LaTeX mappings
   latex_mappings <- c(
-    "radius" = "$d_{mig}$",
-    "covMeasureNoise_sd" = "$\\sigma_{cov}$",
+    "radius" = "$d$",
+    "covMeasureNoise_sd" = "$\\sigma_{x}$",
     "r" = "$r$",
     "sigma" = "$\\sigma$",
     "c2" = "$c_2$",
-    "mean_mig_rate" = "$mean\\_mig\\_rate$",
-    "indivSampleProb" = "$pSample$",
-    "readSampleRate" = "$lambdaReads$",
-    "numCovs" = "$N_{cov}$",
-    "covar_scale_space" = "$covar\\_scale\\_space$",
-    "readThreshold" = "$R_{detect}$"
+    "mean_mig_rate" = "$\\mu_{M}$",
+    "indivSampleProb" = "$p_n$",
+    "readSampleRate" = "$\\lambda_a$",
+    "numCovs" = "$P$",
+    "covar_scale_space" = "$V$",
+    "readThreshold" = "$R$"
   )
 
   importanceDF$Parameter_TeX <- sapply(importanceDF$Parameter, function(x) latex_mappings[x])
@@ -110,14 +117,18 @@ for(resName in resNames) {
                         #"Sp1 Percent Presence", "Sp2 Percent Presence", "Sp3 Percent Presence"))
 
     #importanceDF <- merge(x = importanceDF, y = better_parmNames, by = "Parameter")
-
+    if (method == "linearReg") {
+      method_for_title <- "linear regression"
+    } else if (method == "logistic") {
+      method_for_title <- "logistic regression"
+    }  
 
     rf_importance_plot <- ggplot(importanceDF, aes(x = reorder(Parameter_TeX, RF_Importance), y = RF_Importance)) +
       geom_bar(stat = "identity", fill = "steelblue") +
       theme(axis.text.y = element_text(hjust = 1, size = 24), axis.title.x = element_text(size = 24), 
               axis.title.y = element_blank(), plot.margin = unit(c(1, 1, 1, 2), "cm")) +
       coord_flip() +
-      labs(y = "Random Forest Importance", title = paste(indep_var, "for", method)) +
+      labs(y = "Random Forest Importance", title = paste(indep_var, "for", method_for_title)) +
       scale_x_discrete(labels = function(x) TeX(x))
 
     
@@ -167,39 +178,39 @@ for(resName in resNames) {
   }
   rf_marginal_ice <- grid.arrange(grobs = ICEplotL[order(orderImportances, decreasing = TRUE)])
 
-  if (bonferroni) {
-    ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_ice_", method, "_bonferroni_sampled", numSamples, ".png"), 
+  if (correct_method == "none") {
+    ggsave(filename = paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/RF_ice_", method, "_cutoff0.05_sampled", numSamples, mode, ".pdf"), 
                 plot = rf_marginal_ice, width = 16, height = 16)
   } else {
-    ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_ice_", method, "_cutoff0.05_sampled", numSamples, ".png"), 
+    ggsave(filename = paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/RF_ice_", method, "_", correct_method, "_sampled", numSamples, mode, ".pdf"), 
                 plot = rf_marginal_ice, width = 16, height = 16)
   }
 
 }
 
 
-if(bonferroni) {
-ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_importance_allmethods_bonferroni_sampled", numSamples, ".pdf"), 
+if (correct_method == "none") {
+  ggsave(filename = paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/RF_importance_allmethods_cutoff0.05_sampled", numSamples, mode, ".pdf"), 
                 plot = grid.arrange(grobs = plotL), width = 16, height = 16)
 } else {
-ggsave(filename = paste0("/space/s1/fiona_callahan/", dirName, "/RF_importance_allmethods_cutoff0.05_sampled", numSamples, ".pdf"), 
+  ggsave(filename = paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/RF_importance_allmethods_", correct_method, "_sampled", numSamples, mode, ".pdf"), 
                 plot = grid.arrange(grobs = plotL), width = 16, height = 16)
 }
+
 
 
 
 ###### test set ########
+
+method <- "logistic" # "logistic" "linearReg"
+rf_res <- rf_resL[[method]]
+
 dirNames <- c("multiSim_10sp_random_testSet")
-if (bonferroni) {
-  resName <- paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoffbonferroni_100sims.csv")
-  resName <- paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoffbonferroni_100sims.csv")
-
+if (correct_method == "none") {
+  resName <- paste0(method, "_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoff0.05_100sims.csv")
 } else {
-  resName <- paste0("logistic_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoff0.05_100sims.csv")
-  resName <- paste0("linearReg_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoff0.05_100sims.csv")
+  resName <- paste0(method, "_mistakes_sampled", numSamples, "_noCov_filtered_100runs_cutoff", correct_method, "_100sims.csv")
 }
-
-method <- str_split(resName, pattern = "_")[[1]][1]
 
 if (str_detect(resName, "cov")) {
     method <- paste0(method, "_cov")
@@ -209,7 +220,7 @@ multiSimRes_test <- data.frame()
 
 dirNameL <- c()
 for (dirName in dirNames) {
-thisDir <- paste0("/space/s1/fiona_callahan/", dirName, "/")
+thisDir <- paste0("/space/s1/fiona_callahan/sim_paper_stuff/", dirName, "/")
 thisMultiSimRes <- read.csv(paste0(thisDir, resName), header = TRUE)
 dirNameL <- c(dirNameL, rep(dirName, times = length(thisMultiSimRes$sim_run)))
 multiSimRes_test <- plyr::rbind.fill(multiSimRes_test, thisMultiSimRes)
@@ -228,9 +239,9 @@ randomParms <- c("radius", "covNoise_sd", "covMeasureNoise_sd", "r", "sigma",
 randomParmsVary <- as.vector(sapply(lapply(multiSimRes_test[, randomParms], unique), length) > 1)
 randomParms <- randomParms[as.vector(randomParmsVary)] # take out any that I've changed to not be random
 
-multiSimRes_test$FDR <- get_falseDiscovery(data = multiSimRes_test, mode = "ignore_sign", return_components = FALSE)
-multiSimRes_test$FPR <- get_FPR(data = multiSimRes_test, mode = "ignore_sign", return_components = FALSE)
-multiSimRes_test$TPR <- get_TPR(data = multiSimRes_test, mode = "ignore_sign", return_components = FALSE)
+multiSimRes_test$FDR <- get_falseDiscovery(data = multiSimRes_test, mode = mode, return_components = FALSE)
+multiSimRes_test$FPR <- get_FPR(data = multiSimRes_test, mode = mode, return_components = FALSE)
+multiSimRes_test$TPR <- get_TPR(data = multiSimRes_test, mode = mode, return_components = FALSE)
 
 indep_var <- "FDR"
 
