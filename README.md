@@ -1,5 +1,7 @@
 # eDNA-sims
 
+This repository contains code to generate the simulations, figures, and results from "Challenges in detecting ecological interactions using sedimentary ancient DNA data".
+
 ## Simulations
 ### Covariance Matrix simulation
 
