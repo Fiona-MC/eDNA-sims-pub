@@ -13,9 +13,10 @@ samplesL <- c(100, 250, 10000)
 
 noGlasso <- TRUE
 no_PgeN <- TRUE
+logistic_error_delete <- TRUE
 correct_method <- "bh" # "bh" or "bonferroni"
 numRuns <- 100
-mode <- "cluster" # "cluster" "ignore_sign" "ignore_direction" "cluster_cov"
+mode <- "ignore_direction" # "cluster" "ignore_sign" "ignore_direction" "cluster_cov"
 ratio_of_avg <- FALSE
 
 full_ROC <- data.frame()
@@ -89,6 +90,14 @@ if (no_PgeN) { # delete regression runs for 100 species and 100 samples bc p>=n 
     deleteRegression <- nSp >= as.numeric(full_ROC$Num_Samples) 
     delete <- deleteRegression & (full_ROC$method %in% regressionNames)
     full_ROC <- full_ROC[!delete, ]
+    if (logistic_error_delete) {
+        ## see 2025-01-20 -- glm.fit: fitted probabilities numerically 0 or 1 occurred
+        regressionNames <- c("logistic_noCov", "logistic")
+        # remember for each run of this file, nSp is constant
+        deleteRegression <- (nSp == 100) & (full_ROC$Num_Samples == 250) 
+        delete <- deleteRegression & (full_ROC$method %in% regressionNames)
+        full_ROC <- full_ROC[!delete, ]
+    }
 }
 
 custom_labeller <- function(variable, value) {
@@ -111,7 +120,7 @@ if (correct_method == "bonferroni") {
     full_ROC <- full_ROC[!str_detect(full_ROC$file, "bonferroni"), ]
 }
 
-full_ROC[full_ROC$method == "ecoCopula_noCov",]
+full_ROC[full_ROC$method == "ecoCopula_noCov", ]
 full_ROC <- full_ROC %>%
   arrange(sim_set, Num_Samples, method, avg_TPR)
 

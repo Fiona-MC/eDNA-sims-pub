@@ -8,6 +8,7 @@ correct_method <- "bh"
 
 numRuns <- 100
 ratio_of_avg <- FALSE
+logistic_error_delete <- TRUE
 
 full_FDR <- data.frame()
 full_DR <- data.frame()
@@ -29,6 +30,9 @@ for (i in seq_along(mode_list)) {
         nSamplesL <- c(nSamplesL, rep(numSamples, times = dim(FDRs)[1]))
     }
 }
+
+full_FDR$numSpecies <- as.numeric(gsub(".*_(\\d+)sp.*", "\\1", full_FDR$Simulation))
+full_FDR$numSamples <- nSamplesL
 
 nSamplesL <- sapply(nSamplesL, FUN = function(x) {
                                       paste(x, "samples")
@@ -55,6 +59,13 @@ full_DR$mistake_mode[full_DR$mistake_mode == "ignore_sign"] <- "direct causal"
 
 full_DR$mistake_mode <- as.factor(full_DR$mistake_mode)
 
+if (logistic_error_delete) {
+  ## see 2025-01-20 -- glm.fit: fitted probabilities numerically 0 or 1 occurred
+  regressionNames <- c("logistic_noCov", "logistic_cov")
+  deleteRegression <- (full_FDR$numSpecies == 100) & (full_FDR$numSamples == 250) 
+  delete <- deleteRegression & (full_FDR$Method %in% regressionNames)
+  full_FDR <- full_FDR[!delete, ]
+}
 
 custom_labels_simulation <- c("multiSim_10sp" = "Ecological (Set, 10 species)",
                               "multiSim_10sp_logi" = "Covariance Mx alt, (10 species)",
