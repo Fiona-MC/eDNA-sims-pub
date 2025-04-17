@@ -1,13 +1,3 @@
-# Rscript make_parm_csv.R ${fullDir}/randomRun${run}/paramsFiltered${nsamp}.Rdata ${targetDir}/randomRun${run}/
-# Rscript make_parm_csv.R ${fullDir}/randomRun${run}/params.Rdata ${targetDir}/randomRun${run}/
-
-# Rscript make_parm_csv.R ${infile} ${outdir}
-
-# fullDir="/space/s1/fiona_callahan/sim_paper_stuff/multiSim_10sp"
-# targetDir="/space/s1/fiona_callahan/sim_paper_stuff/clean_data/multiSim_10sp"
-
-# fullDir="/space/s1/fiona_callahan/sim_paper_stuff/multiSim_10sp_revision2"
-# targetDir="/space/s1/fiona_callahan/sim_paper_stuff/clean_data/multiSim_10sp_revision2"
 
 library(jsonlite)
 library(stringr)
@@ -15,9 +5,6 @@ library(stringr)
 args <- commandArgs(trailingOnly = TRUE)
 infile <- args[1]
 outdir <- args[2]
-
-#infile <- "/space/s1/fiona_callahan/sim_paper_stuff/multiSim_10sp_revision2/randomRun1/params.Rdata"
-#outdir <- "/space/s1/fiona_callahan/sim_paper_stuff/clean_data/multiSim_10sp_revision2/randomRun1/"
 
 if (!dir.exists(outdir)) {
     dir.create(outdir)
