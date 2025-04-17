@@ -42,8 +42,8 @@ for run in {1..100};
 do
     for nsamp in 100 250 10000;
     do
-        cp ${fullDir}/randomRun${run}/logiSim_sitetab_readAbd_sampled${nsamp}_filtered.csv ${targetDir}/randomRun${run}/logiSim_sitetab_readAbd_sampled${nsamp}_filtered.csv
-        cp ${fullDir}/randomRun${run}/logiSim_sitetab_sampled${nsamp}_filtered.csv ${targetDir}/randomRun${run}/logiSim_sitetab_sampled${nsamp}_filtered.csv
+        cp ${fullDir}/randomRun${run}/logiSim_sitetab_readAbd_sampled${nsamp}.csv ${targetDir}/randomRun${run}/logiSim_sitetab_readAbd_sampled${nsamp}.csv
+        cp ${fullDir}/randomRun${run}/logiSim_sitetab_sampled${nsamp}.csv ${targetDir}/randomRun${run}/logiSim_sitetab_sampled${nsamp}.csv
     done
     # Rscript make_parm_csv.R ${infile} ${outdir}
     Rscript /home/fiona_callahan/eDNA_sims_code/make_parm_csv.R ${fullDir}/randomRun${run}/params.Rdata ${targetDir}/randomRun${run}/
@@ -61,8 +61,8 @@ for run in {1..100};
 do
     for nsamp in 100 250 10000;
     do
-        cp ${fullDir}/randomRun${run}/logiSim_sitetab_readAbd_sampled${nsamp}_filtered.csv ${targetDir}/randomRun${run}/logiSim_sitetab_readAbd_sampled${nsamp}_filtered.csv
-        cp ${fullDir}/randomRun${run}/logiSim_sitetab_sampled${nsamp}_filtered.csv ${targetDir}/randomRun${run}/logiSim_sitetab_sampled${nsamp}_filtered.csv
+        cp ${fullDir}/randomRun${run}/logiSim_sitetab_readAbd_sampled${nsamp}.csv ${targetDir}/randomRun${run}/logiSim_sitetab_readAbd_sampled${nsamp}.csv
+        cp ${fullDir}/randomRun${run}/logiSim_sitetab_sampled${nsamp}.csv ${targetDir}/randomRun${run}/logiSim_sitetab_sampled${nsamp}.csv
     done
     # Rscript make_parm_csv.R ${infile} ${outdir}
     Rscript /home/fiona_callahan/eDNA_sims_code/make_parm_csv.R ${fullDir}/randomRun${run}/params.Rdata ${targetDir}/randomRun${run}/
