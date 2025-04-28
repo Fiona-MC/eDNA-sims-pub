@@ -1,8 +1,6 @@
 library(ggplot2)
 library(reshape)
 library(gridExtra)
-library(fields)
-library(MASS)
 
 # Functions
 get_locations <- function(xdim, ydim, mode = "grid", xSplit, ySplit) {

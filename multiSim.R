@@ -1,7 +1,6 @@
 library(ggplot2)
-library(reshape)
 library(gridExtra)
-library(gapminder)
+library(reshape)
 library(data.table)
 source("./multiSimFunctions.R")
 source("./multiSimParms.R")
@@ -16,17 +15,16 @@ if (length(args) < 4) {
 } 
 
 thisdir <- args[1]
-runend <- args[2]
+numruns <- as.numeric(args[2])
 random <- as.numeric(args[3]) == 1
-nSp <- args[4]
-saveLess <- args[5]
+nSp <- as.numeric(args[4])
+saveLess <- as.numeric(args[5]) == 1
 
 parmSet <- 1 # this is default for set-parameter mode
-burn <- 100 # amount of generations to prime the sim before starting to record -- (not implemented TODO)
 spNumMode <- "many"
 readAbdMode <- TRUE
 dir.create(thisdir)
-runs <- 1:runend
+runs <- 1:numruns
 saveMore <- FALSE # do we wanna save the huge file that is all of the sim generations (not sampled)
 longer <- FALSE # controls whether sim_sitetab_longer.csv is created with all time points or just the sampled table
 
